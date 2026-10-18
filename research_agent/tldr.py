@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from .models import Flag, ResearchResult
-from .report_data import point_label
+from .report_data import intro_parts, point_label
 from .report_html import (
     AREA_LABELS,
     CitationIndex,
@@ -100,6 +100,13 @@ def _build(r: ResearchResult, ev: Evidence, report_url: str | None, max_words: i
     top: list[Flag] = []
     gaps: list[str] = []
 
+    # The company intro comes first on the card, so its citations are numbered first.
+    intro: list[dict[str, Any]] = []
+    if r.status in ("ok", "partial"):
+        for part in intro_parts(r):
+            cs = idx.for_quote(part["source_ids"], part["quote"], f"profile:{part['key']}")[:1]
+            intro.append({"key": part["key"], "text": part["text"], "citations": [c.num for c in cs]})
+
     def seg(text: str, kind: str, cites: list[int] | None = None, **extra: Any) -> None:
         segments.append({"text": text, "kind": kind, "citations": cites or [], **extra})
 
@@ -154,6 +161,7 @@ def _build(r: ResearchResult, ev: Evidence, report_url: str | None, max_words: i
         "not_assessed": gaps,
         "chips": chips,
         "segments": segments,
+        "intro": intro,
         "citations": cites,
         "report": {"url": report_url, "label": "Open full report"},
         "text": text,

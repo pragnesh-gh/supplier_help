@@ -668,6 +668,10 @@ def _month_key(f: Flag) -> str:
     return f"{f.event_type}|{d.year:04d}-{d.month:02d}" if d else f"{f.event_type}|undated|{f.id}"
 
 
+CONTEXT_BASE_LABEL = ("checked: only older, resolved or neutral facts found, nothing current and adverse "
+                      "(appendix §A3)")
+
+
 def _pipeline_not_assessed(run: _Run, sub: str, area: UmbrellaId) -> SubScoreDetail:
     sm = run.m.sub_scores[sub]
     return SubScoreDetail(name=sub, area=area, weight=sm.weight, score=None, level=None, confidence=None,
@@ -676,7 +680,7 @@ def _pipeline_not_assessed(run: _Run, sub: str, area: UmbrellaId) -> SubScoreDet
 
 
 def _score_sub(run: _Run, sub: str, area: UmbrellaId, area_has_evidence: bool, area_unverified_only: bool,
-               flags: Sequence[Flag], index_only: bool = False) -> SubScoreDetail:
+               flags: Sequence[Flag], context_area: bool = False) -> SubScoreDetail:
     m, d = run.m, run.d
     sm = m.sub_scores[sub]
     detail = SubScoreDetail(name=sub, area=area, weight=sm.weight, score=None, level=None, confidence=None)
@@ -745,9 +749,7 @@ def _score_sub(run: _Run, sub: str, area: UmbrellaId, area_has_evidence: bool, a
     # Assessed?
     has_counted = bool(trusted_ps or unv_ps)
     ko = any(e.knockout_ok for _, e, _ in counted)
-    if index_only:
-        assessed = base is not None  # context-only area: only a data value can score it
-    elif sm.base.startswith("index:"):
+    if sm.base.startswith("index:"):
         assessed = base is not None or ko
     elif sm.base == "events_only_if_found":
         assessed = has_counted
@@ -759,13 +761,13 @@ def _score_sub(run: _Run, sub: str, area: UmbrellaId, area_has_evidence: bool, a
     if not assessed:
         detail.not_assessed_reason = (
             "no input value for this index score" if sm.base.startswith("index:")
-            else "area has only context (neutral or older) facts, and no data value" if index_only
             else "no verified fact for this area or score")
         detail.contributions = notes
         return detail
 
     if base is None:
-        b = _Base(value=d.base, label="nothing adverse found in the sources checked" if not has_counted else "default base",
+        b = _Base(value=d.base, label=(CONTEXT_BASE_LABEL if context_area else "nothing adverse found in the sources checked")
+                  if not has_counted else "default base",
                   rule=f"anchor: nothing adverse = {d.base:g}, middle of the Low band (appendix §A3)", source="",
                   confidence="low")
     else:
@@ -934,15 +936,18 @@ def score_detailed(flags: list[Flag], areas: list[AreaStatus], cfg: ScoringConfi
     for area in UMBRELLAS:
         st = status_by_area.get(area)
         cov = coverage_for(st)
-        # The pipeline's area status wins: "not_assessed" -> nothing in the area is scored;
-        # "context" (only neutral or older facts) -> only index scores with a data value.
+        # The pipeline's area status wins: "not_assessed" -> nothing in the area is scored.
+        # "context" (only neutral, older or resolved facts) is scored like any area with a
+        # verified fact (appendix §A3: "a score is produced only if its area has >= 1 verified
+        # fact"): base 12, and older events count with their decay until the drop age
+        # (2 x stale_after_years). So a settled 2018 case is "checked, resolved": evidence, not a
+        # red flag. Before, such areas were Not assessed, which hid areas that were checked.
         if st is None or st.status == "not_assessed" or cov == "not_assessed":
             subs = [_pipeline_not_assessed(run, c, area) for c in cfg.areas[area].sub_scores]
         else:
-            context_only = st.status == "context"
-            has_evidence = not context_only and (
-                cov == "assessed" or (cov == "unverified_only" and _area_has_eligible(area, flags, run)))
-            subs = [_score_sub(run, c, area, has_evidence, cov == "unverified_only", flags, index_only=context_only)
+            has_evidence = cov == "assessed" or (cov == "unverified_only" and _area_has_eligible(area, flags, run))
+            subs = [_score_sub(run, c, area, has_evidence, cov == "unverified_only", flags,
+                               context_area=st.status == "context")
                     for c in cfg.areas[area].sub_scores]
         score, frac, formula = _area_formula(subs)
         if cov == "not_assessed":

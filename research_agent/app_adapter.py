@@ -30,7 +30,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 AREAS = ["financial", "legal", "country", "people", "operations", "reputation"]
@@ -147,7 +147,7 @@ class Store:
         with self.lock:
             if run_id not in self.data["runs"]:
                 raise KeyError("Research run not found")
-            return _copy(self.data["runs"][run_id])
+            return cast(dict[str, Any], _copy(self.data["runs"][run_id]))
 
     def runs(self) -> list[dict[str, Any]]:
         keys = ("id", "company", "country", "mode", "status", "created_at", "completed_at", "summary", "verdict",
@@ -175,7 +175,7 @@ class Store:
 
     def suppliers(self) -> list[dict[str, Any]]:
         with self.lock:
-            return _copy(list(self.data["suppliers"].values()))
+            return cast(list[dict[str, Any]], _copy(list(self.data["suppliers"].values())))
 
     def save_supplier(self, run_id: Any) -> tuple[dict[str, Any], bool]:
         if not isinstance(run_id, str):
@@ -228,7 +228,7 @@ class Store:
             if "owner" in values:
                 action["owner"] = text(values["owner"], 200)
             self.flush()
-            return _copy(action)
+            return cast(dict[str, Any], _copy(action))
 
 
 # ---------------------------------------------------------------------------
@@ -439,10 +439,19 @@ def build_view(result: Any, page_texts: dict[str, str] | None = None) -> dict[st
     reds = [f for f in ranked if f.colour == "red"]
     ambers = [f for f in ranked if f.colour == "amber"]
     greens = [f for f in ranked if f.colour == "green"]
-    # Red flags first, then watch items, then strengths; keep one slot for a strength if any.
-    chosen = reds[:3]
-    chosen += ambers[: max(0, MAX_POINTS - len(chosen) - (1 if greens else 0))]
-    chosen += greens[: max(0, MAX_POINTS - len(chosen))]
+    # The same balanced points as report section 1 (red, then watch, then strengths; at most
+    # 2 per area and 5 in total), so the card and the report never disagree.
+    from .report_html import key_points
+
+    chosen = key_points(r)[:MAX_POINTS]
+    # Company intro (quote-checked profile only); first on the card, so numbered first.
+    intro: list[dict[str, Any]] = []
+    if r.status in ("ok", "partial") and hasattr(idx, "for_quote"):
+        from .report_data import intro_parts
+
+        for part in intro_parts(r):
+            cs = idx.for_quote(part["source_ids"], part["quote"], f"profile:{part['key']}")[:1]
+            intro.append({"key": part["key"], "text": part["text"], "citations": [c.num for c in cs]})
     points = []
     for f in chosen:
         cites = [c.num for c in idx.for_flag(f)][:3]
@@ -471,9 +480,9 @@ def build_view(result: Any, page_texts: dict[str, str] | None = None) -> dict[st
     if scoring is not None:
         remap: dict[int, int] = {}
         for c in scoring.get("citations", []):
-            f = flags_by_id.get(c.get("flag_id")) if c.get("flag_id") else None
+            cf = flags_by_id.get(c.get("flag_id")) if c.get("flag_id") else None
             if c.get("source_id") in idx.by_id:
-                remap[c["id"]] = idx._get(c["source_id"], f).num  # same numbers as the card
+                remap[c["id"]] = idx._get(c["source_id"], cf).num  # same numbers as the card
         for area in scoring.get("areas", []):
             for sub in area.get("sub_scores", []):
                 for line in sub.get("lines", []):
@@ -494,7 +503,7 @@ def build_view(result: Any, page_texts: dict[str, str] | None = None) -> dict[st
     timeline = sorted(({"date": f["date"], "colour": f["colour"], "summary": f["summary"], "flag_id": f["id"],
                         "area": f["area"]} for f in flags if f["date"]), key=lambda e: str(e["date"]), reverse=True)
     counts = {"red": len(reds), "amber": len(ambers), "green": len(greens)}
-    tldr = {"verdict": r.verdict, "tone": tone, "summary": r.summary, "points": points,
+    tldr = {"verdict": r.verdict, "tone": tone, "summary": r.summary, "intro": intro, "points": points,
             "counts": counts, "not_assessed": [AREA_LABELS[a.area] for a in r.areas if a.status == "not_assessed"],
             "score_text": base["score"].get("text") if base and isinstance(base.get("score"), dict) else None,
             "text": base.get("text") if base else r.summary}
@@ -726,9 +735,13 @@ class ResearchService:
         try:
             run["status"] = "researching"
             self.store.put(run)
-            runner = self.runner
-            if runner is None:
-                from .orchestrator import run_research as runner
+            runner: Callable[..., Any]
+            if self.runner is not None:
+                runner = self.runner
+            else:
+                from .orchestrator import run_research
+
+                runner = run_research
             texts: dict[str, str] = {}
             kwargs: dict[str, Any] = {"on_progress": on_progress, "page_texts_out": texts, **self._clients(run)}
             cfg = self._config(run["mode"])

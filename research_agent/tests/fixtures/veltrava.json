@@ -55,12 +55,28 @@
       "facts": []
     },
     {
+      "url": "https://veltrava-rail.example/company/about",
+      "title": "About Veltrava",
+      "published_date": null,
+      "keywords": ["company profile"],
+      "score": 0.8,
+      "raw_content": "About us. Veltrava Rail Components GmbH was founded in 1994 and is headquartered in Leipzig, Germany. Around 2,100 employees work at our plants in Leipzig and Brno. We supply brake and door systems to train builders across Europe.",
+      "facts": [],
+      "profile": [
+        {"key": "headquarters", "value": "Leipzig, Germany", "quote": "is headquartered in Leipzig, Germany"},
+        {"key": "founded", "value": "1994", "quote": "Veltrava Rail Components GmbH was founded in 1994"},
+        {"key": "employees", "value": "Around 2,100", "quote": "Around 2,100 employees work at our plants in Leipzig and Brno."},
+        {"key": "sites", "value": "Plants in Leipzig and Brno", "quote": "Around 2,100 employees work at our plants in Leipzig and Brno."},
+        {"key": "parent_company", "value": "Veltrava Holdings Pty Ltd", "quote": "We supply brake and door systems to train builders across Europe."}
+      ]
+    },
+    {
       "url": "https://veltrava-rail.example/investors/annual-report-2025",
       "title": "Annual Report 2025",
       "published_date": "2026-03-20",
       "keywords": ["annual report"],
       "score": 0.9,
-      "raw_content": "Annual Report 2025. Revenue rose 8 percent to EUR 412 million and the order backlog reached a record EUR 1.1 billion. In September 2025 our Leipzig plant was re-certified to ISO/TS 22163 (IRIS) with no major findings. Risk report: we depend on a single supplier for sintered brake discs; a disruption at this supplier could delay our deliveries. Consolidated balance sheet at 31 December 2025 (EUR million): current assets 186.0; total assets 402.5; current liabilities 121.3; total equity 158.9; retained earnings 97.4. EBIT for 2025 was EUR 24.6 million. S&P Global Ratings affirmed Veltrava at BB+ with a stable outlook in May 2025. Our EcoVadis score is 68 (Gold, 2025). Our TRIR was 1.9 in 2025.",
+      "raw_content": "Annual Report 2025. Revenue rose 8 percent to EUR 412 million and the order backlog reached a record EUR 1.1 billion. In September 2025 our Leipzig plant was re-certified to ISO/TS 22163 (IRIS) with no major findings. Risk report: we depend on a single supplier for sintered brake discs; a disruption at this supplier could delay our deliveries. Consolidated balance sheet at 31 December 2025 (EUR million): current assets 186.0; total assets 402.5; current liabilities 121.3; total equity 158.9; retained earnings 97.4. EBIT for 2025 was EUR 24.6 million. S&P Global Ratings affirmed Veltrava at BB+ with a stable outlook in May 2025. Our EcoVadis score is 68 (Gold, 2025). Our TRIR was 1.9 in 2025. Veltrava Rail Components develops and builds brake systems and door actuators for regional trains, metros and trams.",
       "facts": [
         {
           "claim": "Veltrava reported 8 percent revenue growth to EUR 412 million and a record EUR 1.1 billion order backlog for 2025.",
@@ -83,6 +99,10 @@
           "event_date": "2025",
           "verdict": {"supported": true, "entity_match": "exact", "relevant": true, "event_type": "company_disclosed_risk", "severity": "medium", "claim_status": "confirmed", "event_date": "2025", "summary": "Company discloses single-source dependency for sintered brake discs.", "reject_reason": ""}
         }
+      ],
+      "profile": [
+        {"key": "description", "value": "Develops and builds brake systems and door actuators for regional trains, metros and trams", "quote": "Veltrava Rail Components develops and builds brake systems and door actuators for regional trains, metros and trams."},
+        {"key": "products", "value": "Brake systems and door actuators", "quote": "develops and builds brake systems and door actuators for regional trains, metros and trams"}
       ],
       "numbers": [
         {"kind": "revenue", "value": "412", "unit": "EUR million", "period": "2025", "detail": "", "outlook": "", "quote": "Revenue rose 8 percent to EUR 412 million"},

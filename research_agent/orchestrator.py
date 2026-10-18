@@ -38,6 +38,8 @@ from .models import (
     NumericFact,
     PlannedSearch,
     PlanOutput,
+    ProfileFact,
+    ProfileItemOut,
     ProgressEvent,
     RejectedFact,
     ResearchResult,
@@ -89,6 +91,8 @@ class _State:
     numbers: list[NumericFact] = field(default_factory=list)
     contradicted: set[str] = field(default_factory=set)  # flag ids a trusted page contradicted
     flags: list[Flag] = field(default_factory=list)
+    # Verified profile items: (tier rank, source number, item order, key, value, quote, source id)
+    profile_items: list[tuple[int, int, int, str, str, str, str]] = field(default_factory=list)
     lock: threading.Lock = field(default_factory=threading.Lock)
     closed: bool = False  # set on timeout; late worker threads must not change the result
     _src_n: int = 0
@@ -270,6 +274,9 @@ def _pipeline(st: _State, company: str, country: str | None, website: str | None
     pages = _search_step(st, [p for p in plan if p.umbrella is not None])
     st.check_time()
     _analyse_pages(st, pages, followup_id=None)
+    st.check_time()
+
+    _profile_step(st, entity)
     st.check_time()
 
     _followup_step(st, entity)
@@ -819,14 +826,14 @@ def _collect(st: _State, futs: dict[Future[Any], Any], on_result: Callable[[Any,
 
 
 def _analyse_pages(st: _State, pages: list[_Page], followup_id: str | None,
-                   claim_under_check: tuple[str, str] | None = None) -> list[Flag]:
+                   claim_under_check: tuple[str, str] | None = None, profile_only: bool = False) -> list[Flag]:
     """Analyse pages in parallel, then number and merge flags in page order (deterministic IDs)."""
     if not pages:
         return []
     per_page: dict[str, list[Flag]] = {}
     pool = ThreadPoolExecutor(max_workers=st.cfg.settings.budget.parallel_workers)
     try:
-        futs = {pool.submit(_analyse_page, st, p, followup_id, claim_under_check): p for p in pages}
+        futs = {pool.submit(_analyse_page, st, p, followup_id, claim_under_check, profile_only): p for p in pages}
         _collect(st, futs, lambda p, flags: per_page.__setitem__(p.source.id, flags))
     finally:
         pool.shutdown(wait=False, cancel_futures=True)
@@ -839,12 +846,13 @@ def _analyse_pages(st: _State, pages: list[_Page], followup_id: str | None,
 
 
 def _analyse_page(st: _State, page: _Page, followup_id: str | None,
-                  claim_under_check: tuple[str, str] | None = None) -> list[Flag]:
-    """``claim_under_check`` = (flag id, claim): an unverified flag a trusted follow-up page may contradict."""
+                  claim_under_check: tuple[str, str] | None = None, profile_only: bool = False) -> list[Flag]:
+    """``claim_under_check`` = (flag id, claim): an unverified flag a trusted follow-up page may contradict.
+    ``profile_only``: a page read only for the company profile; its risk facts and numbers are not used."""
     assert st.entity is not None
     src = page.source
     area = src.umbrella or "reputation"
-    label = st.cfg.settings.umbrellas[area].label
+    label = "Company profile" if profile_only else st.cfg.settings.umbrellas[area].label
     block = wrap_untrusted(src.id, src.url, src.title, page.text)
     head = (f"Company being researched: {st.entity.legal_name} (country: {st.entity.country_name or st.entity.country_code or 'unknown'}, "
             f"website: {st.entity.website or 'unknown'})\nRisk area searched: {label}\n"
@@ -859,14 +867,23 @@ def _analyse_page(st: _State, page: _Page, followup_id: str | None,
             st.result.stats.llm_errors += 1
         st.warn(f"Fact extraction failed for {src.url}: {exc}")
         return []
-    facts = ext.facts[:5]
+    facts = [] if profile_only else ext.facts[:5]
     with st.lock:
         st.result.stats.candidate_facts += len(facts)
     # Numbers for scoring: same quote check, and the value must be inside the quote.
-    nums = [check_number(n, page.text, src) for n in ext.numbers[:20]]
+    nums = [] if profile_only else [check_number(n, page.text, src) for n in ext.numbers[:20]]
     with st.lock:
         if not st.closed:
             st.numbers.extend(nums)
+    # Profile items: trusted pages only, same quote check, plus a code check of the value.
+    prof: list[tuple[str, ProfileItemOut, str]] = []
+    if src.trust == "trusted" and st.cfg.settings.profile.enabled:
+        for i, it in enumerate(ext.profile[:8], start=1):
+            value = _profile_value(it, page.text, st.entity)
+            if value:
+                prof.append((f"P{i}", it, value))
+            else:
+                _reject(st, src.id, f"Profile {it.key}: {it.value}", "Profile value or quote not found in source text")
 
     # Deterministic anti-hallucination check: the quote must be in the text Tavily returned.
     checked: list[tuple[str, CandidateFactOut]] = []
@@ -877,13 +894,17 @@ def _analyse_page(st: _State, page: _Page, followup_id: str | None,
             _reject(st, src.id, f.claim, "Quote not found in source text")
             with st.lock:
                 st.result.stats.rejected_quote_not_found += 1
-    if not checked:
+    if not checked and not prof:
         st.emit("verify", f"{src.publisher}: no verifiable facts.", source_id=src.id)
         return []
 
     payload = [{"fact_id": fid, "claim": f.claim, "quote": f.quote, "entity_named": f.entity_named,
                 "event_date": f.event_date} for fid, f in checked]
     user = head + block + "\nCandidate facts (data produced by another model, check each one):\n" + json.dumps(payload, indent=2)
+    if prof:
+        items = [{"item_id": pid, "key": it.key, "value": value, "quote": it.quote} for pid, it, value in prof]
+        user += ("\n\nCandidate profile items (data produced by another model, check each one):\n"
+                 + json.dumps(items, indent=2))
     check_contradiction = claim_under_check is not None and src.trust == "trusted"
     if check_contradiction:
         assert claim_under_check is not None
@@ -899,6 +920,10 @@ def _analyse_page(st: _State, page: _Page, followup_id: str | None,
             _reject(st, src.id, f.claim, "Verifier unavailable")
         return []
 
+    kept_profile = _keep_profile(st, src, prof, ver)
+    if profile_only:
+        st.emit("verify", f"{src.publisher}: {kept_profile} of {len(prof)} profile facts verified.", source_id=src.id)
+        return []
     if check_contradiction and ver.contradicts_claim_under_check:
         assert claim_under_check is not None
         with st.lock:
@@ -944,6 +969,107 @@ def _analyse_page(st: _State, page: _Page, followup_id: str | None,
     st.emit("verify", f"{src.publisher}: {len(flags)} of {len(facts)} facts verified.", source_id=src.id,
             colours=[fl.colour for fl in flags])
     return flags
+
+
+# -- 4b. company profile -----------------------------------------------------------
+
+_PROFILE_WORDS = {"description": 25, "products": 20, "headquarters": 8, "founded": 3, "parent_company": 10,
+                  "employees": 6, "sites": 20}
+_TIER_RANK = {"company_own": 0, "official": 1}
+
+
+def _loose_norm(text: str) -> str:
+    return " ".join(re.sub(r"[^\w]+", " ", text.lower()).split())
+
+
+def _profile_value(it: ProfileItemOut, page_text: str, entity: ConfirmedEntity) -> str:
+    """Code check of one profile item: the quote is on the page and, for the checkable fields,
+    the value is in the quote. Returns the cleaned value, or "" to drop the item."""
+    value = " ".join(it.value.split()).strip(" .;")
+    if not value or not quote_in_text(it.quote, page_text) or len(value.split()) > _PROFILE_WORDS[it.key]:
+        return ""
+    quote = _loose_norm(it.quote)
+    if it.key == "founded":
+        m = re.search(r"\b(1[5-9]\d\d|20\d\d)\b", value)
+        return m.group(1) if m and m.group(1) in it.quote else ""
+    if it.key == "employees":
+        digits = re.sub(r"\D", "", value)
+        return value if digits and digits in re.sub(r"\D", "", it.quote) else ""
+    if it.key == "headquarters":
+        parts = [p.strip() for p in value.split(",") if p.strip()]
+        country = {_loose_norm(entity.country_name), _loose_norm(entity.country_code)} - {""}
+        if not parts or _loose_norm(parts[0]) not in quote:
+            return ""
+        ok = all(_loose_norm(p) in quote or _loose_norm(p) in country for p in parts[1:])
+        return ", ".join(parts) if ok else ""
+    if it.key == "parent_company":
+        return value if _loose_norm(value) in quote else ""
+    return value
+
+
+def _keep_profile(st: _State, src: Source, prof: list[tuple[str, ProfileItemOut, str]], ver: VerifyOutput) -> int:
+    by_id = {v.item_id: v for v in ver.profile_verdicts}
+    kept = 0
+    for n, (pid, it, value) in enumerate(prof):
+        v = by_id.get(pid)
+        ok_entity = v is not None and (v.entity_match == "exact" or (it.key == "parent_company" and v.entity_match == "group"))
+        if v is None or not v.supported or not ok_entity:
+            _reject(st, src.id, f"Profile {it.key}: {value}", "Profile item not supported or not about this company")
+            continue
+        with st.lock:
+            if not st.closed:
+                st.profile_items.append((_TIER_RANK.get(src.tier, 2), int(src.id[1:]), n, it.key, value,
+                                         trim_quote(it.quote, 30), src.id))
+                kept += 1
+    return kept
+
+
+def _build_profile(st: _State) -> dict[str, ProfileFact]:
+    """Per field: the best source (company site, then registers, then other trusted pages; then
+    page order). Other sources stating the same value are added as citations."""
+    out: dict[str, ProfileFact] = {}
+    for rank, num, n, key, value, quote, sid in sorted(st.profile_items):
+        if key not in out:
+            out[key] = ProfileFact(value=value, source_ids=[sid], quote=quote)
+        elif _loose_norm(out[key].value) == _loose_norm(value) and sid not in out[key].source_ids:
+            out[key].source_ids.append(sid)
+    return out
+
+
+def _profile_step(st: _State, entity: ConfirmedEntity) -> None:
+    """One extra trusted search when the pages already read left a required profile field empty."""
+    ps = st.cfg.settings.profile
+    have = {x[3] for x in st.profile_items}
+    missing = [k for k in ps.required if k not in have]
+    if not ps.enabled or not missing or ps.max_searches <= 0 or ps.max_pages <= 0:
+        return
+    if st.budget.remaining() < ps.min_seconds_left:
+        st.emit("search", "Company profile: not enough time left for an extra search.")
+        return
+    tiers: list[TierId] = [t for t in ps.tiers if st.allowlist.domains_for([t])]
+    if not tiers:
+        return
+    item = PlannedSearch(id="profile-1", umbrella=None, purpose="Company profile: " + ", ".join(missing),
+                         query=ps.query.format(company=entity.legal_name), tiers=tiers, topic="general", start_date=None)
+    st.result.plan.append(item)
+    read = {s.url for s in st.sources.values()}
+    hits = []
+    for h, m in _run_search(st, item, st.allowlist):
+        if h.url in read or h.url in st.seen_urls:
+            _drop(st, item, h, "duplicate")
+        else:
+            hits.append((h, m))
+    for h, _ in hits[ps.max_pages:]:
+        _drop(st, item, h, "page_budget")
+    hits = hits[: ps.max_pages]
+    granted = st.budget.take_extracts(len(hits), keep_for_followups=True)
+    for h, _ in hits[granted:]:
+        _drop(st, item, h, "page_budget")
+    chosen = [(item, h, m) for h, m in hits[:granted]]
+    for _, h, _ in chosen:
+        st.seen_urls.add(h.url)
+    pages = _fetch_pages(st, chosen, found_by_override=None)
+    _analyse_pages(st, pages, followup_id=None, profile_only=True)
 
 
 def _bump(st: _State, name: str) -> None:
@@ -1150,10 +1276,13 @@ def _finalise(st: _State, write_summary: bool) -> None:
     r.areas = area_statuses(flags, pages_by_area, labels, unverified_by_area,
                             source_trust={s.id: s.trust for s in ordered_sources})
     _score(st, flags, ordered_sources)
+    r.profile = cast(Any, _build_profile(st))
     # "Not enough evidence" means no TRUSTED page about the company was read. Unverified pages
     # alone do not count, and neither do the country figures (they describe the country).
+    # Pages read only for the company profile are not risk evidence either.
     data_ids = {s.id for s in ordered_sources if s.text_origin == "data"}
-    company_pages = r.stats.trusted_pages_read - len(data_ids)
+    profile_ids = {s.id for s in ordered_sources if s.found_by.startswith("profile") and s.trust == "trusted"}
+    company_pages = r.stats.trusted_pages_read - len(data_ids) - len(profile_ids)
     company_flags = [f for f in flags if not set(f.source_ids) <= data_ids]
     if company_pages == 0 and not company_flags:
         r.verdict = rules.verdict.no_evidence

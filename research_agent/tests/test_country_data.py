@@ -84,3 +84,30 @@ def test_bands_are_thirds_of_the_scale():
 
 def test_iso_map():
     assert iso2_to_iso3("de") == "DEU" and iso2_to_iso3("GB") == "GBR"
+
+
+def test_tavily_failure_falls_back_to_the_saved_world_bank_response():
+    """First live run: Tavily answered 'Failed to fetch url' for the API URL, so Germany had no
+    WGI value. The saved official response must give the same values as the live API."""
+    class FailingExtract:
+        def search(self, request):  # pragma: no cover
+            return []
+
+        def extract(self, urls, query=None):
+            return ExtractResponse(failed={urls[0]: "Failed to fetch url"})
+
+    res = TavilyWGI(FailingExtract(), INDS).fetch("DE", "Germany")
+    by = {f.indicator: f for f in res.figures}
+    live, _ = parse_wgi(FIX.read_text(encoding="utf-8"), "u", INDS)
+    assert {f.indicator: round(f.value, 4) for f in live} == {k: round(v.value, 4) for k, v in by.items()}
+    assert all(f.quote in res.texts[f.source_url] for f in res.figures)
+    assert res.figures[0].source_url == wgi_url("DE", INDS) and res.extracts_used == 1
+    assert "saved World Bank API response" in res.warnings[0]
+
+
+def test_saved_wgi_file_covers_major_supplier_countries():
+    from research_agent.country_data import CachedWGI
+
+    for iso2 in ("DE", "FR", "PL", "CN", "US", "IN", "CZ"):
+        res = CachedWGI(INDS).fetch(iso2, iso2)
+        assert len(res.figures) == 3, iso2

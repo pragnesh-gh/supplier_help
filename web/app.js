@@ -1163,25 +1163,38 @@ document.addEventListener("DOMContentLoaded", async () => {
           const row = researchRowForRun(runId);
           return !!row && state.compare.includes(row.supplierID);
         },
+        inShortlist: (runId) => {
+          const row = researchRowForRun(runId);
+          return !!row && !!approval.snapshot()?.candidates?.some((c) => c.supplier_id === row.supplierID);
+        },
+        // Returns the confirmation shown inside the card (toasts can sit under the chat panel).
         onAction: async (kind, run, record) => {
           const id = "research:" + record.id;
+          let note = null;
           if (kind === "favorite") {
             if (state.favorites.has(id)) {
               state.favorites.delete(id);
-              toast("Removed from favorites");
+              note = { text: "Removed from favorites." };
             } else {
               state.favorites.add(id);
-              toast("Saved to My suppliers and added to favorites");
+              note = { text: "★ Added to favorites.", href: "#/portfolio", link: "View in My suppliers" };
             }
           } else if (kind === "compare") {
             if (!state.compare.includes(id)) toggleCompare(id);
-            if (state.compare.includes(id)) toast(`In comparison (${state.compare.length}/20). Its research score has its own row.`);
+            note = state.compare.includes(id)
+              ? { text: `✓ In comparison (${state.compare.length}/20), with its own research-score row.`, href: "#/compare", link: "Open Compare" }
+              : { text: state.compareError || "Could not add to the comparison.", error: true };
           } else if (kind === "shortlist") {
             approval.start([id]);
-            toast("Added to the shortlist draft");
-          } else if (kind === "save") toast("Saved to My suppliers");
+            const inList = approval.snapshot()?.candidates?.some((c) => c.supplier_id === id);
+            note = inList
+              ? { text: "✓ In the shortlist draft.", href: "#/approvals", link: "Open shortlist" }
+              : { text: "The shortlist already has five candidates. Remove one first.", href: "#/approvals", link: "Open shortlist", error: true };
+          } else if (kind === "save") note = { text: "Saved to My suppliers.", href: "#/portfolio", link: "View" };
+          if (note && !note.error) toast(note.text.replace(/^[★✓] /, ""));
           persistWorkspace();
           render();
+          return note;
         },
       });
       try {

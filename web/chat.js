@@ -13,6 +13,7 @@ export function createChat({
   onAction = () => {},
   isFavorite = () => false,
   inCompare = () => false,
+  inShortlist = () => false,
   getMessages,
 }) {
   const state = {
@@ -24,6 +25,8 @@ export function createChat({
     pinned: null, // run id the follow-up questions are about
     clarify: false,
     config: null,
+    pending: {}, // run id -> card action in progress ("favorite", "shortlist", "compare")
+    notes: {}, // run id -> { text, href, link, error } shown under the card's actions
   };
   const drawer = document.querySelector("#chat-drawer"),
     launch = document.querySelector("#chat-launch");
@@ -57,7 +60,7 @@ export function createChat({
     const r = state.runs[id];
     if (!r) return `<button data-resume-run="${esc(id)}">${icon("history", "sm")}Show research result</button>`;
     if (r.schema_version !== "research-run-v2") return legacyRun(r);
-    return researchCard(r, { esc, isFavorite, inCompare, pinned: state.pinned === id });
+    return researchCard(r, { esc, isFavorite, inCompare, inShortlist, pinned: state.pinned === id, pending: state.pending[id] || null, note: state.notes[id] || null });
   }
   function messageHTML(m, index) {
     const user = m.role === "user";
@@ -357,20 +360,27 @@ export function createChat({
         continue;
       }
       const token = generation;
+      const runId = b.dataset[key];
+      if (state.pending[runId]) continue; // one card action at a time
+      state.pending[runId] = kind;
+      delete state.notes[runId];
+      render();
       try {
-        let record = null;
-        if (kind !== "report") {
-          const saved = await api("/api/suppliers", { run_id: b.dataset[key] });
-          if (token !== generation) return;
-          record = saved.supplier || saved;
-          onAdded(record, true);
-        }
-        await onAction(kind, run, record);
-        render();
+        const saved = await api("/api/suppliers", { run_id: runId });
+        if (token !== generation) return;
+        const record = saved.supplier || saved;
+        onAdded(record, true);
+        const note = await onAction(kind, run, record);
+        if (token !== generation) return;
+        if (note) state.notes[runId] = note;
       } catch (error) {
         if (token !== generation) return;
-        state.messages.push({ role: "assistant", answer: error.message });
-        render();
+        state.notes[runId] = { text: "Could not save: " + error.message, error: true };
+      } finally {
+        if (token === generation) {
+          delete state.pending[runId];
+          render();
+        }
       }
     }
   });
@@ -414,6 +424,8 @@ export function createChat({
     state.run = null;
     state.runs = {};
     state.pinned = null;
+    state.pending = {};
+    state.notes = {};
     state.messages = [];
     state.busy = false;
     state.clarify = false;

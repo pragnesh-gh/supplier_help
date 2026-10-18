@@ -113,6 +113,18 @@ class IdentitySettings(_M):
     max_candidates_shown: int = 5
 
 
+class ProfileSettings(_M):
+    enabled: bool = True
+    # One extra trusted search, only when the pages already read did not state these fields.
+    required: list[str] = Field(default_factory=lambda: ["description", "headquarters", "founded"])
+    tiers: list[TierId] = Field(default_factory=lambda: list[TierId](["company_own", "official", "rail_trade"]))
+    query: str = "{company} company profile headquarters founded products"
+    max_searches: int = 1
+    max_pages: int = 2
+    # Skip the extra search when less time than this is left, so the red-flag follow-ups keep theirs.
+    min_seconds_left: float = 45
+
+
 class Settings(_M):
     models: ModelSettings
     budget: BudgetSettings
@@ -121,6 +133,7 @@ class Settings(_M):
     umbrellas: dict[str, UmbrellaSettings]
     identity: IdentitySettings
     open_web: OpenWebSettings = Field(default_factory=OpenWebSettings)
+    profile: ProfileSettings = Field(default_factory=ProfileSettings)
     max_query_extra_words: int = 5
     country_languages: dict[str, str] = Field(default_factory=dict)
     country_data: CountryDataSettings = Field(default_factory=CountryDataSettings)

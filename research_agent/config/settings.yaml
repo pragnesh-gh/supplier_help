@@ -20,13 +20,16 @@ models:
 
 budget:
   wall_clock_seconds: 120        # whole run; on timeout partial results are returned
-  max_searches: 22               # 1 identity + 14 area + 2 open-web + 4 follow-up (2 x en/local) + 1 spare
-  max_extracts: 19               # 12 trusted + 1 World Bank data page + 2 open-web + 4 for follow-ups
+  max_searches: 25               # 1 identity + 16 area + 2 open-web + 1 profile + 4 follow-up (2 x en/local) + 1 spare
+  max_extracts: 23               # 14 trusted + 1 World Bank data page + 2 open-web + 2 profile + 4 for follow-ups
   extracts_reserved_for_followups: 4
   # Trusted pages per run, split across the six areas by their weight in config/scoring.yaml
   # (largest remainder, at least 1 each): operations 4, financial 2, people 2, legal 2,
-  # country 1, reputation 1. Pages an area cannot use go to the others, highest weight first.
-  max_trusted_pages: 12
+  # country 2, reputation 2. Pages an area cannot use go to the others, highest weight first
+  # (country has no web search, so its 2 go to operations and financial).
+  # 14, not 12: with 12, Reputation got a single page (share 1), so one bad hit left the area
+  # Not assessed (live run Knorr-Bremse 2026-10-18). Extracts cost 1 credit per 5 pages.
+  max_trusted_pages: 14
   max_followups: 2               # narrowly scoped red-flag follow-ups
   pages_per_followup: 2
   max_results_per_search: 8
@@ -92,14 +95,22 @@ umbrellas:
     searches: []
   people:
     label: People & Safety
+    # Live run Knorr-Bremse 2026-10-18: "strike accident workers" (general topic) returned
+    # freight-train articles without the company, and the German "Streik Arbeitsunfall" an
+    # unrelated FAZ page, so People & Safety was Not assessed. Labour news is written as
+    # strikes, job cuts and works-council disputes, mostly in the business press (news topic).
+    # Slot 3 finds the baseline: safety figures (LTIFR, accident rate) and ESG ratings are in
+    # the company's sustainability report, which also gives the injury rate the Safety score
+    # uses (appendix §A2). Slots 1-2 look for adverse events, slot 3 for "checked" evidence.
     searches:
-      - {tiers: [major_news, rail_trade], topic: general, lookback: default, lang: en, query: "{company} strike accident workers"}
+      - {tiers: [major_news, rail_trade], topic: news, lookback: default, lang: en, query: "{company} strike job cuts"}
       - tiers: [major_news, rail_trade]
-        topic: general
+        topic: news
         lookback: default
         lang: local
-        query: "{company} strike workplace accident"
-        local: {de: "{company} Streik Arbeitsunfall", fr: "{company} grève accident du travail", it: "{company} sciopero incidente lavoro", es: "{company} huelga accidente laboral"}
+        query: "{company} strike job cuts works council"
+        local: {de: "{company} Streik Stellenabbau Betriebsrat", fr: "{company} grève suppressions d'emplois", it: "{company} sciopero tagli posti di lavoro", es: "{company} huelga despidos"}
+      - {tiers: [company_own, official], topic: general, lookback: default, lang: en, query: "{company} sustainability report accident rate LTIFR"}
   operations:
     label: Operations & Delivery
     searches:
@@ -114,6 +125,11 @@ umbrellas:
       - {tiers: [company_own, rail_trade], topic: general, lookback: default, lang: en, query: "{company} IRIS certification"}
   reputation:
     label: Reputation & Outside View
+    # Slots 1-2 look for adverse coverage. Live run Knorr-Bremse 2026-10-18: with no scandal to
+    # find, "scandal controversy" returned 8 of 8 results about other companies (Gerresheimer,
+    # Toyota, Boeing; dropped as off-topic), so the area was Not assessed although nothing
+    # adverse exists. Slot 3 finds the baseline outside view: analyst and investor views in
+    # the business press (dataset Market_Sentiment_Score), which name the company in the title.
     searches:
       - {tiers: [major_news], topic: news, lookback: default, lang: en, query: "{company} scandal controversy"}
       - tiers: [major_news]
@@ -122,6 +138,7 @@ umbrellas:
         lang: local
         query: "{company} scandal allegations"
         local: {de: "{company} Skandal Vorwürfe", fr: "{company} scandale accusations", it: "{company} scandalo accuse", es: "{company} escándalo acusaciones"}
+      - {tiers: [major_news], topic: news, lookback: default, lang: en, query: "{company} shares analysts outlook"}
 
 # Query guard: a planner-written query with more than this many words besides the company name
 # is ignored and the template is used. 5 allows "company + 1-3 terms" in two-word phrases, and
@@ -190,6 +207,20 @@ open_web:
   max_searches: 2                # each search fills one area's gap
   max_pages: 2                   # extra pages on top of the trusted ones; never taken from them
   max_pages_per_umbrella: 1      # best open-web page per area; trusted pages stay the majority
+
+# Company profile (report section 2 and the TL;DR intro): what the company does, products,
+# headquarters, founding year, parent, employees, sites. Every page read is asked for these
+# too (no extra cost), with the same exact-quote check and verifier as risk facts; only
+# trusted pages count, the company's own site and registers first. When the pages read still
+# leave a "required" field empty, ONE extra trusted search reads at most max_pages more pages.
+profile:
+  enabled: true
+  required: [description, headquarters, founded]
+  tiers: [company_own, official, rail_trade]
+  query: "{company} company profile headquarters founded products"
+  max_searches: 1
+  max_pages: 2
+  min_seconds_left: 45
 
 # Identity and follow-ups use trusted sources only: the identity decides which company every
 # fact is about, and a follow-up exists to confirm a flag, which only a trusted source can do.

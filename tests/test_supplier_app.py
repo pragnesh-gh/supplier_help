@@ -163,3 +163,19 @@ class AppTests(unittest.TestCase):
             conn.close()
         finally:
             server.shutdown(); server.server_close(); thread.join()
+
+
+def test_read_environment_defaults_to_root_then_research_agent_env(tmp_path, monkeypatch):
+    from supplier_app import env as env_mod
+
+    root, ra = tmp_path / '.env', tmp_path / 'research_agent.env'
+    root.write_text('A=root\nB=\n')
+    ra.write_text('A=ra\nB=ra\nexport C="ra"\n')
+    monkeypatch.setattr(env_mod, 'DEFAULT_ENV_FILES', (root, ra))
+    for k in ('A', 'B', 'C'):
+        monkeypatch.delenv(k, raising=False)
+    values = env_mod.read_environment()
+    assert (values['A'], values['B'], values['C']) == ('root', 'ra', 'ra')
+    monkeypatch.setenv('A', 'os')
+    assert env_mod.read_environment()['A'] == 'os'
+    assert 'B' not in env_mod.read_environment(str(root)) or env_mod.read_environment(str(root))['B'] == ''

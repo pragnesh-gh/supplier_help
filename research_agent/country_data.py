@@ -95,12 +95,54 @@ def parse_wgi(text: str, url: str, indicators: list[str]) -> tuple[list[CountryF
     return figures, updated
 
 
-class TavilyWGI:
-    """Default: Tavily extract of the World Bank API URL (trusted worldbank.org), parsed by code."""
+# Official World Bank API response for all countries (WGI 2025 revision, source=3, mrv=1),
+# downloaded 2026-10-18 from
+# https://api.worldbank.org/v2/country/all/indicator/GOV_WGI_PV.SC;GOV_WGI_CC.SC;GOV_WGI_RL.SC?format=json&source=3&mrv=1&per_page=2000
+# ("lastupdated": "2026-09-25"). Kept unmodified. Licence: CC BY 4.0 (World Bank open data).
+WGI_SNAPSHOT = DATA_DIR / "WGI2025_worldbank_api.json"
 
-    def __init__(self, search: SearchClient, indicators: list[str]) -> None:
+
+class CachedWGI:
+    """WGI from the saved official World Bank API response (no network)."""
+
+    def __init__(self, indicators: list[str], path: Path = WGI_SNAPSHOT) -> None:
+        self.indicators = indicators
+        self.path = path
+
+    def fetch(self, iso2: str, country_name: str) -> CountryDataResult:
+        out = CountryDataResult()
+        if not self.path.exists():
+            out.warnings.append(f"WGI file missing: {self.path.name}")
+            return out
+        data = json.loads(self.path.read_text(encoding="utf-8"))
+        head, rows = data[0], data[1] or []
+        iso3 = iso2_to_iso3(iso2)
+        mine = [r for r in rows if isinstance(r, dict) and r.get("value") is not None
+                and r.get("indicator", {}).get("id") in self.indicators
+                and (r.get("countryiso3code") == iso3 or (r.get("country") or {}).get("id") == iso2.upper())]
+        if not mine:
+            out.warnings.append(f"WGI file has no values for {country_name or iso2}")
+            return out
+        # The country's rows in the API's own format, so parse_wgi and the quote check work unchanged.
+        head = {k: head.get(k) for k in ("page", "pages", "per_page", "total", "sourceid", "lastupdated")}
+        head.update(per_page=len(mine), total=len(mine))
+        text = json.dumps([head, mine], ensure_ascii=False, separators=(",", ":"))
+        url = wgi_url(iso2, self.indicators)  # the live URL for this country returns the same values
+        figs, updated = parse_wgi(text, url, self.indicators)
+        _store(out, figs, url, text, f"World Bank WGI: {country_name} (saved copy of the World Bank API, "
+                                     f"updated {updated or 'n/a'})", updated)
+        return out
+
+
+class TavilyWGI:
+    """Default: Tavily extract of the World Bank API URL (trusted worldbank.org), parsed by code.
+    If Tavily cannot read it, the saved official response (:class:`CachedWGI`) is used instead,
+    so a country always gets its WGI values when the World Bank publishes them."""
+
+    def __init__(self, search: SearchClient, indicators: list[str], fallback: Path | None = WGI_SNAPSHOT) -> None:
         self.search = search
         self.indicators = indicators
+        self.fallback = fallback
 
     def fetch(self, iso2: str, country_name: str) -> CountryDataResult:
         out = CountryDataResult()
@@ -108,18 +150,26 @@ class TavilyWGI:
         try:
             ext = self.search.extract([url])
         except SearchError as exc:
-            out.warnings.append(f"World Bank WGI page could not be read: {exc}")
-            return out
+            return self._fallback(out, iso2, country_name, f"World Bank WGI page could not be read: {exc}")
         out.extracts_used = 1
         text = ext.pages.get(url, "")
         if not text:
-            out.warnings.append(f"World Bank WGI page returned no text: {ext.failed.get(url, 'empty')}")
-            return out
+            return self._fallback(out, iso2, country_name,
+                                  f"World Bank WGI page returned no text: {ext.failed.get(url, 'empty')}")
         figs, updated = parse_wgi(text, url, self.indicators)
         _store(out, figs, url, text, f"World Bank WGI: {country_name}", updated)
         if not figs:
-            out.warnings.append("World Bank WGI page had no values for this country.")
+            return self._fallback(out, iso2, country_name, "World Bank WGI page had no values for this country.")
         return out
+
+    def _fallback(self, out: CountryDataResult, iso2: str, country_name: str, why: str) -> CountryDataResult:
+        if self.fallback is None:
+            out.warnings.append(why)
+            return out
+        saved = CachedWGI(self.indicators, self.fallback).fetch(iso2, country_name)
+        saved.extracts_used = out.extracts_used
+        saved.warnings.insert(0, f"{why.rstrip('.')}; used the saved World Bank API response instead.")
+        return saved
 
 
 class DirectWGI:

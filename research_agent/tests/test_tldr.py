@@ -200,17 +200,38 @@ def test_every_point_has_a_full_citation():
 
 def test_point_selection_red_amber_then_checked():
     from research_agent.models import ResearchResult  # noqa: F401
-    reds = [_flag(i, "red", src=1) for i in range(1, 4)]
-    ambers = [_flag(i, "amber", src=1) for i in range(4, 7)]
-    greens = [_flag(i, "green", src=1) for i in range(7, 10)]
+    areas = ["legal", "operations", "people"]
+    reds = [_flag(i, "red", area=areas[i - 1], src=1) for i in range(1, 4)]
+    ambers = [_flag(i, "amber", area=areas[i - 4], src=1) for i in range(4, 7)]
+    greens = [_flag(i, "green", area="financial", src=1) for i in range(7, 10)]
     d = tldr_data(_result(flags=reds + ambers + greens, sources=[_src(1)]))
     assert [p["colour"] for p in _points(d)] == ["red", "red", "red", "amber", "green"]
     d = tldr_data(_result(flags=[_flag(1, "amber", src=1)] + greens, sources=[_src(1)]))
     assert [p["colour"] for p in _points(d)] == ["amber", "green", "green"]
     assert [p["label"] for p in _points(d)][1] == "Checked, nothing adverse found"
     d = tldr_data(_result(flags=greens, sources=[_src(1)]))
-    assert [p["colour"] for p in _points(d)] == ["green"] * 3
+    assert [p["colour"] for p in _points(d)] == ["green"] * 2  # at most 2 points per area
     assert "No red flags or watch items found in the sources checked." in d["text"]
+
+
+def test_points_cover_areas_not_one_area():
+    """Live run Knorr-Bremse 2026-10-18: all five points were green financial items. Now at
+    most 2 per area, other areas first, and an older resolved matter shows its area was checked."""
+    fin = [_flag(i, "green", area="financial", src=1) for i in range(1, 5)]
+    country = _flag(5, "green", area="country", src=1)
+    ops = _flag(6, "green", area="operations", src=1)
+    old = _flag(7, "neutral", area="legal", src=1, date="2018-07-11")
+    old.event_type, old.stale = "antitrust_settlement", True
+    pts = _points(tldr_data(_result(flags=fin + [country, ops, old], sources=[_src(1)])))
+    by_area = [p["area"] for p in pts]
+    assert set(by_area) == {"financial", "country", "operations", "legal"}
+    assert all(by_area.count(a) <= 2 for a in by_area)
+    assert pts[-1]["flag_id"] == "F7" and pts[-1]["label"] == "Context"
+    # Reds from different areas come before a second red from the same area.
+    reds = [_flag(1, "red", area="legal", src=1), _flag(2, "red", area="legal", src=1),
+            _flag(3, "red", area="legal", src=1), _flag(4, "red", area="people", src=1)]
+    pts = _points(tldr_data(_result(flags=reds, sources=[_src(1)])))
+    assert sorted(p["flag_id"] for p in pts) == ["F1", "F2", "F4"]  # F3 = third legal point: left out
 
 
 def test_not_assessed_never_zero_or_low_risk():
@@ -244,3 +265,37 @@ def test_tldr_wording_is_plain_and_deterministic():
     for bad in (".yaml", "appendix", "§", "result.json", "_", "TODO", "fixture", "rule"):
         assert bad not in d1["text"], bad
     assert d1["word_count"] <= MAX_WORDS
+
+
+def test_intro_from_profile_with_quote_citations():
+    from research_agent.app_adapter import build_view
+    from research_agent.models import ResearchResult
+    from research_agent.report_data import report_sections
+
+    d = tldr_data(EXAMPLES / "sample_result.json")
+    assert [p["key"] for p in d["intro"]] == ["description", "headquarters", "founded"]
+    assert d["intro"][1]["text"] == "HQ Leipzig, Germany" and d["intro"][2]["text"] == "Founded 1994"
+    cites = {c["id"]: c for c in d["citations"]}
+    for part in d["intro"]:
+        (n,) = part["citations"]
+        assert cites[n]["quote"] and cites[n]["trust"] != "unverified"
+    assert d["intro"][0]["citations"] == [1]  # first on the card, numbered first
+    r = ResearchResult.model_validate_json((EXAMPLES / "sample_result.json").read_text())
+    view = build_view(r)
+    assert [p["text"] for p in view["tldr"]["intro"]] == [p["text"] for p in d["intro"]]
+    vc = {c["n"]: c for c in view["citations"]}
+    assert "headquartered in Leipzig" in vc[view["tldr"]["intro"][1]["citations"][0]]["quote"]
+    prof = {f["key"]: f for f in next(s for s in report_sections(r) if s["id"] == "profile")["fields"]}
+    assert prof["headquarters"]["value"] == "Leipzig, Germany" and prof["headquarters"]["cites"][0]["quote"]
+    # No profile -> no intro, nothing guessed.
+    r.profile = {}
+    assert build_view(r)["tldr"]["intro"] == []
+
+
+def test_card_points_match_report_key_points():
+    from research_agent.app_adapter import build_view
+    from research_agent.models import ResearchResult
+    from research_agent.report_html import key_points
+
+    r = ResearchResult.model_validate_json((EXAMPLES / "sample_result.json").read_text())
+    assert [p["flag_id"] for p in build_view(r)["tldr"]["points"]] == [f.id for f in key_points(r)][:5]

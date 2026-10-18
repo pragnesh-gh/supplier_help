@@ -121,9 +121,22 @@ class NumberOut(_Strict):
     quote: str = Field(description="Exact words copied from the page that state the value, max 25 words.")
 
 
+ProfileItemKey = Literal["description", "products", "headquarters", "founded", "parent_company", "employees", "sites"]
+
+
+class ProfileItemOut(_Strict):
+    key: ProfileItemKey
+    value: str = Field(description="Short value in plain English, e.g. 'Leipzig, Germany', '1994', 'brake systems "
+                       "and door actuators for rail vehicles'. Only what the quote states.")
+    quote: str = Field(description="Exact words copied from the page that state the value, max 30 words.")
+
+
 class ExtractOutput(_Strict):
     facts: list[CandidateFactOut]
     numbers: list[NumberOut] = Field(default_factory=list, description="Numbers for scoring found on the page.")
+    profile: list[ProfileItemOut] = Field(default_factory=list, description="Company profile items stated on the "
+                                          "page (what it does, products, headquarters, founding year, parent, "
+                                          "employees, sites).")
 
 
 class FactVerdict(_Strict):
@@ -149,8 +162,16 @@ class FactVerdict(_Strict):
                                      "(unnamed sources, hearsay, rumour), unclear.")
 
 
+class ProfileVerdict(_Strict):
+    item_id: str
+    supported: bool = Field(description="True only if the quote, read on the page, states the value.")
+    entity_match: EntityMatch
+
+
 class VerifyOutput(_Strict):
     verdicts: list[FactVerdict]
+    profile_verdicts: list[ProfileVerdict] = Field(default_factory=list, description="One verdict per candidate "
+                                                   "profile item, when profile items are given.")
     contradicts_claim_under_check: bool = Field(
         default=False, description="Only when a 'Claim under check' is given: true if this page explicitly states the "
         "opposite of that claim (e.g. the listing was never made, the case was dismissed).")
@@ -404,7 +425,8 @@ class RunStats(BaseModel):
     elapsed_s: float = 0.0
 
 
-ProfileKey = Literal["parent_company", "products", "sites", "employees", "employee_representation"]
+ProfileKey = Literal["description", "products", "headquarters", "founded", "parent_company", "employees", "sites",
+                     "employee_representation"]
 
 
 class ProfileFact(BaseModel):
@@ -412,6 +434,7 @@ class ProfileFact(BaseModel):
 
     value: str
     source_ids: list[str] = Field(default_factory=list)
+    quote: str = Field(default="", description="Exact words on the first source that state the value (checked by code).")
 
 
 class ResearchResult(BaseModel):
@@ -444,7 +467,9 @@ class ResearchResult(BaseModel):
     scoring_detail: dict[str, Any] | None = Field(default=None, description="scoring.ScoringReport as JSON, for "
                                                   "'How was this scored?' (ScoringReport.model_validate + explain_text).")
     profile: dict[ProfileKey, ProfileFact] = Field(default_factory=dict, description="Supplier profile facts for "
-                                                   "the report (parent company, products, sites, employees, employee "
-                                                   "representation). A missing key is shown as 'Not found'.")
+                                                   "the report and the TL;DR intro (what the company does, products, "
+                                                   "headquarters, founding year, parent company, employees, sites), "
+                                                   "each quote-checked on a trusted page. A missing key is shown as "
+                                                   "'Not found' and never guessed.")
     fingerprint: dict[str, Any] = Field(default_factory=dict, description="Config hash, models, cache day and query "
                                         "list, so two runs can be compared (python -m research_agent.diff_runs).")

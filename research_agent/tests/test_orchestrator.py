@@ -411,7 +411,7 @@ def test_pages_split_by_area_weight(fx):
     w: dict[str, float] = {a: m.weight for a, m in load_scoring().areas.items()}
     shares = split_by_weight(load_all().settings.budget.max_trusted_pages, w, ["financial", "legal", "country",
                                                                                 "people", "operations", "reputation"])
-    assert shares == {"financial": 2, "legal": 2, "country": 1, "people": 2, "operations": 4, "reputation": 1}
+    assert shares == {"financial": 2, "legal": 2, "country": 2, "people": 2, "operations": 4, "reputation": 2}
     r = _run(fx)
     b = load_all().settings.budget
     assert r.stats.extracts_used <= b.max_extracts and r.stats.searches_used <= b.max_searches
@@ -647,3 +647,45 @@ def test_cli_fixture_writes_html(tmp_path):
     run_fixture(tmp_path)
     assert (tmp_path / "report.md").exists() and (tmp_path / "result.json").exists()
     assert (tmp_path / "report.html").exists()
+
+
+# -- company profile ----------------------------------------------------------------
+
+
+def test_profile_is_quote_checked_and_sourced(fx):
+    r = _run(fx)
+    p = r.profile
+    assert p["headquarters"].value == "Leipzig, Germany" and p["founded"].value == "1994"
+    assert p["description"].value.startswith("Develops and builds brake systems")
+    by_id = {s.id: s for s in r.sources}
+    for key, pf in p.items():
+        s = by_id[pf.source_ids[0]]
+        assert s.trust == "trusted" and pf.quote, key
+    # The parent-company value is not in its quote: dropped by code, never shown.
+    assert "parent_company" not in p
+    assert any(x.claim.startswith("Profile parent_company") for x in r.rejected)
+    # One extra search at most, and profile-only pages add no risk facts.
+    assert [x.id for x in r.plan if x.id.startswith("profile")] == ["profile-1"]
+    prof_ids = {s.id for s in r.sources if s.found_by == "profile-1"}
+    assert prof_ids and not any(set(f.source_ids) & prof_ids for f in r.flags)
+
+
+def test_profile_search_skipped_when_pages_already_state_it(fx):
+    fx2 = json.loads(json.dumps(fx))
+    about = next(d for d in fx2["documents"] if d["url"].endswith("/company/about"))
+    ar = next(d for d in fx2["documents"] if d["url"].endswith("annual-report-2025"))
+    ar["raw_content"] += " " + about["raw_content"]
+    ar["profile"] += about["profile"]
+    r = _run(fx2, llm=FakeLLM(fx2), search=FakeSearch(fx2))
+    assert r.profile["founded"].value == "1994"
+    assert not any(x.id.startswith("profile") for x in r.plan)
+
+
+def test_profile_never_invented_and_verifier_can_reject(fx):
+    fx2 = json.loads(json.dumps(fx))
+    fx2["documents"] = [d for d in fx2["documents"] if not d["url"].endswith("/company/about")]
+    ar = next(d for d in fx2["documents"] if d["url"].endswith("annual-report-2025"))
+    ar["profile"][1]["verdict"] = {"supported": False, "entity_match": "exact"}
+    ar["profile"].append({"key": "founded", "value": "1989", "quote": "Annual Report 2025."})
+    r = _run(fx2, llm=FakeLLM(fx2), search=FakeSearch(fx2))
+    assert set(r.profile) == {"description"}  # products rejected by the verifier, 1989 not in its quote

@@ -30,7 +30,7 @@ from urllib.parse import quote, urlparse
 
 from .dates import normalize_date, parse_date
 from .models import UMBRELLAS, AreaScore, Flag, ResearchResult, Source, UmbrellaId
-from .rules import sort_flags
+from .rules import headline_points, sort_flags
 
 # ---------------------------------------------------------------------------
 # Fixed vocabulary
@@ -191,23 +191,11 @@ def ranked_flags(r: ResearchResult) -> list[Flag]:
     return sort_flags(r.flags)
 
 
-MIN_POINTS, MAX_POINTS, MAX_ADVERSE_POINTS = 3, 5, 4
-
-
 def key_points(r: ResearchResult) -> list[Flag]:
-    """The headline findings shared by the report summary and the chat TL;DR.
-
-    Red flags, then watch items, then strengths ("checked, nothing adverse found"), most serious
-    first within each. At most four red flags and watch items, then strengths until there are
-    at least three points, or one strength if there is room; five points at most. Only flags
-    that cite a known source are used, so every point has a citation."""
-    known = {s.id for s in r.sources}
-    cited = [f for f in ranked_flags(r) if any(sid in known for sid in f.source_ids)]
-    adverse = [f for f in cited if f.colour == "red"] + [f for f in cited if f.colour == "amber"]
-    adverse = adverse[:MAX_ADVERSE_POINTS]
-    greens = [f for f in cited if f.colour == "green"]
-    n_green = max(MIN_POINTS - len(adverse), 1 if greens else 0)
-    return (adverse + greens[:n_green])[:MAX_POINTS]
+    """The headline findings shared by the report summary and the chat TL;DR: red flags, watch
+    items, strengths, then older/resolved matters, at most 2 per area and 5 in total (see
+    :func:`research_agent.rules.headline_points`)."""
+    return headline_points(r.flags, {s.id for s in r.sources})
 
 
 def verdict_tone(r: ResearchResult) -> str:
@@ -438,8 +426,9 @@ class CitationIndex:
                 return sid
         return ids[0] if ids else None
 
-    def _get(self, sid: str, f: Flag | None) -> Citation:
-        key = (sid, f.id if f else None)
+    def _get(self, sid: str, f: Flag | None, quote: str | None = None, key_id: str | None = None) -> Citation:
+        """``quote``/``key_id``: a passage that is not a flag (a profile field, keyed e.g. "profile:founded")."""
+        key = (sid, f.id if f else key_id)
         if key in self._made:
             return self._made[key]
         if sid not in self.order:
@@ -447,7 +436,7 @@ class CitationIndex:
         self._keys.append(key)
         num = self.order.index(sid) + 1 if self.numbering == "source" else len(self._keys)
         s = self.by_id[sid]
-        q = " ".join(f.quote.split()) if f else ""
+        q = " ".join(f.quote.split()) if f else " ".join((quote or "").split())
         excerpt, qs, qe, found = q, 0, len(q), False
         texts = [self.ev.quote_contexts.get(f.id, "") if f else "", self.ev.page_texts.get(sid, "")]
         for t in texts:
@@ -481,6 +470,13 @@ class CitationIndex:
         """Only the citation carrying the flag's quote."""
         prim = self.primary_source(f)
         return self._get(prim, f) if prim else None
+
+    def for_quote(self, source_ids: list[str], quote: str, key_id: str) -> list[Citation]:
+        """A non-flag passage (profile field): the first source with the quote, the rest without."""
+        ids = [sid for sid in dict.fromkeys(source_ids) if sid in self.by_id]
+        if not ids:
+            return []
+        return [self._get(ids[0], None, quote, key_id)] + [self._get(sid, None) for sid in ids[1:]]
 
     def for_sources(self, source_ids: list[str]) -> list[Citation]:
         seen: list[str] = []

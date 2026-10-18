@@ -183,3 +183,54 @@ def area_statuses(
 
 def _plural(n: int, singular: str) -> str:
     return f"{n} {singular if n == 1 else singular + 's'}"
+
+
+# Headline points (report section 1 and the chat TL;DR). The first live run (Knorr-Bremse,
+# 2026-10-18) showed five green financial points and nothing on the other areas, so a buyer
+# could not see what was checked elsewhere. The points now cover areas, not one area.
+MIN_POINTS, MAX_POINTS, MAX_ADVERSE_POINTS, MAX_POINTS_PER_AREA = 3, 5, 4, 2
+
+
+def headline_points(flags: list[Flag], known_source_ids: set[str], rules: Rules | None = None) -> list[Flag]:
+    """Red flags, then watch items, then strengths ("checked, nothing adverse found"), then
+    older or resolved adverse matters ("context"), at most 2 points per area and 5 in total.
+
+    Within each colour, an area without a point comes first, so serious items from different
+    areas are shown before a second item from the same area. At most 4 red flags and watch
+    items. Strengths: one per area not yet shown (then a second per area only to reach 3
+    points). An older or resolved adverse matter (a red or amber event type that went stale,
+    e.g. a 2018 settlement) is shown only for an area that has no other point, when there is
+    room, so a checked area is visible. Only flags that cite a known source are used, so every
+    point has a citation. Missing areas are named separately as "Not assessed"."""
+    cited = [f for f in sort_flags(flags) if any(sid in known_source_ids for sid in f.source_ids)]
+    chosen: list[Flag] = []
+    per_area: dict[str, int] = {}
+
+    def take(pool: list[Flag], limit: int, rounds: tuple[int, ...]) -> None:
+        for allowed_before in rounds:  # 0: areas without a point; 1: a second point per area
+            for f in pool:
+                if len(chosen) >= limit:
+                    return
+                n = per_area.get(f.area, 0)
+                if f in chosen or n > allowed_before or n >= MAX_POINTS_PER_AREA:
+                    continue
+                chosen.append(f)
+                per_area[f.area] = n + 1
+
+    for colour in ("red", "amber"):
+        take([f for f in cited if f.colour == colour], MAX_ADVERSE_POINTS, (0, 1))
+    greens = [f for f in cited if f.colour == "green"]
+    take(greens, MAX_POINTS, (0,))
+    take(greens, MIN_POINTS, (1,))
+    if rules is None:
+        from .config import load_rules
+        rules = load_rules()
+
+    def older_adverse(f: Flag) -> bool:
+        rule = rules.event_types.get(f.event_type)
+        return (f.colour == "neutral" and f.stale and f.trust == "trusted" and rule is not None
+                and rule.colour in ("red", "amber"))
+
+    take([f for f in cited if older_adverse(f)], MAX_POINTS, (0,))
+    order = {f.id: i for i, f in enumerate(cited)}
+    return sorted(chosen, key=lambda f: (COLOUR_RANK[f.colour], order[f.id]))

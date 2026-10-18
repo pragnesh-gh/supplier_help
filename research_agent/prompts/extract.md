@@ -6,8 +6,10 @@ whether this company is a safe, reliable supplier: sanctions, insolvency, fines,
 fraud or corruption cases, accidents, strikes, product recalls, quality defects, cyber
 incidents, plant disruptions, delivery problems, credit rating changes, profit warnings,
 leadership scandals, country risk for the company's location, certifications (IRIS /
-ISO/TS 22163, ISO 9001 etc.), strong results, major contracts, and risks the company itself
-discloses.
+ISO/TS 22163, ISO 9001 etc.), strong results, major contracts, risks the company itself
+discloses, job cuts, plant closures or labour agreements, workplace safety figures (accident
+or injury rates), published ESG ratings (EcoVadis, CDP, MSCI), and analyst or investor views
+of the company.
 
 Rules:
 - "quote" must be copied word for word from the page (max 25 words). Do not paraphrase,
@@ -30,3 +32,15 @@ states them for this company:
 - ecovadis_score: the EcoVadis score 0-100 (not just a medal).
 "value" must be copied exactly as written (e.g. "9.523,4", "A-"), and "quote" must contain it.
 Do not calculate, convert or round anything.
+
+Company profile (field "profile"; leave empty if none). Only when the page states it for the
+company being researched (not a namesake, customer or competitor):
+- description: what the company does, one short phrase (max 20 words);
+- products: its main products or components (max 15 words);
+- headquarters: city and country of the head office, e.g. "Leipzig, Germany";
+- founded: the founding year, e.g. "1994";
+- parent_company: the group or parent it belongs to;
+- employees: the number of employees as written, e.g. "about 2,100";
+- sites: its production sites or plants (max 15 words).
+"value" states only what the quote says; never add knowledge from outside the page.
+"quote" must be copied word for word from the page (max 30 words) and support the value.

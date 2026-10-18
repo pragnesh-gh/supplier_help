@@ -18,11 +18,11 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import Any, cast, get_args
 
 from .dates import normalize_date
 from .heatmap import HeatmapRule, describe, likelihood_of, load_rule, placed, severity_of
-from .models import UMBRELLAS, AreaStatus, Flag, ResearchResult, UmbrellaId
+from .models import UMBRELLAS, AreaStatus, Flag, ProfileKey, ResearchResult, UmbrellaId
 from .report_html import (
     AREA_LABELS,
     COLOUR_WORD,
@@ -88,10 +88,38 @@ FOOTER_TEXT = ("This report uses the structure of BAFA’s risk-analysis guide f
 AREA_STATUS_LABEL = {"red": "Red flag", "amber": "Watch item", "green": CHECKED_TEXT, "context": "Context only",
                      "not_assessed": NOT_ASSESSED}
 PROFILE_FIELDS: tuple[tuple[str, str], ...] = (
-    ("name", "Name"), ("parent_company", "Parent company"), ("products", "Products or services"),
+    ("name", "Name"), ("description", "What the company does"), ("products", "Products or components"),
+    ("headquarters", "Headquarters"), ("founded", "Founded"), ("parent_company", "Parent company"),
     ("sites", "Sites"), ("employees", "Employees"), ("employee_representation", "Employee representation"),
     ("order_volume", "Order volume"),
 )
+PROFILE_KEYS = frozenset(get_args(ProfileKey))
+def intro_parts(r: ResearchResult) -> list[dict[str, Any]]:
+    """The short company introduction for the TL;DR card, from the quote-checked profile only:
+    what the company does (or its products) as a sentence, then short facts (HQ, founding year,
+    parent) that the card joins with " · ".
+    Each part keeps its source ids and quote for a citation; a field not found is left out."""
+    p = r.profile
+    parts: list[dict[str, Any]] = []
+
+    def add(key: ProfileKey, text: str) -> None:
+        pf = p[key]
+        parts.append({"key": key, "text": text, "source_ids": list(pf.source_ids), "quote": pf.quote})
+
+    if "description" in p:
+        d = p["description"].value.rstrip(". ")
+        add("description", d[:1].upper() + d[1:] + ".")
+    elif "products" in p:
+        add("products", "Products: " + p["products"].value.rstrip(". ") + ".")
+    if "headquarters" in p:
+        add("headquarters", "HQ " + p["headquarters"].value)
+    if "founded" in p:
+        add("founded", "Founded " + p["founded"].value)
+    if "parent_company" in p:
+        add("parent_company", "Part of " + p["parent_company"].value)
+    return parts
+
+
 METHOD_LINES = (
     "Each risk area gets a score from 0 to 100; higher means more risk. Bands: " + LEVEL_BANDS + ".",
     "Scores come from fixed rules that turn each verified fact into points, using published methods where they "
@@ -264,16 +292,17 @@ class _Builder:
                 fields.append({"key": key, "label": label, "value": BUYER_INPUT, "state": "buyer_input",
                                "cites": []})
                 continue
-            ids: list[str] = []
-            if key == "name":
-                value, ids = (ent.legal_name if ent else ""), evidence
-            elif key in r.profile:
-                pf = r.profile[key]
-                value, ids = pf.value, pf.source_ids
-            elif key == "products" and ent and ent.description:
-                value, ids = ent.description, evidence
-            else:
-                value, ids = "", []
+            pf = r.profile.get(cast(ProfileKey, key)) if key in PROFILE_KEYS else None
+            if pf is not None:
+                cites = self.idx.for_quote(pf.source_ids, pf.quote, f"profile:{key}")
+                fields.append({"key": key, "label": label, "value": pf.value, "state": "found",
+                               "cites": [c.to_dict() for c in cites]})
+                continue
+            value, ids = "", []
+            if key == "name" and ent:
+                value, ids = ent.legal_name, evidence
+            elif key == "products" and "description" not in r.profile and ent and ent.description:
+                value, ids = ent.description, evidence  # the identity line, only if nothing better was read
             fields.append({"key": key, "label": label, "value": value or NOT_FOUND,
                            "state": "found" if value else "not_found",
                            "cites": self.cite_sources(ids) if value else []})

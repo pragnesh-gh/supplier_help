@@ -12,7 +12,11 @@ candidate fact return a verdict:
   about its parent, subsidiary or the same corporate group; "namesake" if it is a different
   company with a similar name; "unclear" if you cannot tell. For the Country & Location area,
   a fact about the country where the confirmed company is based counts as "exact".
-- relevant: true only if it matters for supplier risk or supplier strength.
+- relevant: true only if it matters for supplier risk or supplier strength. Labour matters
+  (job cuts, works-council or collective agreements), workplace safety figures, published ESG
+  ratings and analyst or investor views of the company do matter: they are the evidence for
+  the People & Safety and Reputation & Outside View areas (use other_neutral unless a specific
+  event_type fits).
 - event_type: choose exactly one:
   sanctions_listing (on a government sanctions list) · insolvency_filing (insolvency or
   bankruptcy proceedings) · fraud_or_corruption_case · regulatory_fine (fine or penalty by an
@@ -64,3 +68,8 @@ If the request gives a "Claim under check", also set contradicts_claim_under_che
 this page explicitly states the opposite of that claim (for example: the company was never
 listed, the case was dismissed, the recall was withdrawn). Silence is not a contradiction.
 Otherwise set it to false.
+
+If the request gives "Candidate profile items", return one entry in profile_verdicts per item
+(item_id as given): supported is true only if the quote, read on the page, states that value
+for the company (headquarters city, founding year, products and so on); entity_match as above.
+A value that adds anything the quote does not say → supported false.

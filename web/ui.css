@@ -618,8 +618,15 @@ nav a,
 .rcard-verdict.tone-red, .rcard-verdict.tone-critical { border-left-color: var(--risk-critical); }
 .rcard-verdict.tone-amber { border-left-color: #c58a00; }
 .rcard-verdict.tone-green { border-left-color: var(--risk-low); }
-.rcard-body { display: grid; grid-template-columns: 200px 1fr; gap: 10px; margin-top: 10px; align-items: start; }
-.rcard-radar { margin: 0; text-align: center; }
+.rcard-intro { margin-top: 8px; font-size: 13px; color: var(--on-surface); display: grid; gap: 2px; }
+.rcard-intro .rcard-facts { color: var(--on-surface-variant); font-size: 12.5px; }
+.rcard-intro .cite-chip { vertical-align: 1px; }
+.rcard-section { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--outline-variant); font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-surface-variant); }
+.rcard-section + .rcard-score { margin-top: 6px; }
+.rcard-radar { margin: 10px 0 0; text-align: center; }
+.rcard-radar .rr.wide { width: 100%; max-width: 340px; display: block; margin: 0 auto; }
+.rr.wide .rr-label { font-size: 11px; }
+.rcard-points { margin-top: 10px; }
 .rcard-radar figcaption { display: flex; gap: 6px; align-items: center; justify-content: center; }
 .rr-key-hollow { width: 9px; height: 9px; border-radius: 50%; border: 1.5px dashed #64748b; display: inline-block; }
 .rr { overflow: visible; max-width: 100%; height: auto; }
@@ -644,8 +651,19 @@ nav a,
 .pt-text { margin-right: 4px; }
 .pt-cites { white-space: nowrap; }
 .rcard-note { margin-top: 10px; }
-.rcard-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.rcard-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
 .rcard-actions button { min-height: 32px; font-size: 12px; padding: 4px 10px; }
+.rcard-actions .rcard-open { flex: 1 1 auto; justify-content: center; }
+.rcard-actions .rcard-icon, .rcard-actions .dl-menu summary.rcard-icon { width: 34px; min-width: 34px; height: 34px; min-height: 34px; padding: 0; justify-content: center; flex: 0 0 auto; color: var(--on-surface-variant); }
+.rcard-actions .rcard-icon[aria-pressed="true"]:not(.fav-toggle) { color: var(--primary); background: var(--primary-container); border-color: var(--primary); }
+.rcard-actions .rcard-icon[aria-busy="true"] { opacity: 0.6; cursor: progress; }
+.rcard-actions .dl-menu[open] summary { background: var(--surface-low); }
+.rcard-feedback { margin-top: 8px; padding: 6px 10px; border-radius: var(--radius-md); background: var(--primary-container); color: var(--on-primary-container, var(--on-surface)); font-size: 12.5px; }
+.rcard-feedback.error { background: #fdecec; color: var(--error); }
+.rcard-feedback a { font-weight: 600; }
+.rcard-places { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; }
+.rcard-places a { display: inline-flex; align-items: center; gap: 3px; color: var(--primary); text-decoration: none; font-weight: 600; }
+.rcard-places a:hover { text-decoration: underline; }
 .rcard-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--outline-variant); }
 .rcard-foot .link { font-size: 12px; display: inline-flex; gap: 4px; align-items: center; }
 .rcard-foot .link[aria-pressed="true"] { font-weight: 700; }
@@ -705,7 +723,8 @@ nav a,
 .cite-domain { font-family: var(--mono); }
 @media (forced-colors: active) { .cite-quote mark { forced-color-adjust: none; background: Mark; color: MarkText; } }
 @media (max-width: 1000px) { .cite-panel { right: 18px; top: auto; bottom: 18px; max-height: 70vh; z-index: 80; } }
-@media (max-width: 560px) { .rcard-body { grid-template-columns: 1fr; } .rcard-radar { justify-self: center; } }
+/* Toasts stay above the chat panel (it would otherwise hide them on narrower windows). */
+#toast-root .toast { z-index: 90; }
 /* report dialog, reports list, scoring, compare */
 .report-frame { width: 100%; height: 70vh; border: 1px solid var(--outline-variant); border-radius: var(--radius-md); margin-top: 12px; background: #fff; }
 .report-actions { flex-wrap: wrap; }
@@ -747,3 +766,4 @@ nav a,
 .pinned-report span { flex: initial; }
 button.cite-chip:hover:not(:disabled), a.cite-chip:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
 button.cite-chip.unverified:hover:not(:disabled) { background: #fffbeb; color: #7a5b00; border-color: #c58a00; }
+.nowrap { white-space: nowrap; }

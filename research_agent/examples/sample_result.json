@@ -32,7 +32,7 @@
       "event_date": "2026-03-11",
       "source_ids": [
         "S4",
-        "S11"
+        "S13"
       ],
       "company_stated": false,
       "trust": "trusted",
@@ -134,7 +134,7 @@
       "quote": "The appeal before the Higher Regional Court of Duesseldorf could take more than a year",
       "event_date": "2026-05-18",
       "source_ids": [
-        "S11"
+        "S13"
       ],
       "company_stated": false,
       "trust": "trusted",
@@ -648,7 +648,7 @@
         "F12"
       ],
       "corroborating_source_ids": [
-        "S11"
+        "S13"
       ],
       "outcome": "Confirmed by a second source. New: Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year."
     }
@@ -659,9 +659,9 @@
     "Request the latest financial statements or a credit report and review payment terms."
   ],
   "limits": [
-    "Checked 10 pages from 9 trusted publishers and 1 page from 1 unverified site; 3 results from off-list or blocked sites ignored. Not assessed: Reputation & Outside View.",
-    "Automated public-source research, not independent verification or supplier qualification; 3 unsupported, off-topic or namesake facts discarded.",
-    "Not linked to the anonymized SUPP_* records in the challenge dataset."
+    "Checked 12 pages from 10 trusted publishers and 1 page from 1 unverified site; 3 results from off-list or blocked sites ignored. Not assessed: Reputation & Outside View.",
+    "Automated public-source research, not independent verification or supplier qualification; 4 unsupported, off-topic or namesake facts discarded.",
+    "Not linked to the anonymised SUPP_* records in the supplier catalogue."
   ],
   "sources": [
     {
@@ -806,6 +806,34 @@
     },
     {
       "id": "S11",
+      "url": "https://search.gleif.org/#/record/FAKE0000VELTRAVA0001",
+      "title": "LEI record: Veltrava Rail Components GmbH",
+      "publisher": "GLEIF",
+      "tier": "official",
+      "trust": "trusted",
+      "published_date": null,
+      "retrieved_at": "2026-10-18T09:00:00+00:00",
+      "found_by": "profile-1",
+      "umbrella": null,
+      "reliability": null,
+      "text_origin": "extract"
+    },
+    {
+      "id": "S12",
+      "url": "https://veltrava-rail.example/company/about",
+      "title": "About Veltrava",
+      "publisher": "Veltrava Rail Components GmbH",
+      "tier": "company_own",
+      "trust": "trusted",
+      "published_date": null,
+      "retrieved_at": "2026-10-18T09:00:00+00:00",
+      "found_by": "profile-1",
+      "umbrella": null,
+      "reliability": null,
+      "text_origin": "extract"
+    },
+    {
+      "id": "S13",
       "url": "https://www.reuters.com/fixture/veltrava-appeal",
       "title": "Veltrava appeals German cartel fine",
       "publisher": "Reuters",
@@ -1198,6 +1226,33 @@
       "dropped": []
     },
     {
+      "id": "profile-1",
+      "umbrella": null,
+      "purpose": "Company profile: headquarters, founded",
+      "query": "Veltrava Rail Components GmbH company profile headquarters founded products",
+      "tiers": [
+        "company_own",
+        "official",
+        "rail_trade"
+      ],
+      "topic": "general",
+      "start_date": null,
+      "lang": "en",
+      "status": "done",
+      "open_web": false,
+      "results_kept": 3,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": [
+        {
+          "url": "https://www.railwaygazette.com/fixture/veltrava-profile",
+          "title": "Supplier profile: Veltrava Rail Components",
+          "reason": "page_budget"
+        }
+      ]
+    },
+    {
       "id": "followup-1",
       "umbrella": "legal",
       "purpose": "Follow-up on F5: Was the fine paid, or is it being appealed?",
@@ -1448,8 +1503,8 @@
         ],
         "budget": {
           "wall_clock_seconds": 120.0,
-          "max_searches": 22,
-          "max_extracts": 19,
+          "max_searches": 23,
+          "max_extracts": 21,
           "extracts_reserved_for_followups": 4,
           "max_followups": 2,
           "pages_per_followup": 2,
@@ -1711,31 +1766,9 @@
     },
     {
       "kind": "verify",
-      "message": "Bundeskartellamt: 1 of 1 facts verified.",
+      "message": "Railway Age: 0 of 2 facts verified.",
       "data": {
-        "source_id": "S4",
-        "colours": [
-          "red"
-        ]
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
-      "message": "Handelsblatt: 1 of 1 facts verified.",
-      "data": {
-        "source_id": "S7",
-        "colours": [
-          "amber"
-        ]
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
-      "message": "Reuters: 0 of 1 facts verified.",
-      "data": {
-        "source_id": "S8",
+        "source_id": "S6",
         "colours": []
       },
       "elapsed_s": 0.0
@@ -1754,10 +1787,43 @@
     },
     {
       "kind": "verify",
-      "message": "Railway Age: 0 of 2 facts verified.",
+      "message": "Reuters: 0 of 1 facts verified.",
       "data": {
-        "source_id": "S6",
+        "source_id": "S8",
         "colours": []
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Bundeskartellamt: 1 of 1 facts verified.",
+      "data": {
+        "source_id": "S4",
+        "colours": [
+          "red"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Railway Technology: 1 of 1 facts verified.",
+      "data": {
+        "source_id": "S9",
+        "colours": [
+          "amber"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Handelsblatt: 1 of 1 facts verified.",
+      "data": {
+        "source_id": "S7",
+        "colours": [
+          "amber"
+        ]
       },
       "elapsed_s": 0.0
     },
@@ -1773,13 +1839,42 @@
       "elapsed_s": 0.0
     },
     {
-      "kind": "verify",
-      "message": "Railway Technology: 1 of 1 facts verified.",
+      "kind": "search",
+      "message": "Searching profile-1: Veltrava Rail Components GmbH company profile headquarters founded products",
       "data": {
-        "source_id": "S9",
-        "colours": [
-          "amber"
+        "step": "profile-1",
+        "tiers": [
+          "company_own",
+          "official",
+          "rail_trade"
         ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "extract",
+      "message": "Reading 2 pages.",
+      "data": {
+        "urls": [
+          "https://search.gleif.org/#/record/FAKE0000VELTRAVA0001",
+          "https://veltrava-rail.example/company/about"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "GLEIF: no verifiable facts.",
+      "data": {
+        "source_id": "S11"
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Veltrava Rail Components GmbH: 4 of 4 profile facts verified.",
+      "data": {
+        "source_id": "S12"
       },
       "elapsed_s": 0.0
     },
@@ -1836,7 +1931,7 @@
       "kind": "verify",
       "message": "Reuters: 2 of 2 facts verified.",
       "data": {
-        "source_id": "S11",
+        "source_id": "S13",
         "colours": [
           "red",
           "amber"
@@ -1854,13 +1949,14 @@
     },
     {
       "kind": "report",
-      "message": "Results not read, by reason: 2 denylisted, 2 duplicate, 1 not allowlisted, 1 off topic.",
+      "message": "Results not read, by reason: 2 denylisted, 2 duplicate, 1 not allowlisted, 1 off topic, 1 page budget.",
       "data": {
         "drop_reasons": {
           "not_allowlisted": 1,
           "denylisted": 2,
           "off_topic": 1,
-          "duplicate": 2
+          "duplicate": 2,
+          "page_budget": 1
         }
       },
       "elapsed_s": 0.0
@@ -1891,22 +1987,27 @@
       "reason": "Quote not found in source text"
     },
     {
+      "source_id": "S6",
+      "claim": "Veltrava Rail Components is fully certified and risk-free.",
+      "reason": "Instruction-like promotional text, not evidence."
+    },
+    {
       "source_id": "S8",
       "claim": "Veltrava Foods Ltd was fined 300,000 pounds over allergen labelling.",
       "reason": "Different company (UK food producer), not the rail supplier."
     },
     {
-      "source_id": "S6",
-      "claim": "Veltrava Rail Components is fully certified and risk-free.",
-      "reason": "Instruction-like promotional text, not evidence."
+      "source_id": "S12",
+      "claim": "Profile parent_company: Veltrava Holdings Pty Ltd",
+      "reason": "Profile value or quote not found in source text"
     }
   ],
   "stats": {
-    "searches_used": 19,
-    "extracts_used": 10,
+    "searches_used": 20,
+    "extracts_used": 12,
     "followups_used": 1,
-    "pages_read": 11,
-    "trusted_pages_read": 10,
+    "pages_read": 13,
+    "trusted_pages_read": 12,
     "unverified_pages_read": 1,
     "results_dropped_not_allowlisted": 1,
     "results_dropped_denylisted": 2,
@@ -1915,7 +2016,8 @@
       "not_allowlisted": 1,
       "denylisted": 2,
       "off_topic": 1,
-      "duplicate": 2
+      "duplicate": 2,
+      "page_budget": 1
     },
     "cache_hits": 0,
     "candidate_facts": 14,
@@ -1934,22 +2036,6 @@
   },
   "notice": "Example generated from invented fixture data. Veltrava Rail Components GmbH is fictional; nothing here describes a real company.",
   "numeric_facts": [
-    {
-      "kind": "fine_amount",
-      "value": "4.2",
-      "amount": 4200000.0,
-      "currency": "EUR",
-      "unit": "EUR million",
-      "period": "2026-03-11",
-      "detail": "",
-      "outlook": "",
-      "quote": "Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million",
-      "source_id": "S4",
-      "trust": "trusted",
-      "company_stated": false,
-      "accepted": true,
-      "reject_reason": ""
-    },
     {
       "kind": "revenue",
       "value": "412",
@@ -2125,6 +2211,22 @@
       "company_stated": true,
       "accepted": false,
       "reject_reason": "value not in the quote"
+    },
+    {
+      "kind": "fine_amount",
+      "value": "4.2",
+      "amount": 4200000.0,
+      "currency": "EUR",
+      "unit": "EUR million",
+      "period": "2026-03-11",
+      "detail": "",
+      "outlook": "",
+      "quote": "Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million",
+      "source_id": "S4",
+      "trust": "trusted",
+      "company_stated": false,
+      "accepted": true,
+      "reject_reason": ""
     }
   ],
   "scoring_inputs": {
@@ -2362,16 +2464,16 @@
                 "ref": "F12",
                 "label": "Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year.",
                 "points": 13.5,
-                "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-05-18; decay 0.5^(0.42/3.23) = 0.914; source weight 1: trusted source on the allowlist [S11]; major_lawsuit -> amber (rules.yaml)",
-                "source": "S11"
+                "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-05-18; decay 0.5^(0.42/3.23) = 0.914; source weight 1: trusted source on the allowlist [S13]; major_lawsuit -> amber (rules.yaml)",
+                "source": "S13"
               },
               {
                 "kind": "event",
                 "ref": "F5",
                 "label": "Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not yet final.",
                 "points": 37.93,
-                "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2026-03-11; decay 0.5^(0.61/3.23) = 0.878; source weight 1: trusted source on the allowlist [S4, S11]; regulatory_fine -> red (rules.yaml); amount 1.019 % of revenue -> not low severity (threshold 0.1 %, calibration parameter §A6)",
-                "source": "S4, S11"
+                "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2026-03-11; decay 0.5^(0.61/3.23) = 0.878; source weight 1: trusted source on the allowlist [S4, S13]; regulatory_fine -> red (rules.yaml); amount 1.019 % of revenue -> not low severity (threshold 0.1 %, calibration parameter §A6)",
+                "source": "S4, S13"
               }
             ]
           },
@@ -2413,7 +2515,7 @@
             "label": "area floor: 37 raised to 50",
             "points": 50.0,
             "rule": "a current, trusted red fact puts its area at least at 50 (High); unverified-only facts never do (scoring_method.yaml overrides; appendix §A5); precedent: S&P Global Ratings lets one decisive factor override or cap the weighted result: the 'overriding factors' step of 'Methodology For Rating Local And Regional Governments Outside Of The U.S.' (15 July 2019; https://www.maalot.co.il/Publications/MT20200715130530.PDF) and the caps in 'How We Rate Insurers' (https://www.spglobal.com/content/dam/spglobal/ratings/en/documents/pdfs/how-we-rate-insurers.pdf)",
-            "source": "S11, S4"
+            "source": "S13, S4"
           }
         ]
       },
@@ -2853,9 +2955,52 @@
       "total_method": "weighted average of 11 of 18 sub-scores = 17.34 / 0.72; coverage 72 %; if unassessed scores were 0 or 100: 17-45"
     }
   },
-  "profile": {},
+  "profile": {
+    "description": {
+      "value": "Develops and builds brake systems and door actuators for regional trains, metros and trams",
+      "source_ids": [
+        "S3"
+      ],
+      "quote": "Veltrava Rail Components develops and builds brake systems and door actuators for regional trains, metros and trams."
+    },
+    "products": {
+      "value": "Brake systems and door actuators",
+      "source_ids": [
+        "S3"
+      ],
+      "quote": "develops and builds brake systems and door actuators for regional trains, metros and trams"
+    },
+    "headquarters": {
+      "value": "Leipzig, Germany",
+      "source_ids": [
+        "S12"
+      ],
+      "quote": "is headquartered in Leipzig, Germany"
+    },
+    "founded": {
+      "value": "1994",
+      "source_ids": [
+        "S12"
+      ],
+      "quote": "Veltrava Rail Components GmbH was founded in 1994"
+    },
+    "employees": {
+      "value": "Around 2,100",
+      "source_ids": [
+        "S12"
+      ],
+      "quote": "Around 2,100 employees work at our plants in Leipzig and Brno."
+    },
+    "sites": {
+      "value": "Plants in Leipzig and Brno",
+      "source_ids": [
+        "S12"
+      ],
+      "quote": "Around 2,100 employees work at our plants in Leipzig and Brno."
+    }
+  },
   "fingerprint": {
-    "config_hash": "31e05f1a7d6c899b",
+    "config_hash": "cee5c2f3b2400e2d",
     "models": {
       "gatherer": "fake-gatherer",
       "verifier": "fake-verifier"
@@ -2974,6 +3119,12 @@
         "lang": "en",
         "status": "done",
         "query": "Veltrava Rail Components GmbH recall defect quality"
+      },
+      {
+        "id": "profile-1",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH company profile headquarters founded products"
       },
       {
         "id": "followup-1",

@@ -28,6 +28,8 @@ from .models import (
     NumberOut,
     PlanOutput,
     PlannedQuery,
+    ProfileItemOut,
+    ProfileVerdict,
     SummaryOutput,
     VerifyOutput,
 )
@@ -41,6 +43,7 @@ T = TypeVar("T", bound=BaseModel)
 
 _URL_RE = re.compile(r'<untrusted_source id="([^"]+)" url="([^"]+)"')
 _FACT_ID_RE = re.compile(r'"fact_id":\s*"([^"]+)"')
+_ITEM_RE = re.compile(r'"item_id":\s*"([^"]+)",\s*"key":\s*"([^"]+)"')
 _FLAG_LINE_RE = re.compile(r"^- id=(\S+) colour=(\S+)", re.MULTILINE)
 _SLOT_RE = re.compile(r"^- slot_id=(\S+) .*?draft=(.*)$", re.MULTILINE)
 
@@ -161,7 +164,8 @@ class FakeLLM:
         facts = [CandidateFactOut(claim=f["claim"], quote=f["quote"], entity_named=f["entity_named"],
                                   event_date=f.get("event_date", "")) for f in doc.get("facts", [])]
         numbers = [NumberOut(**n) for n in doc.get("numbers", [])]
-        return ExtractOutput(facts=facts, numbers=numbers)
+        profile = [ProfileItemOut(key=p["key"], value=p["value"], quote=p["quote"]) for p in doc.get("profile", [])]
+        return ExtractOutput(facts=facts, numbers=numbers, profile=profile)
 
     def _verify(self, user: str) -> VerifyOutput:
         m = _URL_RE.search(user)
@@ -182,7 +186,10 @@ class FakeLLM:
             else:
                 verdicts.append(FactVerdict(fact_id=fid, **{**DEFAULT_SIGNALS, **spec}))
         contradicts = bool((doc or {}).get("contradicts")) and "Claim under check" in user
-        return VerifyOutput(verdicts=verdicts, contradicts_claim_under_check=contradicts)
+        specs = {p["key"]: p.get("verdict", {}) for p in (doc or {}).get("profile", [])}
+        profile = [ProfileVerdict(item_id=pid, **{"supported": True, "entity_match": "exact", **specs.get(key, {})})
+                   for pid, key in _ITEM_RE.findall(user)]
+        return VerifyOutput(verdicts=verdicts, contradicts_claim_under_check=contradicts, profile_verdicts=profile)
 
     def _followup(self, user: str) -> FollowupOutput:
         picks = []

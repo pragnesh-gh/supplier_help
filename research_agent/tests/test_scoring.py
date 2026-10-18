@@ -383,12 +383,27 @@ def test_pipeline_not_assessed_area_is_never_scored():
     assert r.score is None and r.coverage == "not_assessed"
 
 
-def test_context_only_area_scores_only_data_values():
+def test_context_only_area_is_checked_and_scored_with_decay():
+    """Appendix §A3: an area with a verified fact is scored. An old, settled case (US v. Knorr &
+    Wabtec, 2018) is "checked, resolved": base 12 plus the decayed amber, never a red flag, and
+    dropped completely after 2 x stale_after_years."""
     ctx = AreaStatus(area="legal", label="legal", status="context", finding="x", pages_checked=1,
                      trusted_pages_used=1)
     areas = [ctx if a == "legal" else _status(a) for a in UMBRELLAS]
     rep = _run([_flag("A1", "antitrust_settlement", "legal", colour="neutral", event_date="2018-07-11")], areas)
-    assert _area(rep, "legal").score is None
+    legal = _area(rep, "legal")
+    comp = _sub(rep, "Compliance_Risk_Score")
+    assert legal.score is not None and 12 < comp.score < 25 and legal.level == "Low"
+    ev = next(c for c in comp.contributions if c.ref == "A1")
+    assert ev.kind == "event" and 0 < ev.points < 3  # amber 14.8 x 0.5^(8.3/3.23)
+    assert not [c for c in legal.contributions if c.kind == "override"]
+    # Older than the drop age (2 x 5 y): checked, nothing current, base only.
+    rep = _run([_flag("A1", "antitrust_settlement", "legal", colour="neutral", event_date="2015-01-01")], areas)
+    comp = _sub(rep, "Compliance_Risk_Score")
+    assert comp.score == 12 and "older" in comp.contributions[0].label
+    # Only neutral facts (e.g. a company-disclosed risk): checked, base 12.
+    rep = _run([_flag("A1", "company_disclosed_risk", "legal", colour="neutral", severity="low")], areas)
+    assert _area(rep, "legal").score == 12
 
 
 def test_wgi_figures_on_a_data_flag_score_political_stability():
