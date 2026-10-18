@@ -1,13 +1,13 @@
 # Supplier Help · Siemens Supplier Risk Intelligence
 
-Supplier research and review tools for the Siemens challenge. This branch adds a local live research agent alongside the original deterministic prototype. It supports investigation and drafting; supplier qualification remains a separate buyer process.
+Supplier research and review tools for the Siemens challenge. The main branch contains the local live research agent, both deterministic prototypes, and all design references. It supports investigation and drafting; supplier qualification remains a separate buyer process.
 
 ## Research agent
 
-Run from this worktree with Python 3.12+ (no dependency installation):
+Run from the repository root with Python 3.12+ (no dependency installation):
 
 ```powershell
-python -m research_agent --env-file ..\supplier_help\.env
+python -m research_agent --env-file .env
 ```
 
 Open **http://127.0.0.1:8877**. The optional `--env-file` reuses the existing server-side OpenRouter configuration without copying its credential into this checkout. Alternatively, set `OPENROUTER_API_KEY` in the process environment or this worktree's ignored `.env`. Never paste the key into chat or browser code.
@@ -31,13 +31,13 @@ The earlier prototype below remains offline and simulated. Its scope statements 
 
 Explore and filter actual data, compare at most 20 suppliers, inspect evidence, try scripted grounded questions and simulated dictation, review a separately labelled company-research fixture, and export a shortlist memo. No live LLM, web crawling, microphone recording, login, or procurement-system integration is claimed.
 
-The latest clickable prototype lives on `prototype/train-risk-v2`; the earlier layouts remain on `prototype/supplier-workbench`, separate from the research/setup baseline on `main`. No UI choice has been validated by a buyer yet.
+All development now happens on `main`. Both prototype versions are preserved as separate files under `prototype/`; no branch switching is needed. No UI choice has been validated by a buyer yet.
 
 ## Open the prototype
 
 ### New train overview (v2)
 
-On `prototype/train-risk-v2`, open `prototype/train-risk-v2.html` after building:
+On `main`, open `prototype/train-risk-v2.html` after building:
 
 ```sh
 python scripts/augment_dataset.py
@@ -54,7 +54,7 @@ Design evidence: [v2 brief](docs/prototype-v2-brief.md), [bounded rail research]
 
 ### Earlier layouts (v1)
 
-Check out `prototype/supplier-workbench`, then double-click `prototype/supplier-workbench.html`. It embeds all 10,000 supplied rows and needs no server, internet, API key or package installation. The floating bottom switcher chooses three layouts (`?variant=A`, `B`, or `C`). Start the guided demo or explore freely; state resets when the page reloads.
+From `main`, double-click `prototype/supplier-workbench.html`. It embeds all 10,000 supplied rows and needs no server, internet, API key or package installation. The floating bottom switcher chooses three layouts (`?variant=A`, `B`, or `C`). Start the guided demo or explore freely; state resets when the page reloads.
 
 Rebuild after changing the template or source data:
 
@@ -78,7 +78,7 @@ Python 3.12+; no dependencies are required for the data audit or prototype.
 python scripts/audit_dataset.py
 ```
 
-Keep OpenRouter credentials in your process environment or ignored `.env`. `.env.example` and `config/models.json` document the proposed backend configuration; the HTML never reads them. The user confirmed Nemotron; the selected initial candidate is `nvidia/nemotron-3.5-lightning`. Its public catalog entry was verified on 2026-10-18, but credentialed model/provider access remains unverified. The baseline uses deterministic logic plus Nemotron. Jev via OpenRouter is an optional later triage experiment; OpenAI Decisions is out of the current scope. There is no image-input requirement. Speech transcription produces text before the language-model step.
+Keep OpenRouter credentials in your process environment or ignored `.env`. `.env.example` and `config/models.json` document the proposed backend configuration; the HTML never reads them. The user confirmed Nemotron; the selected initial candidate is `nvidia/nemotron-3.5-lightning`. Its public catalog entry was verified on 2026-10-18, and the research-agent verification record documents a later live run. The baseline uses deterministic logic plus Nemotron. Jev via OpenRouter is an optional later triage experiment; OpenAI Decisions is out of the current scope. There is no image-input requirement. Speech transcription produces text before the language-model step.
 
 ```sh
 python scripts/check_openrouter.py --catalog
@@ -86,7 +86,7 @@ python scripts/check_openrouter.py --catalog
 python scripts/check_openrouter.py --key
 ```
 
-These are read-only setup checks, not an implemented LLM backend. They never print credentials. No paid inference has been run.
+These setup commands are read-only and never print credentials. The separate research agent implements live provider calls; see its verification record for the prior live investigation. No paid calls are needed for the automated tests.
 
 ## Read next
 
@@ -104,3 +104,7 @@ These are read-only setup checks, not an implemented LLM backend. They never pri
 Private by default because the supplied dataset has no redistribution licence in this workspace. Share repository access with the jury explicitly before submission. No licence is asserted over the supplied inputs.
 
 Research and delivery notes are in `docs/`. The deployed app, authentication and two-minute final video remain subsequent implementation milestones.
+
+## Working branch
+
+Use `main` in `supplier_help` for ongoing edits. The former UI and research branches were consolidated on 18 October 2026. The secondary `supplier_help-research-agent` worktree is retained as a detached snapshot; its ignored local runs and exports remain there. Use the primary checkout for new work rather than creating separate feature branches. Historical branch references in review notes describe the original capture, not the current workflow.

@@ -4,10 +4,10 @@ The primary requirement is the [Siemens challenge brief](siemens-challenge-brief
 
 ## Start
 
-From the `supplier_help-research-agent` worktree:
+From the primary `supplier_help` checkout on `main`:
 
 ```powershell
-python -m research_agent --env-file ..\supplier_help\.env
+python -m research_agent --env-file .env
 ```
 
 Open http://127.0.0.1:8877. Python 3.12+ is sufficient; there is no package installation or frontend build. The server serves only `research_agent/web`, not the repository or its credentials. The key stays server-side. Using `--env-file` is optional when the process environment or local ignored `.env` already contains configuration. `OPENROUTER_MODEL` defaults to the repo's selected `nvidia/nemotron-3.5-lightning`.
