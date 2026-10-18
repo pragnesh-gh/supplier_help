@@ -425,6 +425,38 @@ document.addEventListener("DOMContentLoaded", async () => {
         `<p class="notice">Synthetic example only. These weekly values are not in the supplied CSV and are not used for ranking, risk scores or approval evidence. Previously-used status is also demo metadata.</p><h2 style="margin-top:16px">${esc(nameOf(r))}</h2><p>Supplied snapshot delivery rating: ${fmt(r["Supplier Delivery Rating"])}%. Example weeks are relative, not actual observation dates.</p><svg class="trend-large" viewBox="0 0 600 200" role="img" aria-label="Illustrative delivery percentages on a zero to one hundred scale">${[0, 50, 100].map((v) => `<text x="0" y="${180 - v * 1.5}" font-size="12">${v}%</text><line x1="40" x2="585" y1="${180 - v * 1.5}" y2="${180 - v * 1.5}" stroke="#dce5e7"/>`).join("")}<polyline points="${v.map((x, i) => `${45 + i * 48},${180 - x * 1.5}`).join(" ")}" fill="none" stroke="#0f6e74" stroke-width="2"/>${v.map((x, i) => `<circle tabindex="0" cx="${45 + i * 48}" cy="${180 - x * 1.5}" r="5" fill="#0f6e74"><title>Example week ${i + 1}: ${x}%</title></circle>`).join("")}</svg><table><thead><tr><th>Example week</th><th>Illustrative delivery %</th></tr></thead><tbody>${v.map((x, i) => `<tr><td>${i + 1}</td><td>${x}</td></tr>`).join("")}</tbody></table>`,
       );
     }
+    const cardIcons = {
+      compare: "M320-160 264-216l104-104H80v-80h288L264-504l56-56 200 200-200 200Zm320-240L440-600l200-200 56 56-104 104h288v80H592l104 104-56 56Z",
+      bookmark: "M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Zm80-122 200-86 200 86v-518H280v518Z",
+      bookmarked: "M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z",
+    };
+    // Material Symbols outlines, inlined so the app stays offline.
+    const cardIcon = (name) =>
+      `<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true"><path d="${cardIcons[name]}"/></svg>`;
+    const saveButton = (r) =>
+      `<button class="icon-button" data-action="favorite" data-id="${esc(r.supplierID)}" aria-pressed="${state.favorites.has(r.supplierID)}" aria-label="${state.favorites.has(r.supplierID) ? "Remove" : "Save"} ${esc(r.supplierID)} ${state.favorites.has(r.supplierID) ? "from" : "to"} favorites">${cardIcon(state.favorites.has(r.supplierID) ? "bookmarked" : "bookmark")}</button>`;
+    const compareButton = (r) =>
+      `<button class="compare-button" data-action="toggle-compare" data-id="${esc(r.supplierID)}" aria-pressed="${state.compare.includes(r.supplierID)}">${cardIcon("compare")}${state.compare.includes(r.supplierID) ? "Remove from compare" : "Compare"}</button>`;
+    const level = (name, value) =>
+      `<span class="risk ${esc(name || "Unknown")}">${esc(name || "Unknown")}${typeof value === "number" ? ` · ${fmt(value)}/100` : ""}</span>`;
+    const euro = (x) =>
+      typeof x !== "number"
+        ? "Unknown"
+        : "€" + (x >= 1e6 ? fmt(Math.round(x / 1e5) / 10) + "m" : x >= 1e3 ? fmt(Math.round(x / 1e3)) + "k" : fmt(x));
+    const pct = (x) => (typeof x === "number" ? Math.round(x) + "%" : "Unknown");
+    function attention(r) {
+      // Always render the slot so card rows stay aligned in the grid.
+      if (!["High", "Critical"].includes(r.Total_Risk_Index_Level)) return '<div class="attention-slot"></div>';
+      let top = Object.keys(r)
+        .filter((k) => /_Score$/.test(k) && k !== "Industry_Benchmark_Score" && typeof r[k] === "number")
+        .sort((a, b) => r[b] - r[a])
+        .slice(0, 2);
+      if (!top.length) return '<div class="attention-slot"></div>';
+      return `<div class="attention-slot attention"><div class="attention-title">Why it needs attention</div><p>Highest supplied scores: ${top.map((k) => `${esc(k.replace(/_Score$/, "").replaceAll("_", " ").toLowerCase())} ${fmt(r[k])}/100`).join(" · ")}.</p></div>`;
+    }
+    function widget(r) {
+      return `<article class="card portfolio-widget${state.compare.includes(r.supplierID) ? " compared" : ""}"><div class="widget-head"><div class="widget-id">${esc(r.supplierID)}${r._research ? " · Research-only" : isUsed(r) ? " · Previously used · demo" : ""}</div>${saveButton(r)}</div><div><h2><button class="title-link" data-action="detail" data-id="${esc(r.supplierID)}">${esc(nameOf(r))}</button></h2><div class="widget-sub">${esc(regionLabel(regionOf(r)))}${r.train_part_id ? " · " + esc(partLabel(r.train_part_id)) : ""}</div></div><div class="widget-line"><span>Total Risk Index</span>${level(r.Total_Risk_Index_Level, r.Total_Risk_Index)}</div>${attention(r)}<div class="widget-metrics"><div><span>PO volume</span><strong>${euro(r["Purchase Order Volume (EUR)"])}</strong></div><div><span>On-time delivery</span><strong>${pct(r["Supplier Delivery Rating"])}</strong></div><div><span>Order changes</span><strong>${pct(r["Order Change Rate"])}</strong></div></div><div class="widget-line"><span>Sourcing risk</span>${level(r["Sourcing Risk Level"])}</div><div class="widget-actions">${compareButton(r)}</div></article>`;
+    }
     function portfolio() {
       let p = state.portfolio,
         rs = catalog().filter(
@@ -443,7 +475,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       p.page = Math.min(p.page, pages);
       let rows = rs.slice((p.page - 1) * 9, p.page * 9),
         actions = (r) =>
-          `<div class="row"><button data-action="detail" data-id="${esc(r.supplierID)}">Inspect</button><button data-action="toggle-compare" data-id="${esc(r.supplierID)}" aria-pressed="${state.compare.includes(r.supplierID)}">${icon(state.compare.includes(r.supplierID) ? "check" : "compare_arrows", "sm")}${state.compare.includes(r.supplierID) ? "In comparison" : "Compare"}</button>${favButton(r.supplierID)}</div>`;
+          `<div class="row widget-actions">${compareButton(r)}${saveButton(r)}</div>`;
       return `<div class="screen-title"><div><div class="eyebrow">Your supplier collections</div><h1>My suppliers</h1><p class="muted">A quick view of favorites and demo supplier relationships.</p></div><button class="primary" data-action="compare" ${!state.compare.length ? "disabled" : ""}>${icon("compare_arrows", "sm")}Compare selected (${state.compare.length}/20)</button></div><div class="portfolio-tools"><div class="toggle-group" role="group" aria-label="Collection">${[
         ["favorite", "Favorites"],
         ["used", "Previously used"],
@@ -455,7 +487,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         )
         .join(
           "",
-        )}</div><span class="search-field">${icon("search")}<input id="portfolio-search" type="search" aria-label="Search my suppliers" placeholder="Find a name or supplier ID" value="${esc(p.q)}"></span><div class="toggle-group" role="group" aria-label="Layout">${["cards", "rows"].map((v) => `<button data-portfolio-view="${v}" aria-pressed="${p.view === v}">${v === "cards" ? "Cards" : "Trend rows"}</button>`).join("")}</div></div><p class="notice">${rs.length.toLocaleString()} matching records. Trend lines are illustrative examples for previously-used suppliers only; the CSV contains no historical series. Favorites without demo history show History unavailable.</p>${state.compareError ? `<p role="alert">${esc(state.compareError)}</p>` : ""}<div style="margin-top:16px" class="${p.view === "cards" ? "portfolio-grid" : "card portfolio-table"}">${p.view === "cards" ? rows.map((r) => `<article class="card portfolio-widget"><div><div class="small muted"><span class="supplier-id">${esc(r.supplierID)}</span> · ${esc(regionLabel(regionOf(r)))}</div><h2>${esc(nameOf(r))}</h2></div><div>${tags(r)}</div><div class="widget-metrics"><div><div class="small muted">Supplied total risk</div><strong>${fmt(r.Total_Risk_Index)} / 100</strong></div><div><div class="small muted">Delivery snapshot</div><strong>${fmt(r["Supplier Delivery Rating"])}%</strong></div></div>${sparkline(r)}${actions(r)}</article>`).join("") : `<table><thead><tr><th>Supplier / relationship</th><th>Total risk / 100</th><th>Delivery snapshot</th><th>Illustrative history</th><th>Actions</th></tr></thead><tbody>${rows.map((r) => `<tr><td><strong>${esc(nameOf(r))}</strong><span class="supplier-id">${esc(r.supplierID)}</span>${tags(r)}</td><td>${fmt(r.Total_Risk_Index)}</td><td>${fmt(r["Supplier Delivery Rating"])}%</td><td>${sparkline(r)}</td><td>${actions(r)}</td></tr>`).join("")}</tbody></table>`}</div>${!rows.length ? `<div class="empty">${icon(p.q ? "search" : "star", "lg")}<strong>No suppliers here yet</strong><span>${p.q ? "No suppliers match this collection and search." : "Favorite a supplier in Discovery or switch collection."}</span></div>` : ""}<div class="portfolio-tools portfolio-pager"><button data-portfolio-page="-1" ${p.page === 1 ? "disabled" : ""}>${icon("arrow_back", "sm")}Previous</button><span>Page ${p.page} of ${pages}</span><button data-portfolio-page="1" ${p.page === pages ? "disabled" : ""}>Next${icon("arrow_forward", "sm")}</button></div>`;
+        )}</div><span class="search-field">${icon("search")}<input id="portfolio-search" type="search" aria-label="Search my suppliers" placeholder="Find a name or supplier ID" value="${esc(p.q)}"></span><div class="toggle-group" role="group" aria-label="Layout">${["cards", "rows"].map((v) => `<button data-portfolio-view="${v}" aria-pressed="${p.view === v}">${v === "cards" ? "Cards" : "Trend rows"}</button>`).join("")}</div></div><p class="notice">${rs.length.toLocaleString()} matching records. Trend lines are illustrative examples for previously-used suppliers only; the CSV contains no historical series. Favorites without demo history show History unavailable.</p>${state.compareError ? `<p role="alert">${esc(state.compareError)}</p>` : ""}<div style="margin-top:16px" class="${p.view === "cards" ? "portfolio-grid" : "card portfolio-table"}">${p.view === "cards" ? rows.map(widget).join("") : `<table><thead><tr><th>Supplier / relationship</th><th>Total risk / 100</th><th>Delivery snapshot</th><th>Illustrative history</th><th>Actions</th></tr></thead><tbody>${rows.map((r) => `<tr><td><strong>${esc(nameOf(r))}</strong><span class="supplier-id">${esc(r.supplierID)}</span>${tags(r)}</td><td>${fmt(r.Total_Risk_Index)}</td><td>${fmt(r["Supplier Delivery Rating"])}%</td><td>${sparkline(r)}</td><td>${actions(r)}</td></tr>`).join("")}</tbody></table>`}</div>${!rows.length ? `<div class="empty">${icon(p.q ? "search" : "star", "lg")}<strong>No suppliers here yet</strong><span>${p.q ? "No suppliers match this collection and search." : "Favorite a supplier in Discovery or switch collection."}</span></div>` : ""}<div class="portfolio-tools portfolio-pager"><button data-portfolio-page="-1" ${p.page === 1 ? "disabled" : ""}>${icon("arrow_back", "sm")}Previous</button><span>Page ${p.page} of ${pages}</span><button data-portfolio-page="1" ${p.page === pages ? "disabled" : ""}>Next${icon("arrow_forward", "sm")}</button></div>`;
     }
     document.addEventListener("click", (e) => {
       let b = e.target.closest("button");

@@ -1,10 +1,20 @@
 :root {
-  --bg: #f4f6f7;
-  --line: #dce2e6;
-  --ink: #1e2a33;
-  --muted: #56656f;
-  --accent: #0f6e74;
-  --soft: #e3f0f0;
+  /* Palette follows the Figma supplier-card design. */
+  --bg: #f5f7f6;
+  --line: #dfe6e4;
+  --ink: #1d2a2a;
+  --muted: #5d6a69;
+  --accent: #1f5f5b;
+  --soft: #e6f0ee;
+  --panel: #eef3f1;
+  --risk-low: #1f6b5c;
+  --risk-low-bg: #e3f0ec;
+  --risk-medium: #8a5a12;
+  --risk-medium-bg: #fbf0d9;
+  --risk-high: #a3401f;
+  --risk-high-bg: #fde9e1;
+  --risk-critical: #a3262e;
+  --risk-critical-bg: #fbe4e4;
 }
 * {
   box-sizing: border-box;
@@ -14,7 +24,8 @@ body {
   background: var(--bg);
   color: var(--ink);
   font:
-    14px "Segoe UI",
+    14px Inter,
+    "Segoe UI",
     system-ui,
     sans-serif;
   font-variant-numeric: tabular-nums;
@@ -198,17 +209,21 @@ main {
   background: #eff2f4;
   color: #526875;
 }
+.risk.Low {
+  color: var(--risk-low);
+  background: var(--risk-low-bg);
+}
 .risk.High {
-  color: #a04d29;
-  background: #fff1e8;
+  color: var(--risk-high);
+  background: var(--risk-high-bg);
 }
 .risk.Critical {
-  color: #8c2b35;
-  background: #fbecee;
+  color: var(--risk-critical);
+  background: var(--risk-critical-bg);
 }
 .risk.Medium {
-  color: #916b18;
-  background: #faf4df;
+  color: var(--risk-medium);
+  background: var(--risk-medium-bg);
 }
 .overview {
   grid-template-rows: minmax(0, 1fr);
@@ -1105,23 +1120,139 @@ dialog::backdrop {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.portfolio-widget {
-  padding: 18px;
-  border-top: 3px solid var(--teal, #0f6e74);
+/* Each card spans 7 shared rows, so sections line up across a row. */
+.portfolio-grid {
   display: grid;
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 16px;
+}
+.portfolio-widget {
+  grid-row: span 7;
+  display: grid;
+  grid-template-rows: subgrid;
+  row-gap: 0;
+  align-content: start;
+  padding: 24px 26px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+}
+.portfolio-widget > * {
+  margin-bottom: 18px;
+}
+.portfolio-widget > :last-child,
+.portfolio-widget > .attention-slot:empty {
+  margin-bottom: 0;
+}
+.portfolio-widget.compared {
+  border-color: var(--accent);
+}
+.widget-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.widget-id {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 .portfolio-widget h2 {
-  font-size: 17px;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.title-link {
+  all: unset;
+  cursor: pointer;
+}
+.title-link:hover {
+  text-decoration: underline;
+}
+.title-link:focus-visible {
+  outline: 2px solid #2563eb;
+}
+.widget-sub {
+  color: var(--muted);
+  font-size: 15px;
+}
+.widget-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 15px;
+}
+.widget-line .risk {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 6px;
+}
+.widget-metrics {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  align-self: start;
+}
+.attention {
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.attention-title {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.attention p {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
 }
 .widget-metrics {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
-.widget-metrics > div {
-  background: #f1f6f7;
-  padding: 10px;
+.widget-metrics span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.widget-metrics strong {
+  font-size: 24px;
+  font-weight: 500;
+}
+.widget-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  flex: none;
+}
+.compare-button {
+  font-weight: 600;
+  font-size: 15px;
+  padding: 9px 16px;
+}
+.compare-button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--soft);
+  color: var(--accent);
+}
+.icon-button {
+  border: 0;
+  background: none;
+  padding: 4px;
+  color: var(--accent);
 }
 .spark-button {
   display: block;
@@ -1139,7 +1270,7 @@ dialog::backdrop {
   display: block;
 }
 .spark-button:hover {
-  border-color: #0f6e74;
+  border-color: var(--accent);
 }
 .spark-button span {
   font-size: 12px;
@@ -1161,7 +1292,7 @@ dialog::backdrop {
   max-width: 230px;
 }
 .portfolio-tools [aria-pressed="true"] {
-  background: #0f6e74;
+  background: var(--accent);
   color: white;
 }
 @media (max-width: 1000px) {
