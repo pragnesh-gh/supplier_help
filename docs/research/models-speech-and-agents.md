@@ -2,6 +2,16 @@
 
 Research checked 18 October 2026. Primary sources only. Public documentation and a credential-free model-catalog GET were inspected; no paid inference, microphone capture, or secret access occurred. Product recommendations below are design proposals, not measured performance results.
 
+## Current scope update — 18 October 2026
+
+The user asked to leave **OpenAI Decisions out** for now. Keep rules plus Nemotron as the baseline; Jev is optional for later text intent/evidence triage, subject to measurement. No image input is required by the supplied challenge. Optional speech becomes editable text before the reasoning step.
+
+Updated primary-source verification: Jev 1.14 accepts text and images, and TypeSafe now documents a Box primitive as well as Choice, Score and Noul. Thus image support is not the sole distinction from OpenAI Decisions. Compare task accuracy, confidence behavior, latency, cost and response contracts; no measured procurement-domain advantage or broader world-knowledge advantage was established. [Jev 1.14 model page](https://openrouter.ai/typesafe/jev-1.14), [TypeSafe image documentation](https://docs.typesafe.ai/images), [OpenAI Decisions documentation](https://developers.openai.com/api/docs/guides/decisions)
+
+Credential correction: Jev through OpenRouter uses `OPENROUTER_API_KEY`, which can also serve supported Nemotron requests. This does not make an OpenAI-issued key valid at OpenRouter. The similarly named OpenRouter Decisions endpoint is a gateway interface, not a requirement to use OpenAI's Decisions service. No new key is requested. Existing local `.env` values are preserved. [OpenRouter's Jev integration guide](https://openrouter.ai/blog/insights/what-is-jev/)
+
+The original research below is retained as background; its proposed OpenAI Decisions integration is superseded by this scope update.
+
 ## Recommendation for the prototype
 
 Keep the HTML prototype deterministic and dataset-driven. Demonstrate the full buyer journey: filter → select → compare up to 20 suppliers → inspect data evidence → research a separately named real company → draft and export a shortlist justification. Put voice input beside the question composer. Its prototype interaction should explicitly say **Simulated transcript**, allow editing and cancellation, and then submit through the same data-question path. Keep answers visual and textual; no spoken replies.

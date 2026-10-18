@@ -4,7 +4,7 @@
 
 The end-to-end **prototype journey** ends with a buyer's downloadable sourcing recommendation. It represents all major steps while using deterministic data and fixtures. The end-to-end **challenge application** additionally requires live grounded answers, live public-company research, secure hosting and jury access, plus a recorded two-minute demo. Those are separate milestones, not completed claims.
 
-The 2026-10-18 user clarification confirms NVIDIA Nemotron and System One services such as Jev or OpenAI Decisions. Initial model candidate: `nvidia/nemotron-3.5-lightning` through OpenRouter. Model family is confirmed; this particular variant remains an engineering choice to evaluate. Optional classification starts as rules, with one future provider adapter rather than two required paid services.
+The latest 2026-10-18 user clarification keeps NVIDIA Nemotron and leaves OpenAI Decisions out of scope. Jev is optional, not an MVP requirement. Initial model candidate: `nvidia/nemotron-3.5-lightning` through OpenRouter. Model family is confirmed; this particular variant remains an engineering choice to evaluate. Classification starts as rules. If evaluation warrants Jev later, use the OpenRouter route and existing OpenRouter credential. An OpenAI-issued credential is not interchangeable with an OpenRouter credential.
 
 ## Buyer journey and handoffs
 
@@ -43,9 +43,11 @@ Exit: a real company report with inspectable supporting sources; an ambiguous-co
 
 ### 4. Optional speech and System One experiment
 
+There is no image requirement in the supplied challenge or dataset. Voice input only needs transcription to text. Scanned certificates, visually complex reports or part photographs would introduce a separate image/OCR requirement if later requested; they are not part of this scope. System One text triage can be useful independently of images, but must demonstrate value over the simpler baseline.
+
 Speech: push-to-talk → stop/cancel → editable transcript → explicit submit → ordinary text answer. Keep supplier IDs visible and resolve ambiguous dictation before submitting. Use Whisper if self-hosting serves the requirements; use managed transcription if deployment simplicity wins. No speech output. Benchmark German/English terms, accents, ID errors and noisy offices before claiming accessibility benefit.
 
-Jev or Decisions: classify intent or passage relevance/category behind the research UI. Measure against rules and Nemotron on labeled examples. A proposed evaluation set is 100–200 passages including irrelevant entities, conflicting evidence and uncertain cases; compare accuracy, abstention, cost and end-to-end latency. Select thresholds from observed errors. Confidence is not a supplier risk probability. Keep final ranking, arithmetic and qualification outside the model.
+Optional Jev via OpenRouter: classify intent or passage relevance/category behind the research UI. OpenAI Decisions is excluded from this iteration. Measure against rules and Nemotron on labeled examples. A proposed evaluation set is 100–200 passages including irrelevant entities, conflicting evidence and uncertain cases; compare accuracy, abstention, cost and end-to-end latency. Select thresholds from observed errors. Confidence is not a supplier risk probability. Keep final ranking, arithmetic and qualification outside the model.
 
 Exit: measurable improvement justifies another dependency; otherwise retain the simpler path. Optional document uploads can follow, with extraction page references and buyer review.
 
