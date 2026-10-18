@@ -2134,15 +2134,12 @@ h1 {
 }
 .discovery {
   display: grid;
-  grid-template-columns: 290px minmax(0, 1fr);
+  grid-template-columns: 360px minmax(0, 1fr);
   gap: 16px;
   align-items: start;
   height: auto;
   min-height: 0;
   padding-bottom: 96px;
-}
-.discovery.is-expanded {
-  grid-template-columns: 420px minmax(0, 1fr);
 }
 .assembly-panel {
   position: sticky;
@@ -2164,13 +2161,10 @@ h1 {
 }
 .assembly-preview {
   position: relative;
-  height: 150px;
+  height: 300px;
   min-width: 0;
   flex: none;
   overflow: hidden;
-}
-.discovery.is-expanded .assembly-preview {
-  height: 340px;
 }
 .assembly-preview .pa-note {
   display: none;
@@ -2418,13 +2412,12 @@ h1 {
   border: 0;
 }
 @media (max-width: 1180px) {
-  .discovery.is-expanded {
-    grid-template-columns: 340px minmax(0, 1fr);
+  .discovery {
+    grid-template-columns: 320px minmax(0, 1fr);
   }
 }
 @media (max-width: 900px) {
-  .discovery,
-  .discovery.is-expanded {
+  .discovery {
     grid-template-columns: minmax(0, 1fr);
   }
   .assembly-panel {
@@ -2432,7 +2425,7 @@ h1 {
     max-height: none;
     overflow: visible;
   }
-  .discovery.is-expanded .assembly-preview {
+  .discovery .assembly-preview {
     height: 300px;
   }
 }
