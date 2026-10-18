@@ -38,6 +38,7 @@ from .models import (
     UmbrellaId,
     VerifyOutput,
 )
+from .report import plural
 from .report import render_markdown  # noqa: F401  (re-exported for convenience)
 from .rules import area_statuses, classify, next_steps, overall_verdict, sort_flags
 from .search import SearchClient, SearchError, SearchHit, SearchRequest, TavilyClient
@@ -658,13 +659,14 @@ def _followup_outcome(st: _State, fu: Followup) -> str:
         return "No further trusted source found within the budget."
     parts = []
     if fu.corroborating_source_ids:
-        parts.append(f"Confirmed by {len(fu.corroborating_source_ids)} more source(s).")
+        n = len(fu.corroborating_source_ids)
+        parts.append("Confirmed by a second source." if n == 1 else f"Confirmed by {n} more sources.")
     by_id = {f.id: f for f in st.flags}
     for fid in fu.new_flag_ids[:2]:
         f = by_id[fid]
         parts.append(f"New: {f.summary}")
     if not parts:
-        return f"Checked {fu.pages_checked} more page(s); nothing new was verified."
+        return f"Checked {plural(fu.pages_checked, 'more page')}; nothing new was verified."
     return " ".join(parts)
 
 
@@ -690,11 +692,11 @@ def _finalise(st: _State, write_summary: bool) -> None:
     not_assessed = [a.label for a in r.areas if a.status == "not_assessed"]
     publishers = sorted({s.publisher for s in ordered_sources})
     r.limits = [
-        f"Checked {r.stats.pages_read} pages from {len(publishers)} allowlisted publishers; "
-        f"{r.stats.results_dropped_not_allowlisted} results from other sites ignored."
+        f"Checked {plural(r.stats.pages_read, 'page')} from {plural(len(publishers), 'allowlisted publisher')}; "
+        f"{plural(r.stats.results_dropped_not_allowlisted, 'result')} from other sites ignored."
         + (f" Not assessed: {', '.join(not_assessed)}." if not_assessed else ""),
         "Automated public-source research, not independent verification or supplier qualification; "
-        f"{len(r.rejected)} unsupported, off-topic or namesake facts were discarded.",
+        f"{plural(len(r.rejected), 'unsupported, off-topic or namesake fact')} discarded.",
         "Not linked to the anonymized SUPP_* records in the challenge dataset.",
     ]
     if r.status == "partial":
@@ -728,8 +730,8 @@ def _write_summary(st: _State, flags: list[Flag]) -> str:
 
 def _fallback_summary(verdict: str, flags: list[Flag], pages: int, not_assessed: list[str]) -> str:
     n = {c: sum(1 for f in flags if f.colour == c) for c in ("red", "amber", "green")}
-    text = (f"{verdict}. Found {n['red']} red flag(s), {n['amber']} watch item(s) and {n['green']} strength(s) "
-            f"in {pages} trusted source(s).")
+    text = (f"{verdict}. Found {plural(n['red'], 'red flag')}, {plural(n['amber'], 'watch item')} and "
+            f"{plural(n['green'], 'strength')} in {plural(pages, 'trusted source')}.")
     if not_assessed:
         text += f" Not assessed: {', '.join(not_assessed)}."
     return text

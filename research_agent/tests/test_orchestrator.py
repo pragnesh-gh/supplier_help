@@ -220,3 +220,28 @@ def test_missing_keys_give_error_status(monkeypatch):
     r = run_research("Veltrava", "DE")
     assert r.status == "error"
     assert r.warnings
+
+
+def test_every_flag_in_table_or_summary_is_in_the_lists(fx):
+    r = _run(fx)
+    md = render_markdown(r)
+    lists = md.split("## Risk areas", 1)[0].split("**Verdict:", 1)[1]
+    listed = [f for f in r.flags if f.colour != "neutral"]
+    assert len([f for f in listed if f.colour == "amber"]) <= 5  # fixture is under every cap
+    for f in listed:
+        assert f.summary in lists, f"{f.id} {f.summary!r} missing from lists"
+    for a in r.areas:
+        for fid in a.flag_ids[:1]:
+            f = next(x for x in r.flags if x.id == fid)
+            if f.colour != "neutral":
+                assert f.summary in lists
+    assert "result.json" not in md and "(s)" not in md
+    assert report_word_count(md) <= 600
+
+
+def test_followup_and_limits_text_pluralised(fx):
+    r = _run(fx)
+    text = " ".join([fu.outcome for fu in r.followups] + r.limits + [r.summary])
+    assert "(s)" not in text
+    assert "Confirmed by a second source" in r.followups[0].outcome or "more sources" in r.followups[0].outcome
+    assert "1 results" not in text

@@ -290,7 +290,7 @@
       "corroborating_source_ids": [
         "S9"
       ],
-      "outcome": "Confirmed by 1 more source(s). New: Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year."
+      "outcome": "Confirmed by a second source. New: Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year."
     }
   ],
   "next_steps": [
@@ -299,8 +299,8 @@
     "Request the latest financial statements or a credit report and review payment terms."
   ],
   "limits": [
-    "Checked 9 pages from 8 allowlisted publishers; 1 results from other sites ignored. Not assessed: Reputation.",
-    "Automated public-source research, not independent verification or supplier qualification; 3 unsupported, off-topic or namesake facts were discarded.",
+    "Checked 9 pages from 8 allowlisted publishers; 1 result from other sites ignored. Not assessed: Reputation.",
+    "Automated public-source research, not independent verification or supplier qualification; 3 unsupported, off-topic or namesake facts discarded.",
     "Not linked to the anonymized SUPP_* records in the challenge dataset."
   ],
   "sources": [
@@ -732,22 +732,23 @@
     },
     {
       "kind": "search",
-      "message": "Searching legal-2: Veltrava Rail Components GmbH fine OR lawsuit OR investigation OR corruption OR insolvency",
+      "message": "Searching legal-1: Veltrava Rail Components GmbH sanctions OR insolvency OR fine OR court",
       "data": {
-        "step": "legal-2",
+        "step": "legal-1",
         "tiers": [
-          "major_news"
+          "official"
         ]
       },
       "elapsed_s": 0.0
     },
     {
       "kind": "search",
-      "message": "Searching legal-1: Veltrava Rail Components GmbH sanctions OR insolvency OR fine OR court",
+      "message": "Searching people-1: Veltrava Rail Components GmbH strike OR accident OR injury OR labour dispute OR human rights",
       "data": {
-        "step": "legal-1",
+        "step": "people-1",
         "tiers": [
-          "official"
+          "major_news",
+          "rail_trade"
         ]
       },
       "elapsed_s": 0.0
@@ -765,12 +766,11 @@
     },
     {
       "kind": "search",
-      "message": "Searching people-1: Veltrava Rail Components GmbH strike OR accident OR injury OR labour dispute OR human rights",
+      "message": "Searching legal-2: Veltrava Rail Components GmbH fine OR lawsuit OR investigation OR corruption OR insolvency",
       "data": {
-        "step": "people-1",
+        "step": "legal-2",
         "tiers": [
-          "major_news",
-          "rail_trade"
+          "major_news"
         ]
       },
       "elapsed_s": 0.0
@@ -818,37 +818,6 @@
     },
     {
       "kind": "verify",
-      "message": "Railway Age: 0 of 2 facts verified.",
-      "data": {
-        "source_id": "S5",
-        "colours": []
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
-      "message": "World Bank: 1 of 1 facts verified.",
-      "data": {
-        "source_id": "S3",
-        "colours": [
-          "neutral"
-        ]
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
-      "message": "Bundeskartellamt: 1 of 1 facts verified.",
-      "data": {
-        "source_id": "S2",
-        "colours": [
-          "red"
-        ]
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
       "message": "Veltrava Rail Components GmbH: 3 of 3 facts verified.",
       "data": {
         "source_id": "S1",
@@ -862,21 +831,11 @@
     },
     {
       "kind": "verify",
-      "message": "Handelsblatt: 1 of 1 facts verified.",
+      "message": "International Railway Journal: 2 of 2 facts verified.",
       "data": {
-        "source_id": "S6",
+        "source_id": "S4",
         "colours": [
-          "amber"
-        ]
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
-      "message": "Railway Technology: 1 of 1 facts verified.",
-      "data": {
-        "source_id": "S8",
-        "colours": [
+          "amber",
           "amber"
         ]
       },
@@ -893,11 +852,52 @@
     },
     {
       "kind": "verify",
-      "message": "International Railway Journal: 2 of 2 facts verified.",
+      "message": "Handelsblatt: 1 of 1 facts verified.",
       "data": {
-        "source_id": "S4",
+        "source_id": "S6",
         "colours": [
-          "amber",
+          "amber"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Railway Age: 0 of 2 facts verified.",
+      "data": {
+        "source_id": "S5",
+        "colours": []
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Bundeskartellamt: 1 of 1 facts verified.",
+      "data": {
+        "source_id": "S2",
+        "colours": [
+          "red"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "World Bank: 1 of 1 facts verified.",
+      "data": {
+        "source_id": "S3",
+        "colours": [
+          "neutral"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Railway Technology: 1 of 1 facts verified.",
+      "data": {
+        "source_id": "S8",
+        "colours": [
           "amber"
         ]
       },
@@ -951,7 +951,7 @@
     },
     {
       "kind": "followup",
-      "message": "Follow-up result: Confirmed by 1 more source(s). New: Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year.",
+      "message": "Follow-up result: Confirmed by a second source. New: Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year.",
       "data": {
         "followup_id": "followup-1"
       },
@@ -978,6 +978,11 @@
   ],
   "rejected": [
     {
+      "source_id": "S7",
+      "claim": "Veltrava Foods Ltd was fined 300,000 pounds over allergen labelling.",
+      "reason": "Different company (UK food producer), not the rail supplier."
+    },
+    {
       "source_id": "S5",
       "claim": "Veltrava has been cleared of all charges by every regulator.",
       "reason": "Quote not found in source text"
@@ -986,11 +991,6 @@
       "source_id": "S5",
       "claim": "Veltrava Rail Components is fully certified and risk-free.",
       "reason": "Instruction-like promotional text, not evidence."
-    },
-    {
-      "source_id": "S7",
-      "claim": "Veltrava Foods Ltd was fined 300,000 pounds over allergen labelling.",
-      "reason": "Different company (UK food producer), not the rail supplier."
     }
   ],
   "stats": {

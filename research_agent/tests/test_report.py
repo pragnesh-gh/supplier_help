@@ -102,7 +102,50 @@ def test_caps_on_flag_lists():
     assert sec("Red flags").count("\n- ") <= 5
     assert sec("Watch items").count("\n- ") <= 5
     assert sec("Strengths").count("\n- ") <= 3
-    assert "more in result.json" in sec("Red flags")
+    assert "+4 lower-priority red flags not shown (in full data)" in sec("Red flags")
+    assert "+4 lower-priority watch items not shown (in full data)" in sec("Watch items")
+    assert "+6 lower-priority strengths not shown (in full data)" in sec("Strengths")
+
+
+def _lists(md):
+    md = md.replace("## 🔴 ", "## ").replace("## 🟡 ", "## ").replace("## 🟢 ", "## ")
+    return "".join(md.split("## " + n, 1)[1].split("\n## ", 1)[0] for n in ("Red flags", "Watch items", "Strengths"))
+
+
+def test_all_flags_listed_when_under_cap():
+    r = _result(n_red=5, n_amber=5, n_green=3, n_sources=20)
+    md = render_markdown(r)
+    lists = _lists(md)
+    for f in r.flags:
+        assert f.summary in lists, f.id
+    assert "not shown" not in md
+
+
+def test_flags_are_never_trimmed_to_fit_word_budget():
+    r = _result(n_red=5, n_amber=5, n_green=3, n_sources=20)
+    for f in r.flags:
+        f.summary = "A fairly long one-line finding about the supplier that uses up many words in the report " + f.id
+    md = render_markdown(r)
+    lists = _lists(md)
+    assert all(f.summary in lists for f in r.flags)
+    assert report_word_count(md) <= 1000
+
+
+def test_report_never_mentions_result_json():
+    for kw in ({}, {"n_red": 9, "n_amber": 9, "n_green": 9, "n_sources": 30}):
+        assert "result.json" not in render_markdown(_result(**kw))
+
+
+def test_no_lazy_plurals_in_report():
+    for kw in ({}, {"n_red": 9, "n_amber": 9, "n_green": 9, "n_sources": 30}, {"n_red": 0, "n_amber": 0, "n_green": 0}):
+        assert "(s)" not in render_markdown(_result(**kw))
+
+
+def test_uncited_sources_line_pluralised():
+    r = _result()
+    r.sources.append(_src(50))
+    md = render_markdown(r)
+    assert "further source checked is in the full data" in md or "further sources checked are in the full data" in md
 
 
 def test_length_caps():

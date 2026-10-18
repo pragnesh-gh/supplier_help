@@ -51,6 +51,8 @@ python -m research_agent "Knorr-Bremse" --country DE --website knorr-bremse.com
 
 Output goes to `research_agent/output/<slug>-<date>/report.md` and `result.json`. The folder is git-ignored. Progress lines print to stderr.
 
+The report always lists every red flag (up to 5), every watch item (up to 5) and every strength (up to 3). If a list would be longer, it says how many lower-priority items are not shown. If the report runs past about 600 words, the risk-area rows that repeat a listed flag are shortened to a pointer; the flag lists themselves are never cut. `report.md` never mentions `result.json`.
+
 From Python (chatbot / UI):
 
 ```python

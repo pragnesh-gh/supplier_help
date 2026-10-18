@@ -21,17 +21,25 @@ def esc(text: str) -> str:
     return _MD_SPECIAL.sub(r"\\\1", " ".join(text.split()))
 
 
+def plural(n: int, singular: str, plural_form: str | None = None) -> str:
+    """'1 source', '2 sources'; pass plural_form for irregular words."""
+    return f"{n} {singular if n == 1 else (plural_form or singular + 's')}"
+
+
 def report_word_count(md: str) -> int:
     text = re.sub(r"https?://\S+", "URL", md)
     text = re.sub(r"[|#*\-]+", " ", text)
     return len(text.split())
 
 
+# Flag lists are never shortened to save words; only these caps apply.
+CAP_RED, CAP_AMBER, CAP_GREEN = 5, 5, 3
+
+
 @dataclass
-class _Caps:
-    red: int = 5
-    amber: int = 5
-    green: int = 3
+class _Compact:
+    """Word-budget trimming outside the flag lists, applied step by step."""
+    table_refs_only: bool = False  # table rows that repeat a listed flag show a short pointer instead
 
 
 class _Citations:
@@ -66,19 +74,22 @@ def _flag_line(f: Flag, cit: _Citations) -> str:
     return f"- {esc(f.summary)}{_date_part(f)}{tag} {cit.cite(f.source_ids)}".rstrip()
 
 
-def _flag_section(title: str, flags: list[Flag], cap: int, empty: str, cit: _Citations) -> list[str]:
+def _flag_section(
+    title: str, flags: list[Flag], cap: int, empty: str, noun: tuple[str, str], cit: _Citations
+) -> list[str]:
     out = [f"## {title}", ""]
     if not flags:
         out.append(empty)
     for f in flags[:cap]:
         out.append(_flag_line(f, cit))
-    if len(flags) > cap:
-        out += ["", f"_…and {len(flags) - cap} more in result.json._"]
+    hidden = len(flags) - cap
+    if hidden > 0:
+        out += ["", f"_+{plural(hidden, 'lower-priority ' + noun[0], 'lower-priority ' + noun[1])} not shown (in full data)._"]
     out.append("")
     return out
 
 
-def _render(r: ResearchResult, caps: _Caps) -> str:
+def _render(r: ResearchResult, compact: _Compact) -> str:
     cit = _Citations(r.sources)
     L: list[str] = []
     name = r.entity.legal_name if r.entity else r.company_input
@@ -89,7 +100,7 @@ def _render(r: ResearchResult, caps: _Caps) -> str:
         meta.append(esc(r.entity.country_name or r.entity.country_code or "country unknown"))
         meta.append(esc(r.entity.website or "website unknown"))
     meta.append(f"researched {r.researched_at[:10]}")
-    meta.append(f"{r.stats.pages_read} sources checked")
+    meta.append(f"{plural(r.stats.pages_read, 'source')} checked")
     L.append(" · ".join(meta))
     L.append("")
     if r.notice:
@@ -116,18 +127,27 @@ def _render(r: ResearchResult, caps: _Caps) -> str:
     reds = [f for f in ordered if f.colour == "red"]
     ambers = [f for f in ordered if f.colour == "amber"]
     greens = [f for f in ordered if f.colour == "green"]
-    L += _flag_section("🔴 Red flags", reds, caps.red, "No red flags found in the sources checked.", cit)
-    L += _flag_section("🟡 Watch items", ambers, caps.amber, "No watch items found in the sources checked.", cit)
-    L += _flag_section("🟢 Strengths", greens, caps.green, "No strengths recorded from the sources checked.", cit)
+    L += _flag_section("🔴 Red flags", reds, CAP_RED, "No red flags found in the sources checked.",
+                       ("red flag", "red flags"), cit)
+    L += _flag_section("🟡 Watch items", ambers, CAP_AMBER, "No watch items found in the sources checked.",
+                       ("watch item", "watch items"), cit)
+    L += _flag_section("🟢 Strengths", greens, CAP_GREEN, "No strengths recorded from the sources checked.",
+                       ("strength", "strengths"), cit)
+    shown_ids = {f.id for f in reds[:CAP_RED] + ambers[:CAP_AMBER] + greens[:CAP_GREEN]}
+    section_name = {"red": "red flags", "amber": "watch items", "green": "strengths"}
 
     L += ["## Risk areas", "", "| Area | Status | Finding |", "| --- | --- | --- |"]
     flags_by_id = {f.id: f for f in r.flags}
     for a in r.areas:
-        src_ids: list[str] = []
-        if a.flag_ids and a.flag_ids[0] in flags_by_id:
-            src_ids = flags_by_id[a.flag_ids[0]].source_ids
-        ref = cit.cite(src_ids)
-        finding = esc(a.finding) + (f" {ref}" if ref else "")
+        top = flags_by_id.get(a.flag_ids[0]) if a.flag_ids else None
+        ref = cit.cite(top.source_ids) if top else ""
+        if compact.table_refs_only and top is not None and top.id in shown_ids:
+            finding = f"See {section_name[top.colour]} above {ref}"
+            more = len([fid for fid in a.flag_ids if fid in shown_ids and flags_by_id[fid].colour == top.colour]) - 1
+            if more > 0:
+                finding += f" (+{more} more)"
+        else:
+            finding = esc(a.finding) + (f" {ref}" if ref else "")
         L.append(f"| {esc(a.label)} | {STATUS_TEXT[a.status]} | {finding} |")
     L.append("")
 
@@ -159,16 +179,15 @@ def _render(r: ResearchResult, caps: _Caps) -> str:
         L.append(f"{i}. {esc(s.title)} — {esc(s.publisher)}{label}, {pub} (accessed {s.retrieved_at[:10]}). <{s.url}>")
     uncited = len(r.sources) - len(cit.order)
     if uncited > 0:
-        L += ["", f"{uncited} further checked source(s) are listed in result.json."]
+        verb = "is" if uncited == 1 else "are"
+        L += ["", f"{plural(uncited, 'further source')} checked {verb} in the full data."]
     return "\n".join(L).rstrip() + "\n"
 
 
 def render_markdown(result: ResearchResult) -> str:
-    """Render the buyer report, shrinking lists until it fits the length targets."""
-    ladder = [_Caps(5, 5, 3), _Caps(4, 4, 2), _Caps(3, 3, 2), _Caps(3, 2, 1), _Caps(2, 2, 1)]
-    md = _render(result, ladder[0])
-    for caps in ladder[1:]:
-        if report_word_count(md) <= TARGET_WORDS:
-            break
-        md = _render(result, caps)
+    """Render the buyer report. Flag lists are never trimmed; if the report runs long,
+    risk-table rows that repeat a listed flag are shortened to a pointer instead."""
+    md = _render(result, _Compact())
+    if report_word_count(md) > TARGET_WORDS:
+        md = _render(result, _Compact(table_refs_only=True))
     return md
