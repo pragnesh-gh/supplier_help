@@ -1,0 +1,454 @@
+{
+  "source": "docs/supplier_risk_dataset.csv",
+  "sha256": "2c77a672130039fd6ba420527e51cc9d915239de674064f832e7db659d3956bc",
+  "rows": 10000,
+  "columns": 46,
+  "component_score_count": 18,
+  "identity": {
+    "unique_ids": 10000,
+    "unique_names": 10000
+  },
+  "total_risk_levels": {
+    "High": 4813,
+    "Medium": 4485,
+    "Critical": 384,
+    "Low": 318
+  },
+  "correlation_with_total": {
+    "Industry_Benchmark_Score": 0.697666,
+    "Media_Sentiment_Score": 0.693026,
+    "External_Intelligence_Score": 0.696902,
+    "Sub_Tier_Visibility_Score": 0.767429,
+    "Labor_Stability_Score": 0.700846,
+    "Financial_Health_Score": 0.737767,
+    "Compliance_Risk_Score": 0.720324,
+    "Safety_Incident_Score": 0.72274,
+    "Environmental_Exposure_Score": 0.389714,
+    "ESG_Performance_Score": 0.713157,
+    "Digital_Security_Score": 0.762254,
+    "Operational_Resilience_Score": 0.78785,
+    "Market_Sentiment_Score": 0.693711,
+    "Quality_Risk_Score": 0.783458,
+    "Governance_Risk_Score": 0.705526,
+    "Geopolitical_Risk_Score": 0.395558,
+    "Political_Stability_Score": 0.392792,
+    "Credit_Rating_Score": 0.717586
+  },
+  "equal_mean_diagnostic": {
+    "description": "Unweighted mean of the 18 component score columns; descriptive diagnostic only",
+    "correlation_with_total": 0.991631,
+    "mean_absolute_error": 1.4447,
+    "maximum_absolute_error": 6.833333,
+    "rounded_exact_match_count": 2186
+  },
+  "label_pattern": {
+    "candidate": "[0,25) Low; [25,50) Medium; [50,75) High; [75,100] Critical",
+    "fields": {
+      "Total_Risk_Index": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Critical": [
+            75.0,
+            93.0
+          ],
+          "Low": [
+            6.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Industry_Benchmark_Score": {
+        "observed_ranges": {
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ],
+          "High": [
+            50.0,
+            74.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Media_Sentiment_Score": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "External_Intelligence_Score": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Sub_Tier_Visibility_Score": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Labor_Stability_Score": {
+        "observed_ranges": {
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Financial_Health_Score": {
+        "observed_ranges": {
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Compliance_Risk_Score": {
+        "observed_ranges": {
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ],
+          "High": [
+            50.0,
+            74.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Safety_Incident_Score": {
+        "observed_ranges": {
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Environmental_Exposure_Score": {
+        "observed_ranges": {
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ],
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "ESG_Performance_Score": {
+        "observed_ranges": {
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Digital_Security_Score": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Operational_Resilience_Score": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Market_Sentiment_Score": {
+        "observed_ranges": {
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Quality_Risk_Score": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Governance_Risk_Score": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Geopolitical_Risk_Score": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Political_Stability_Score": {
+        "observed_ranges": {
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      },
+      "Credit_Rating_Score": {
+        "observed_ranges": {
+          "Critical": [
+            75.0,
+            100.0
+          ],
+          "High": [
+            50.0,
+            74.0
+          ],
+          "Medium": [
+            25.0,
+            49.0
+          ],
+          "Low": [
+            0.0,
+            24.0
+          ]
+        },
+        "quartile_bucket_mismatches": 0
+      }
+    }
+  },
+  "limits": [
+    "Synthetic scores are not observed adverse outcomes or labels for real companies.",
+    "Correlation and bucket agreement do not recover original total-index weights.",
+    "No observation dates, evidence URLs, real identity mapping, country or component qualification exist.",
+    "Do not apply these descriptive patterns to new research records or fill unknown scores with zero."
+  ]
+}

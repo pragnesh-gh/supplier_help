@@ -1,0 +1,95 @@
+{
+  "version": "research-taxonomy-v1",
+  "categories": [
+    {
+      "id": "financial",
+      "label": "Financial",
+      "questions": [
+        "What is the exact contracting entity and which audited statements cover it rather than only its parent group?",
+        "What do the latest available cash flow, liquidity, debt maturity and profitability disclosures show, and what periods do they cover?",
+        "Are there insolvency proceedings, going-concern warnings, covenant breaches, restatements or rating changes?",
+        "Would customer concentration, refinancing needs or project losses affect the proposed order?",
+        "Which current financial facts remain unavailable and must be requested from the supplier?"
+      ],
+      "source_types": ["Audited annual and interim financial statements", "Official securities filings and exchange announcements", "Official insolvency and corporate registers", "Rating agency's own dated rating publication", "Supplier financial documents supplied by the buyer"],
+      "score_fields": ["Financial_Health_Score", "Credit_Rating_Score"],
+      "red_flags": ["Entity-specific insolvency or going-concern disclosure", "Negative operating cash flow with near-term debt pressure", "Material restatement or covenant breach", "Current financial statements unavailable for the contracting entity"],
+      "follow_ups": ["Request recent entity-level accounts, liquidity forecast and debt maturity schedule", "Verify warning status and later corrective disclosures", "Ask finance to review payment terms, guarantees and order exposure"]
+    },
+    {
+      "id": "legal",
+      "label": "Legal & governance",
+      "questions": [
+        "What are the registered name, jurisdiction, registration identifier and ownership links of the contracting entity?",
+        "Are there relevant sanctions, export restrictions, debarments or ownership/control concerns in the transaction's jurisdictions?",
+        "Do official records establish material litigation, regulatory investigations, penalties or corruption findings?",
+        "Is each matter an allegation, pending proceeding, final decision, appeal or resolved case?",
+        "Which governance controls and corrective actions are described, and what evidence supports their implementation?"
+      ],
+      "source_types": ["Official corporate and beneficial ownership registers where accessible", "Official sanctions lists and underlying legal acts", "Court dockets, judgments and regulator decisions", "Official procurement exclusion registers", "Company governance and compliance disclosures"],
+      "score_fields": ["Compliance_Risk_Score", "Governance_Risk_Score"],
+      "red_flags": ["Potential identity-matched sanctions or debarment record requiring expert review", "Material unresolved regulatory or court finding", "Opaque contracting identity or unexplained ownership discrepancy", "Unsupported claim that a legal matter has been resolved"],
+      "follow_ups": ["Resolve name matches using registration identifiers and ownership evidence", "Obtain current official case status and supplier response", "Route jurisdiction and transaction-specific restrictions to the responsible compliance reviewer"]
+    },
+    {
+      "id": "country",
+      "label": "Country exposure",
+      "questions": [
+        "Where are the relevant production sites, critical sub-tier sources and logistics routes, distinct from headquarters?",
+        "Which current conflict, political instability, trade restriction or border disruption affects those locations?",
+        "What flood, earthquake, extreme-weather, energy or infrastructure exposure affects the relevant site?",
+        "What location-specific continuity arrangements and alternative routes are evidenced?",
+        "Which locations or exposure links remain unknown, and what country indicators are only contextual?"
+      ],
+      "source_types": ["Supplier facility and sourcing disclosures", "Government trade, customs and export-control notices", "Official emergency, geological and meteorological agencies", "World Bank governance indicators with edition and uncertainty", "Official transport and infrastructure disruption notices"],
+      "score_fields": ["Geopolitical_Risk_Score", "Political_Stability_Score", "Environmental_Exposure_Score"],
+      "red_flags": ["Confirmed facility or route exposure to an active disruption", "Single-region concentration without evidenced alternatives", "Restrictions plausibly affecting the specific product or transaction", "Country conclusion inferred solely from headquarters or nationality"],
+      "follow_ups": ["Request facility and sub-tier location map for the proposed component", "Check latest official disruption and restriction notices", "Verify alternate sites, logistics routes and recovery assumptions"]
+    },
+    {
+      "id": "people_safety",
+      "label": "People & safety",
+      "questions": [
+        "What site-specific evidence exists for serious injuries, fatalities, safety enforcement and corrective actions?",
+        "Are there credible forced-labour, child-labour, discrimination, working-time or freedom-of-association concerns?",
+        "Are strikes, industrial disputes or workforce shortages affecting relevant operations?",
+        "Do worker grievance channels and safety management processes have evidence of implementation?",
+        "What is the reporting period, workforce scope and definition behind any incident rate?"
+      ],
+      "source_types": ["Labour and occupational safety regulator records", "Official court and enforcement decisions", "Company sustainability and site safety disclosures", "Worker or trade union original statements", "Independent audit records with scope, date and issuer"],
+      "score_fields": ["Labor_Stability_Score", "Safety_Incident_Score"],
+      "red_flags": ["Serious incident with unresolved corrective actions", "Official forced-labour finding or substantiated worker-rights concern", "Ongoing dispute affecting the relevant site", "Group-wide safety claims used to imply a specific site has been audited"],
+      "follow_ups": ["Request site-specific incident history and corrective-action closure evidence", "Seek original worker, regulator and supplier accounts", "Verify audit date, scope and remediation rather than treating a policy as proof"]
+    },
+    {
+      "id": "operations",
+      "label": "Operations",
+      "questions": [
+        "Can the actual site manufacture the required component at the required quality, capacity and lead time?",
+        "What recalls, quality failures, production interruptions or delivery problems are evidenced?",
+        "Where are single-source dependencies and critical sub-tier visibility gaps?",
+        "What cyber incidents, operational technology dependencies and continuity or recovery arrangements are evidenced?",
+        "Which certificates, rail-specific approvals and customer performance data apply to this component and site?"
+      ],
+      "source_types": ["Official product recall and safety notices", "Supplier production and continuity disclosures", "Certificate issuer or official certification registers", "Official cyber incident disclosures and regulator notices", "Buyer delivery, quality and capacity records", "Component and site-specific technical documentation"],
+      "score_fields": ["Operational_Resilience_Score", "Quality_Risk_Score", "Digital_Security_Score", "Sub_Tier_Visibility_Score"],
+      "red_flags": ["Unresolved recall or quality escape affecting proposed parts", "Critical single-source dependency without a verified recovery option", "Cyber disruption with unresolved production impact", "Missing or expired component/site-specific qualification evidence"],
+      "follow_ups": ["Request capacity, lead-time and recent delivery/quality evidence", "Verify certificate issuer, expiry and product/site scope", "Request recovery test results, sub-tier map and alternate-source plan"]
+    },
+    {
+      "id": "reputation",
+      "label": "Reputation",
+      "questions": [
+        "Which recent credible adverse reports concern the correct entity, sites or products?",
+        "What original event, court record or regulator document supports each report?",
+        "Are multiple articles independent sources or repetitions of one original claim?",
+        "What supplier response, later correction, resolution or contradictory evidence exists?",
+        "What customer, market or public-trust consequence is evidenced rather than inferred from negative wording?"
+      ],
+      "source_types": ["Original regulator, court and company statements behind news", "Independent original reporting with named evidence", "Company responses and published corrections", "Original customer or worker statements", "Dated company market disclosures"],
+      "score_fields": ["Media_Sentiment_Score", "Market_Sentiment_Score"],
+      "red_flags": ["Repeated independently evidenced material misconduct or unresolved controversy", "Substantial contradiction between public assurances and original records", "Unresolved credible allegation relevant to the sourcing decision", "Many syndicated headlines incorrectly counted as independent corroboration"],
+      "follow_ups": ["Trace reporting to the original event and entity", "Seek later case status, correction and supplier response", "Assess demonstrated procurement relevance with the buyer"]
+    }
+  ]
+}

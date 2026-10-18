@@ -1,0 +1,367 @@
+{
+  "version": "train-demo-v1",
+  "radar_mapping_version": "radar-v1-equal",
+  "regions": [
+    {
+      "id": "carbody",
+      "label": "Carbody & couplings",
+      "shortLabel": "Carbody",
+      "quota": 1400,
+      "parts": [
+        {
+          "id": "body_structure",
+          "label": "Body structure"
+        },
+        {
+          "id": "glazing",
+          "label": "Glazing"
+        },
+        {
+          "id": "coupler",
+          "label": "Coupler"
+        }
+      ]
+    },
+    {
+      "id": "bogie_structure",
+      "label": "Bogies & wheelsets",
+      "shortLabel": "Bogies",
+      "quota": 2000,
+      "parts": [
+        {
+          "id": "bogie_frame",
+          "label": "Bogie frame"
+        },
+        {
+          "id": "suspension",
+          "label": "Suspension"
+        },
+        {
+          "id": "damper",
+          "label": "Damper"
+        },
+        {
+          "id": "wheel",
+          "label": "Wheel"
+        },
+        {
+          "id": "axle",
+          "label": "Axle"
+        },
+        {
+          "id": "axle_bearing",
+          "label": "Axle bearing"
+        }
+      ]
+    },
+    {
+      "id": "braking",
+      "label": "Braking",
+      "shortLabel": "Braking",
+      "quota": 1100,
+      "parts": [
+        {
+          "id": "brake_disc",
+          "label": "Brake disc"
+        },
+        {
+          "id": "brake_actuator",
+          "label": "Brake actuator"
+        },
+        {
+          "id": "brake_control",
+          "label": "Brake control"
+        }
+      ]
+    },
+    {
+      "id": "traction",
+      "label": "Traction",
+      "shortLabel": "Traction",
+      "quota": 1200,
+      "parts": [
+        {
+          "id": "traction_motor",
+          "label": "Traction motor"
+        },
+        {
+          "id": "traction_converter",
+          "label": "Traction converter"
+        },
+        {
+          "id": "gearbox",
+          "label": "Gearbox"
+        }
+      ]
+    },
+    {
+      "id": "electrical_auxiliary",
+      "label": "Power & auxiliaries",
+      "shortLabel": "Power & aux",
+      "quota": 1100,
+      "parts": [
+        {
+          "id": "pantograph",
+          "label": "Pantograph"
+        },
+        {
+          "id": "transformer",
+          "label": "Transformer"
+        },
+        {
+          "id": "auxiliary_converter",
+          "label": "Auxiliary converter"
+        },
+        {
+          "id": "battery",
+          "label": "Battery"
+        }
+      ]
+    },
+    {
+      "id": "control_cab",
+      "label": "Controls & cab",
+      "shortLabel": "Controls",
+      "quota": 900,
+      "parts": [
+        {
+          "id": "train_control",
+          "label": "Train control"
+        },
+        {
+          "id": "driver_interface",
+          "label": "Driver interface"
+        },
+        {
+          "id": "onboard_communications",
+          "label": "Onboard communications"
+        }
+      ]
+    },
+    {
+      "id": "doors",
+      "label": "Passenger doors",
+      "shortLabel": "Doors",
+      "quota": 700,
+      "parts": [
+        {
+          "id": "door_leaf",
+          "label": "Door leaf"
+        },
+        {
+          "id": "door_drive",
+          "label": "Door drive"
+        },
+        {
+          "id": "door_control",
+          "label": "Door control"
+        }
+      ]
+    },
+    {
+      "id": "hvac",
+      "label": "HVAC",
+      "shortLabel": "HVAC",
+      "quota": 700,
+      "parts": [
+        {
+          "id": "hvac_unit",
+          "label": "Hvac unit"
+        },
+        {
+          "id": "air_filter",
+          "label": "Air filter"
+        },
+        {
+          "id": "ventilation_fan",
+          "label": "Ventilation fan"
+        }
+      ]
+    },
+    {
+      "id": "interiors",
+      "label": "Interiors",
+      "shortLabel": "Interiors",
+      "quota": 900,
+      "parts": [
+        {
+          "id": "seat",
+          "label": "Seat"
+        },
+        {
+          "id": "interior_panel",
+          "label": "Interior panel"
+        },
+        {
+          "id": "passenger_information",
+          "label": "Passenger information"
+        }
+      ]
+    }
+  ],
+  "axes": [
+    {
+      "id": "financial",
+      "label": "Financial (derived)",
+      "field": "risk_financial",
+      "components": [
+        {
+          "field": "Financial_Health_Score",
+          "weight": 0.5
+        },
+        {
+          "field": "Credit_Rating_Score",
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "legal",
+      "label": "Legal & governance",
+      "field": "risk_legal",
+      "components": [
+        {
+          "field": "Compliance_Risk_Score",
+          "weight": 0.5
+        },
+        {
+          "field": "Governance_Risk_Score",
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "country",
+      "label": "Country exposure",
+      "field": "risk_country",
+      "components": [
+        {
+          "field": "Geopolitical_Risk_Score",
+          "weight": 0.3333333333333333
+        },
+        {
+          "field": "Political_Stability_Score",
+          "weight": 0.3333333333333333
+        },
+        {
+          "field": "Environmental_Exposure_Score",
+          "weight": 0.3333333333333333
+        }
+      ]
+    },
+    {
+      "id": "people_safety",
+      "label": "People & safety",
+      "field": "risk_people_safety",
+      "components": [
+        {
+          "field": "Labor_Stability_Score",
+          "weight": 0.5
+        },
+        {
+          "field": "Safety_Incident_Score",
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "operations",
+      "label": "Operations",
+      "field": "risk_operations",
+      "components": [
+        {
+          "field": "Operational_Resilience_Score",
+          "weight": 0.25
+        },
+        {
+          "field": "Quality_Risk_Score",
+          "weight": 0.25
+        },
+        {
+          "field": "Digital_Security_Score",
+          "weight": 0.25
+        },
+        {
+          "field": "Sub_Tier_Visibility_Score",
+          "weight": 0.25
+        }
+      ]
+    },
+    {
+      "id": "reputation",
+      "label": "Reputation",
+      "field": "risk_reputation",
+      "components": [
+        {
+          "field": "Media_Sentiment_Score",
+          "weight": 0.5
+        },
+        {
+          "field": "Market_Sentiment_Score",
+          "weight": 0.5
+        }
+      ]
+    }
+  ],
+  "overrides": [
+    {
+      "id": "SUPP_00012",
+      "from": "control_cab",
+      "to": "doors",
+      "swappedWith": "SUPP_04110"
+    },
+    {
+      "id": "SUPP_00731",
+      "from": "control_cab",
+      "to": "doors",
+      "swappedWith": "SUPP_05037"
+    }
+  ],
+  "source_sha256": "2c77a672130039fd6ba420527e51cc9d915239de674064f832e7db659d3956bc",
+  "augmented_sha256": "e55f8205812956f785409ac0236b1b0ada3777b3f6fb2c57b70c3fc31a9582a5",
+  "source": {
+    "path": "docs/supplier_risk_dataset.csv",
+    "sha256": "2c77a672130039fd6ba420527e51cc9d915239de674064f832e7db659d3956bc",
+    "rows": 10000,
+    "columns": 46
+  },
+  "augmentation": {
+    "path": "docs/supplier_risk_dataset_augmented.csv",
+    "sha256": "e55f8205812956f785409ac0236b1b0ada3777b3f6fb2c57b70c3fc31a9582a5",
+    "rows": 10000,
+    "columns": 60
+  },
+  "algorithm": {
+    "hash": "SHA-256",
+    "encoding": "UTF-8",
+    "seed": "train-demo-v1",
+    "region": "Sort ascending SHA-256(train-demo-v1|region|supplierID), then ID; assign consecutive region quota blocks.",
+    "overrides": "For each challenge ID in listed order, swap with first region-hash-ordered non-challenge doors member; then assign parts.",
+    "part": "Within final region sort SHA-256(train-demo-v1|part|supplierID), then ID; cycle listed parts.",
+    "favorite": "First 500 IDs sorted by SHA-256(train-demo-v1|favorite|supplierID), then ID.",
+    "previous": "First 1500 IDs sorted by SHA-256(train-demo-v1|previous|supplierID), then ID.",
+    "output": "Restore original source row order; retain all original values as strings in derivative CSV."
+  },
+  "provenance": {
+    "assignment": "synthetic_demo",
+    "relationships": "synthetic_demo",
+    "disclosure": "Illustrative assignments and quotas are product choices, independent of risk; they are not verified capability, market shares or qualification.",
+    "radar": "Equal arithmetic mean of listed source scores; prototype assumption, not a validated model. Higher means more risk. Missing/invalid component yields null; no renormalization. Original Total_Risk_Index is unchanged and its weights are unknown.",
+    "taxonomy_sources": [
+      "https://www.era.europa.eu/system/files/2024-02/LOC-PAS_Guide-2023.pdf",
+      "https://www.alstom.com/solutions/components"
+    ],
+    "decision": "docs/prototype-v2-brief.md: Final pre-implementation decisions"
+  },
+  "demo_counts": {
+    "favorites": 500,
+    "previously_used": 1500
+  },
+  "build": {
+    "three_version": "0.170.0",
+    "three_revision": "170",
+    "vendor_path": "prototype/v2/vendor/three.module.min.js",
+    "vendor_sha256": "ce1fa418de16a19495a9f72495580e3015d7745c296d3ce0485897f902ddedfb",
+    "renderer_sha256": "a6872e2dc23e91a6151d5a033f5ab6343087297f01ba7471cc4832221f554bbb"
+  }
+}

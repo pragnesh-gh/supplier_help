@@ -1,0 +1,128 @@
+{
+  "repository": "https://github.com/google/material-design-icons",
+  "commit": "49d4db35df873165d6bd6ba09b063c7dafbac2f4",
+  "style": "Material Symbols Outlined",
+  "optical_size": 24,
+  "modified": false,
+  "assets": [
+    {
+      "name": "train",
+      "file": "train.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/train/materialsymbolsoutlined/train_24px.svg",
+      "sha256": "7bd53d11bc83afaec58f552df50d7c63c01f704592b7ad43ee3b0a4cab0d4572",
+      "bytes": 684
+    },
+    {
+      "name": "search",
+      "file": "search.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/search/materialsymbolsoutlined/search_24px.svg",
+      "sha256": "46d4ab85eba6eb4fe7c9a9a4c4db2fdf8fa9cc74c1f398ac72e7d872d490dd4c",
+      "bytes": 357
+    },
+    {
+      "name": "compare_arrows",
+      "file": "compare_arrows.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/compare_arrows/materialsymbolsoutlined/compare_arrows_24px.svg",
+      "sha256": "91e6db8f4dcc6e84419eddf2ce65fe51b5acd96261e661d1e0d623dbb6f7efe7",
+      "bytes": 234
+    },
+    {
+      "name": "description",
+      "file": "description.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/description/materialsymbolsoutlined/description_24px.svg",
+      "sha256": "65e2c1ac1ca2d0a894c8d8d89e530cb5df940d7ff0effbeb8c5f4b234a477670",
+      "bytes": 314
+    },
+    {
+      "name": "fact_check",
+      "file": "fact_check.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/fact_check/materialsymbolsoutlined/fact_check_24px.svg",
+      "sha256": "5b869147b842c3cf1f7e5d0bb758fd2a218a6d68097147d744d13230200cb2af",
+      "bytes": 383
+    },
+    {
+      "name": "history",
+      "file": "history.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/history/materialsymbolsoutlined/history_24px.svg",
+      "sha256": "9dbbac013fd1a1fa4677670e64164f953647e32878c2870909a3e0910f28b0d9",
+      "bytes": 425
+    },
+    {
+      "name": "star",
+      "file": "star.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/star/materialsymbolsoutlined/star_24px.svg",
+      "sha256": "c08437af20cb85cbd5f0a4c901f63476c2f717b37ba07ad546315ef514d317d2",
+      "bytes": 278
+    },
+    {
+      "name": "chat",
+      "file": "chat.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/chat/materialsymbolsoutlined/chat_24px.svg",
+      "sha256": "54cec1588b002959077443b4f673df171413cc567113d9b755ac2654f6f2f2eb",
+      "bytes": 321
+    },
+    {
+      "name": "close",
+      "file": "close.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/close/materialsymbolsoutlined/close_24px.svg",
+      "sha256": "a82592b0faa0b104a4d4b0530bb05c6a4bfed5728f5aad03ae8e7a19f32b5511",
+      "bytes": 203
+    },
+    {
+      "name": "filter_list",
+      "file": "filter_list.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/filter_list/materialsymbolsoutlined/filter_list_24px.svg",
+      "sha256": "0607fbd24e76dfb4af08ca50f784291fc0b85fe3bfd1451bb55a369df8af1b55",
+      "bytes": 178
+    },
+    {
+      "name": "download",
+      "file": "download.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/download/materialsymbolsoutlined/download_24px.svg",
+      "sha256": "9a9ad266a87dbd92e0d263628d31f3b73b59ab2e0a06ad6a44ac4eafe32b056d",
+      "bytes": 259
+    },
+    {
+      "name": "arrow_forward",
+      "file": "arrow_forward.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/arrow_forward/materialsymbolsoutlined/arrow_forward_24px.svg",
+      "sha256": "717c65e2e704a07b7b73e194b202858f52befbaa6dd363565a1d75d117c3a2aa",
+      "bytes": 171
+    },
+    {
+      "name": "restart_alt",
+      "file": "restart_alt.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/restart_alt/materialsymbolsoutlined/restart_alt_24px.svg",
+      "sha256": "3a6c6c3ebcfe7f5c4bdf85d3c67f50c557d69b49c409ed001177d818a396c18d",
+      "bytes": 363
+    },
+    {
+      "name": "check",
+      "file": "check.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/check/materialsymbolsoutlined/check_24px.svg",
+      "sha256": "01edd53418816632be08e9565b8ca40d9028c230a8a67baaf4b8a1de20db00e6",
+      "bytes": 159
+    },
+    {
+      "name": "info",
+      "file": "info.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/info/materialsymbolsoutlined/info_24px.svg",
+      "sha256": "33c77c7a4f193445d0136b970ad4b5a80ba8cc340603465d4cb46a1f8abec4ec",
+      "bytes": 516
+    },
+    {
+      "name": "expand_more",
+      "file": "expand_more.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/expand_more/materialsymbolsoutlined/expand_more_24px.svg",
+      "sha256": "6760bd2307f7ec3c1a5f2905af907aa7a12ad5ad7448289c8624f5d5ec6057e4",
+      "bytes": 159
+    },
+    {
+      "name": "star_filled",
+      "file": "star_filled.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/star/materialsymbolsoutlined/star_fill1_24px.svg",
+      "sha256": "de38d3df08eed293ef1d64c331c32dfa56512116d85ca213be2c1e5aa92a9f9f",
+      "bytes": 190
+    }
+  ]
+}
