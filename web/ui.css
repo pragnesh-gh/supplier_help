@@ -213,6 +213,8 @@ td button,
 }
 .fav-toggle[aria-pressed="true"]:hover:not(:disabled) { background: #d6e7e3; border-color: var(--primary-hover); color: var(--primary-hover); }
 .fav-toggle[aria-pressed="true"] .msi-bookmark { --msi: url("vendor/material-symbols/bookmark_filled.svg"); }
+.icon-button.cart-toggle { color: var(--primary); }
+.icon-button.cart-toggle[aria-pressed="true"] { background: var(--primary-container); border-color: var(--primary); }
 
 /* My suppliers card bookmark: borderless, accent, ~22px glyph (Figma card head). */
 .save-toggle {
@@ -915,9 +917,6 @@ nav a,
   .discovery .results > .scroll { max-height: none; }
   .results th:nth-child(6),
   .results td:nth-child(6) { display: none; }
-  /* Icon-only shortlist toggle in the table; the label stays for screen readers. */
-  .results .shortlist-btn { padding: 0 6px; }
-  .results .shortlist-btn .btn-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 
 @media print {
