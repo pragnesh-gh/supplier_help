@@ -1,13 +1,33 @@
 # Supplier Help · Siemens Supplier Risk Intelligence
 
-Research and a disposable, deterministic HTML prototype for the Siemens challenge. This is a design review workspace, not a production procurement system.
+Supplier research and review tools for the Siemens challenge. This branch adds a local live research agent alongside the original deterministic prototype. It supports investigation and drafting; supplier qualification remains a separate buyer process.
+
+## Research agent
+
+Run from this worktree with Python 3.12+ (no dependency installation):
+
+```powershell
+python -m research_agent --env-file ..\supplier_help\.env
+```
+
+Open **http://127.0.0.1:8877**. The optional `--env-file` reuses the existing server-side OpenRouter configuration without copying its credential into this checkout. Alternatively, set `OPENROUTER_API_KEY` in the process environment or this worktree's ignored `.env`. Never paste the key into chat or browser code.
+
+Use **Basic** for a bounded first pass over all six categories, or **Deep** for the same coverage plus targeted follow-ups. Enter a legal company name, country/domain when known, and the component or sourcing question. Live research uses the configured Nemotron model and OpenRouter web search, which incur provider charges. The UI shows the actual plan, progress, sources, findings, unknowns and actions. The explicit Siemens historical example works without credentials and is labelled separately from live research.
+
+Research and saved supplier records persist in ignored `.local/research-agent/`. Save a completed investigation to the research list and manage its diligence actions there. Markdown/JSON exports and the printable report use the same dossier. Research-derived suppliers remain separate from anonymized CSV rows and retain unknown numeric scores.
+
+- [Research questions and evidence method](docs/research/deep-research-method.md)
+- [Observed synthetic-score patterns and limits](docs/research/score-patterns.md)
+- [Running, architecture, and limitations](docs/research-agent.md)
+
+The earlier prototype below remains offline and simulated. Its scope statements apply to that prototype, not the new research-agent route.
 
 ## Inputs
 
 - `docs/supplier_risk_dataset.csv`: original challenge data, 10,000 anonymized suppliers.
 - `docs/risk_criteria_description.md`: original score definitions. All risk scores run from 0 (no risk) to 100 (maximum risk), including positively named scores.
 
-## Current scope
+## Original prototype scope
 
 Explore and filter actual data, compare at most 20 suppliers, inspect evidence, try scripted grounded questions and simulated dictation, review a separately labelled company-research fixture, and export a shortlist memo. No live LLM, web crawling, microphone recording, login, or procurement-system integration is claimed.
 
