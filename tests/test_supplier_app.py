@@ -8,7 +8,7 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 from supplier_app.core import Assistant, Workspace, catalog
 from supplier_app.server import make_handler
-from research_agent.core import ResearchService, Store, OpenRouter
+from research_agent.app_adapter import ResearchService, Store
 
 
 class AppTests(unittest.TestCase):
@@ -18,7 +18,7 @@ class AppTests(unittest.TestCase):
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.service = ResearchService(Store(self.temp.name), OpenRouter({}))
+        self.service = ResearchService(Store(self.temp.name), {})
         self.assistant = Assistant(self.service, self.data)
 
     def tearDown(self):

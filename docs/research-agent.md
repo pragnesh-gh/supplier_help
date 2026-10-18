@@ -1,3 +1,5 @@
+> Superseded (2026-10-18): the OpenRouter/Nemotron/Exa research engine and its standalone UI were removed. Research now runs through `research_agent/` (Tavily + Claude); see `research_agent/README.md` and `docs/integration-plan.md`. The text below is kept as history.
+
 # Running the supplier research agent
 
 The primary requirement is the [Siemens challenge brief](siemens-challenge-brief.md): plan a real-company investigation, search public sources and company material, follow red flags and deliver a linked risk report. The [previous v2 brief](prototype-v2-brief.md) supplies UX context and data separation rules. This is a new local application in `research_agent/`; the existing prototype files are preserved.

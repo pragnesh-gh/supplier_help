@@ -1172,7 +1172,7 @@ def _finalise(st: _State, write_summary: bool) -> None:
         + (f" Not assessed: {', '.join(not_assessed)}." if not_assessed else ""),
         "Automated public-source research, not independent verification or supplier qualification; "
         f"{plural(len(r.rejected), 'unsupported, off-topic or namesake fact')} discarded.",
-        "Not linked to the anonymized SUPP_* records in the challenge dataset.",
+        "Not linked to the anonymised SUPP_* records in the supplier catalogue.",
     ]
     if r.status == "partial":
         r.limits[0] += " The run hit its time limit, so coverage is incomplete."

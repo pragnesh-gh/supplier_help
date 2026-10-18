@@ -4,8 +4,9 @@ import json
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 import urllib.parse
-from research_agent.core import ROOT, ResearchService, Store, OpenRouter, read_environment
-from research_agent.server import make_handler as research_handler
+from research_agent.app_adapter import ROOT, ResearchService, Store
+from .env import read_environment
+from .http_base import make_handler as research_handler
 from .core import Assistant, Workspace, catalog
 from .approvals import Approvals
 
@@ -56,7 +57,7 @@ def make_handler(service, web=None, data=None, workspace=None):
             except KeyError:
                 self.respond(404, {'error': 'Record not found'})
             except Exception:
-                self.respond(502, {'error': 'Request could not complete; no fallback answer was fabricated.'})
+                self.respond(502, {'error': 'The request could not complete. Please retry.'})
 
         def workspace_body(self):
             allowed = {f'http://127.0.0.1:{self.server.server_port}', f'http://localhost:{self.server.server_port}'}
@@ -79,11 +80,16 @@ def main():
     parser.add_argument('--port', type=int, default=8878)
     parser.add_argument('--env-file', help='Optional server-side environment file')
     parser.add_argument('--data-dir', type=Path, default=ROOT / '.local/supplier-app')
+    parser.add_argument('--offline-fixture', action='store_true',
+                        help='Run every research request on the invented offline example (no keys, no network)')
     args = parser.parse_args()
-    service = ResearchService(Store(args.data_dir), OpenRouter(read_environment(args.env_file)))
+    service = ResearchService(Store(args.data_dir), read_environment(args.env_file),
+                              offline_fixture=args.offline_fixture, fixture_delay_s=0.6)
     data = catalog()
     server = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(service, data=data, workspace=Workspace(args.data_dir, [r[0] for r in data['rows']], lambda: ['research:' + r['id'] for r in service.store.suppliers()])))
     print(f'Supplier workbench: http://127.0.0.1:{server.server_port}')
+    mode = 'offline example only' if service.offline_fixture else 'live' if service.live_available() else 'unavailable (set ANTHROPIC_API_KEY and TAVILY_API_KEY)'
+    print(f'Research: {mode}')
     try:
         server.serve_forever()
     except KeyboardInterrupt:

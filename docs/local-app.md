@@ -10,7 +10,7 @@ From the repository root, with Python 3.12 or newer:
 python -m supplier_app --env-file .env
 ```
 
-Open **http://127.0.0.1:8878**. No frontend installation or build is needed. The app serves only `web/` and explicit API routes, not the repository or environment files. The OpenRouter credential is read server-side. Without a configured key, supplied-data questions and the explicitly labelled historical example remain available; live web research reports its unavailable state.
+Open **http://127.0.0.1:8878**. No frontend installation or build is needed. The app serves only `web/` and explicit API routes, not the repository or environment files. Research keys (`ANTHROPIC_API_KEY`, `TAVILY_API_KEY`) are read server-side. Without them, supplied-data questions and the offline research example remain available; `--offline-fixture` runs every research request on that invented example.
 
 ## Code map
 

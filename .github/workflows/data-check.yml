@@ -10,7 +10,10 @@ jobs:
           python-version: '3.12'
       - run: python scripts/audit_dataset.py
       - run: git diff --exit-code -- docs/data-audit.json
+      - run: pip install -r research_agent/requirements.txt
       - run: python -m compileall -q supplier_app research_agent
+      - run: python -m pytest -q research_agent/tests
       - run: python -m unittest discover -s tests -v
+      - run: node tests/test_shortlist.mjs && node tests/test_citations.mjs
       - run: python scripts/analyze_research_patterns.py
       - run: git diff --exit-code -- docs/research/score-patterns.json
