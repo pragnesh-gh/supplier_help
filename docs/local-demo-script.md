@@ -10,3 +10,5 @@ Record the running app at1440x900 or1440x790. Do not include credentials, enviro
 - 01:40–02:00: Open a supplier approval draft, enter a rationale and next action, preview/print. End on compact overview, with chat closed.
 
 Local demo target: output/demo/supplier-app-demo.mp4 (ignored generated artifact). Final submission narration and UI polish may follow user feedback.
+
+Recording prepared: `output/demo/supplier-app-demo.mp4`,120seconds, silent screen walkthrough with playback slowed uniformly for readability. It shows the supplied-data comparison, exact-cell citation, explicitly labelled historical example and approval draft. This is a local review artifact, not narrated final submission media.

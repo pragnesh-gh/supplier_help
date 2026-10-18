@@ -30,3 +30,5 @@ Localhost only, as requested; no public hosting or jury credentials. Example tre
 Opus follow-up is in `docs/research/unified-app-review-followup.md`. Its remaining JSON-size blocker was fixed by measuring compact UTF-8 JSON on both sides; the HTTP regression saves an exactly95,000-byte rich conversation. Normal saves no longer use browser keepalive quotas and consume their responses before the next queued write. Research workspace entries store compact record references. A single-browser recovery snapshot protects interrupted saves; concurrent edits from multiple tabs are not conflict-merged.
 
 Final checks:26 backend tests pass; all four frontend modules pass syntax checks. Four-page PDF verification confirms the draft header on every page. Final checked app instance runs at http://127.0.0.1:8879 (default CLI port remains8878).
+
+Local walkthrough: `output/demo/supplier-app-demo.mp4` (120seconds, silent, historical example labelled). Final browser run ended with `Saved locally`. Output media remains ignored; share the local artifact separately from Git.
