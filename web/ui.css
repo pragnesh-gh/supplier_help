@@ -90,6 +90,10 @@
 .msi-remove_shopping_cart { --msi: url("vendor/material-symbols/remove_shopping_cart.svg"); }
 .msi-delete { --msi: url("vendor/material-symbols/delete.svg"); }
 .msi-open_in_full { --msi: url("vendor/material-symbols/open_in_full.svg"); }
+.msi-playlist_add { --msi: url("vendor/material-symbols/playlist_add.svg"); }
+.msi-playlist_add_check { --msi: url("vendor/material-symbols/playlist_add_check.svg"); }
+.msi-playlist_remove { --msi: url("vendor/material-symbols/playlist_remove.svg"); }
+.msi-checklist { --msi: url("vendor/material-symbols/checklist.svg"); }
 
 /* ---------- Focus: 2px primary ring + cyan aura (≥3:1 against white) ---------- */
 :focus-visible {

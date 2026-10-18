@@ -6,6 +6,7 @@ const NAMES = new Set([
   "restart_alt", "check", "info", "expand_more", "bookmark", "bookmark_filled",
   "dashboard", "explore", "bookmarks", "summarize", "approval", "tour",
   "shopping_cart", "add_shopping_cart", "remove_shopping_cart", "delete", "open_in_full",
+  "playlist_add", "playlist_add_check", "playlist_remove", "checklist",
   "arrow_back", // mirrored arrow_forward (see ui.css)
 ]);
 
