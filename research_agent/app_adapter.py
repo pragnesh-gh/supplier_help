@@ -760,7 +760,7 @@ class ResearchService:
 
     # -- chat over a finished run ------------------------------------------
     def chat(self, run_id: str, message: Any) -> dict[str, Any]:
-        from .run_chat import chat, grounded_chat
+        from .run_chat import chat, grounded_chat, CitationValidationError
         run = self.store.get(run_id)
         key = self.env.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
         if run.get("demo") or (not key and self.llm is None):
@@ -775,7 +775,9 @@ class ResearchService:
                 api_key=key, max_tokens=4096, timeout_s=45,
                 gatherer_effort=settings.gatherer_effort)
             return grounded_chat(run, message, llm)
-        except Exception:
+        except Exception as error:
             reply = chat(run, message)
-            reply["answer"] = "The live answer model is unavailable; showing a saved-report lookup instead.\n\n" + reply["answer"]
+            reason = ("The generated answer failed citation validation" if isinstance(error, CitationValidationError)
+                      else "The live answer could not complete")
+            reply["answer"] = reason + "; here is a summary from the saved report.\n\n" + reply["answer"]
             return reply
