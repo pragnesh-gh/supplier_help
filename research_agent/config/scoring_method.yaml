@@ -1,0 +1,297 @@
+# Facts-to-scores method constants (docs/research/facts-to-scores.md + -appendix.md).
+#
+# Why a second file: config/scoring.yaml is validated by config.ScoringConfig, which forbids
+# unknown keys, and config.py belongs to the facts pipeline. Once ScoringConfig gets a
+# `method:` field, this file can move into scoring.yaml unchanged.
+#
+# Every number carries its reason. Tags (appendix §A0):
+#   [S] taken from a cited source   [D] derived (arithmetic in scoring.py, computed at load)
+#   [C] calibration parameter (fitted on the labelled set, appendix §A6)
+#   [Decision n] one of the three open team decisions; the value is the recommended default.
+# Numbers marked "derived in code" are NOT stored here: scoring.py computes them from the
+# anchors so they can never drift apart.
+
+version: 1
+
+# --- Decision 1: the three anchor rules (appendix §A3). Everything in the rubric follows.
+anchors:
+  # [D] No adverse finding means only "Low" (0-24) is known; the midpoint keeps the error
+  # within ±12 (minimax). An index base (WGI, Altman, EcoVadis, ...) replaces it.
+  nothing_adverse: 12
+  # [Decision 1] One fresh, trusted red event lands at the start of High. rules.yaml:
+  # red = "serious red flag - review before shortlisting".
+  fresh_red_event: 50
+  # [Decision 1] One fresh, trusted amber event lands at the start of Medium. rules.yaml:
+  # amber = "watch item".
+  fresh_amber_event: 25
+  # Derived in code: P_red = 100*(1-(100-50)/(100-12)) = 43.18; P_amber = 14.77;
+  # decay half-life factor k = ln2 / ln(P_red/P_amber) = 0.646 (x stale_after_years).
+
+recency:
+  # [D] At 2 x stale_after_years a red event has stepped down twice (red -> amber -> neutral),
+  # so it is dropped.
+  drop_after_stale_multiple: 2
+  # [S] RepRisk: "The RRI decays to zero over a maximum period of two years" (Bloomberg data
+  # dictionary). Drop at 2 y = 2 x stale, so stale = 1 y for the sentiment scores.
+  sentiment_stale_years: 1
+  sentiment_scores: [Media_Sentiment_Score, Market_Sentiment_Score]
+  # Undated trusted events are treated as current, the same as rules.py does for colours.
+
+# --- Unverified (non-allowlist) sources: NATO "Admiralty Code" grading (appendix §A4).
+unverified:
+  # [S] JDP 2-00 Table 3.2 (PHIA Probability Yardstick) lower bounds: "Likely or Probably"
+  # >= 55 %, "Realistic possibility" >= 40 %. [C] Refit to the observed share later
+  # confirmed by trusted sources once >= 20 events exist (appendix §A6), clamped to these ranges.
+  credibility_2_weight: 0.55
+  credibility_3_weight: 0.40
+  # Lower bound of the PHIA range for each weight; refits may not go below these, or above
+  # the upper bound.
+  credibility_2_range: [0.55, 0.75]
+  credibility_3_range: [0.40, 0.50]
+  # [D] The cap on what unverified-only events may add to a score is one Level band. It is
+  # derived in code from the band width in scoring.yaml (25), so it is not stored here.
+  # Official domains of any country count as reliability "B" (code-checked suffixes).
+  official_domain_suffixes: [".gov", ".gov.uk", ".gouv.fr", ".bund.de", ".gob.es", ".gov.it", ".admin.ch",
+                             ".europa.eu", ".gc.ca", ".gov.au", ".go.jp", ".gov.in", ".gov.cn"]
+  # Attributions that pass gate E1 (on the record). anonymous_or_rumour / unclear never do.
+  on_record_attributions: [firsthand_official, named_source]
+
+# --- Decision 2: licensed data. Off unless Siemens holds a licence (provider terms forbid
+# commercial use otherwise; appendix §A2).
+licensed:
+  msci: false
+  sustainalytics: false
+  securityscorecard: false
+
+# --- Decision 3: which country feeds the country scores.
+#   sites_then_hq: supplying-site countries if given (share-weighted), else HQ (recommended)
+#   hq_only / sites_only: alternatives
+country_basis: sites_then_hq
+
+# --- Total and coverage (appendix §A5)
+total:
+  # Derived in code: minimum coverage = 1 - 2*band_width/100 = 0.5, so the best/worst range
+  # (100*(1-c) wide) keeps the true total within one band of its midpoint.
+  # Documented default: a score built only from unverified facts counts toward coverage,
+  # labelled "unverified-only" with Low confidence.
+  unverified_only_counts_toward_coverage: true
+
+# --- Severity thresholds
+severity:
+  # [C] A fine or lawsuit below this share of annual revenue counts as "low" severity, so a
+  # red rule becomes amber. Anchor: Reg. 1/2003 Art. 23 caps procedural fines at 1 % and
+  # substantive ones at 10 % of turnover; 0.1 % is one decade below the procedural cap (§A6).
+  low_fine_share_of_revenue: 0.001
+  fine_event_types: [regulatory_fine, major_lawsuit]
+
+# --- Safety base: 12 + 13*log2(company rate / industry rate) (appendix §A2)
+safety:
+  # [C] "Twice the industry injury rate counts as one amber watch item." With the anchors this
+  # gives slope = fresh_amber_event - nothing_adverse = 13 points per doubling (derived in code),
+  # and the industry average (ratio 1) = nothing_adverse.
+  doubling_counts_as: amber
+
+# --- Credit scale (appendix §A2)
+credit:
+  # [S] S&P 2024 Annual Global Corporate Default and Rating Transition Study, Table 26:
+  # average cumulative default rates 1981-2024, year-3 column (%). 3-year horizon = EU
+  # Reg. 2016/1799 Annex I benchmark horizon. Score = 100*(log10 PD - log10 PD_floor) /
+  # (log10 100 - log10 PD_floor), PD_floor = the AAA rate; a running max keeps it monotone.
+  pd3_percent:
+    AAA: 0.13
+    AA+: 0.04
+    AA: 0.08
+    AA-: 0.15
+    A+: 0.16
+    A: 0.19
+    A-: 0.22
+    BBB+: 0.41
+    BBB: 0.51
+    BBB-: 1.17
+    BB+: 1.50
+    BB: 2.67
+    BB-: 4.62
+    B+: 8.05
+    B: 9.68
+    B-: 15.94
+    CCC/C: 41.32
+    D: 100.0   # [D] default = probability of default 100 %
+  # [S] Moody's -> S&P-equivalent: EU 2016/1799 Annex III maps by category (Aaa/Aa = AAA/AA,
+  # Caa = CCC ...); modifiers 1/2/3 = +/flat/- (Moody's Rating Symbols & Definitions).
+  moodys_to_sp:
+    Aaa: AAA
+    Aa1: AA+
+    Aa2: AA
+    Aa3: AA-
+    A1: A+
+    A2: A
+    A3: A-
+    Baa1: BBB+
+    Baa2: BBB
+    Baa3: BBB-
+    Ba1: BB+
+    Ba2: BB
+    Ba3: BB-
+    B1: B+
+    B2: B
+    B3: B-
+    Caa1: CCC/C
+    Caa2: CCC/C
+    Caa3: CCC/C
+    Ca: CCC/C
+    C: CCC/C
+  # [S] S&P/Fitch symbols that fall into one Table 26 bucket.
+  sp_aliases:
+    CCC+: CCC/C
+    CCC: CCC/C
+    CCC-: CCC/C
+    CC: CCC/C
+    C: CCC/C
+    SD: D
+    RD: D
+    D: D
+  # [S] Several ratings: CRR Art. 138(e)-(f): two different -> the worse; three or more -> the
+  # worse of the two best. (Rule implemented in code, no number.)
+
+# --- Altman Z'' (appendix §A2)
+altman:
+  # [S] Z'' = 3.25 + 6.56*X1 + 3.26*X2 + 6.72*X3 + 1.05*X4 (Altman, "Evolution of the Altman
+  # Z-score models", slide 25).
+  intercept: 3.25
+  coefficients: {working_capital_to_assets: 6.56, retained_earnings_to_assets: 3.26,
+                 ebit_to_assets: 6.72, book_equity_to_liabilities: 1.05}
+  # [S] Median Z'' by S&P rating, 2013 column (Altman slide 26). Nearest median wins; a tie goes
+  # to the worse rating. Labels are mapped to the Table 26 buckets above.
+  rating_medians_2013:
+    AA+: 8.80     # Altman label "AAA/AA+"
+    AA-: 8.40     # "AA/AA-"
+    A+: 8.22
+    A: 6.94
+    A-: 6.12
+    BBB+: 5.80
+    BBB: 5.75
+    BBB-: 5.70
+    BB+: 5.65
+    BB: 5.52
+    BB-: 5.07
+    B+: 4.81
+    B: 4.03
+    B-: 3.74
+    CCC/C: 2.84   # "CCC+"; CCC 2.57, CCC- 1.72 and CC/D 0.05 fall in the same bucket
+  # [D] High confidence only for accounts of the latest or previous fiscal year.
+  max_accounts_age_years: 2
+
+# --- Licensed ESG mappings, used only if switched on above (appendix §A2)
+esg:
+  # [D] Sustainalytics band-to-band: [lower bound of their band, our score at that bound].
+  # 0-20 (Negligible+Low) -> 0-24, 20-30 -> 25-49, 30-40 -> 50-74, >=40 -> 75 + 2.5 per point
+  # (same slope as the High band), capped at 100.
+  sustainalytics_knots: [[0, 0], [20, 24], [20, 25], [30, 49], [30, 50], [40, 74], [40, 75], [50, 100]]
+  # [D] MSCI letters split evenly inside MSCI's groups: Leader (AAA, AA) -> Low halves;
+  # Average (A, BBB, BB) -> Medium thirds; Laggard B -> middle of High, CCC -> middle of Critical.
+  msci_letters: {AAA: 6, AA: 18, A: 29, BBB: 38, BB: 46, B: 62, CCC: 87}
+
+# --- Country figures that arrive as data on a trusted Flag (research_agent/country_data.py).
+# [S] WGI 2025 revision: each dimension is an absolute governance score 0-100, 100 = a constructed
+# best case, 0 = worst case, higher = better governed (WGI 2025 Methodology Revision §3.3; data
+# series GOV_WGI_PV.SC, CC BY 4.0). Our scale is risk (higher = worse), so
+# Political_Stability_Score = 100 - PV.SC; the doc's mapping holds unchanged on this scale.
+# Not mapped, recorded only: GOV_WGI_CC.SC and GOV_WGI_RL.SC (country-level, while Governance_Risk
+# is about the company) and TI CPI (CC BY-ND: rescaling is a derivative; appendix §A2).
+# Geopolitical and Environmental stay Not assessed until INFORM figures arrive.
+country_data_indicators:
+  GOV_WGI_PV.SC: wgi_political_stability
+
+# --- Sub-scores: dataset weight, how the base is set, which events feed it.
+# [S] Weights: exact fit to the 10,000-row dataset, round_half_to_even(sum w*s) reproduces 100 %
+# of Total_Risk_Index (scripts/fit_total_risk_weights.py). They must sum per area to the area
+# weight in scoring.yaml (checked at load).
+# base:   events      = anchors.nothing_adverse when the area has evidence
+#         index:*     = only from a numeric input (no input -> Not assessed)
+#         never       = always Not assessed (no public method)
+# events: event types (rules.yaml names) whose dataset definition names this score. An event
+#         feeds only the score(s) whose definition names it, at full weight (appendix §A3).
+#         Media_Sentiment / Market_Sentiment take only reputation-type events (flag area
+#         "reputation": scandals, controversies, leadership misconduct coverage). They do NOT
+#         take every adverse event: a fine already counts in Compliance, and counting it again in
+#         Media would weigh the same fact twice with no basis for the extra weight.
+# knockout_events: trusted knock-out of these types sets the score to 100 [D: default = PD 100 %].
+sub_scores:
+  Financial_Health_Score:
+    weight: 0.10
+    base: index_or_events:altman
+    events: [insolvency_filing, profit_warning, credit_downgrade]
+    knockout_events: [insolvency_filing]
+  Credit_Rating_Score:
+    weight: 0.06
+    base: index:credit_rating
+    events: []
+    knockout_events: [insolvency_filing]
+  Compliance_Risk_Score:
+    weight: 0.08
+    base: events
+    # antitrust_settlement: the dataset definition names "lawsuits, regulatory fines, or legal
+    # disputes"; a regulator's consent judgment (e.g. a DOJ antitrust settlement) is a regulatory
+    # legal dispute. rules.yaml: amber, legal, stale after 5 years.
+    events: [sanctions_listing, fraud_or_corruption_case, regulatory_fine, major_lawsuit, antitrust_settlement]
+    knockout_events: [sanctions_listing]
+  Governance_Risk_Score:
+    weight: 0.05
+    base: events
+    events: [fraud_or_corruption_case, leadership_scandal]
+  Political_Stability_Score:
+    weight: 0.04
+    base: index:wgi_political_stability
+    events: []
+  Geopolitical_Risk_Score:
+    weight: 0.05
+    base: index:inform_human_hazard
+    events: []
+  Environmental_Exposure_Score:
+    weight: 0.04
+    base: index:inform_natural_hazard
+    events: []
+  Labor_Stability_Score:
+    weight: 0.04
+    base: events
+    events: [strike_or_labour_dispute]
+  Safety_Incident_Score:
+    weight: 0.06
+    base: index_or_events:injury_rate
+    events: [safety_accident]
+  ESG_Performance_Score:
+    weight: 0.05
+    base: index_or_events:esg
+    events: [forced_labour_or_human_rights_case]
+  Operational_Resilience_Score:
+    weight: 0.10
+    base: events
+    events: [plant_disruption, delivery_failure]
+  Quality_Risk_Score:
+    weight: 0.10
+    base: events
+    events: [product_recall]
+  Digital_Security_Score:
+    weight: 0.04
+    base: index_or_events:security_rating
+    events: [cyber_incident]
+  Sub_Tier_Visibility_Score:
+    weight: 0.06
+    base: events_only_if_found   # no search targets sub-tiers yet: scored only from a mapped event
+    events: []
+  Media_Sentiment_Score:
+    weight: 0.03
+    base: events
+    events: reputation_area      # reputation-type events only ("news, social media, public reports" about the company's conduct)
+  Market_Sentiment_Score:
+    weight: 0.03
+    base: events
+    events: reputation_area      # reputation-type events only ("public and consumer perception")
+  External_Intelligence_Score:
+    weight: 0.03
+    base: never                  # third-party databases; scoring it from our own agent double-counts
+    events: []
+  Industry_Benchmark_Score:
+    weight: 0.04
+    base: never                  # needs a scored peer set
+    events: []

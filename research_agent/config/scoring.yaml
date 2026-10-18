@@ -1,0 +1,43 @@
+# Score areas and levels (validated by config.ScoringConfig). The method itself, with every
+# constant and its reason, is in config/scoring_method.yaml (docs/research/facts-to-scores.md).
+#
+# Scale (docs/risk_criteria_description.md): 0 = no risk, 100 = maximum risk, per area, then a
+# weighted total. An area that is not assessed is never scored (and never 0).
+#
+# The agent's six risk areas (left) map to the six umbrellas found by correlation clustering
+# of the 18 dataset scores (scripts/fit_total_risk_weights.py reproduces them exactly).
+# [S] Area weights = sum of the dataset sub-score weights, exact fit to Total_Risk_Index
+# (round_half_to_even(sum w*s) matches 100 % of the 10,000 rows).
+
+# [S] Level bands for a 0-100 score (lower bound inclusive); identical for all 19 dataset columns.
+levels:
+  - {name: Low, min: 0}
+  - {name: Medium, min: 25}
+  - {name: High, min: 50}
+  - {name: Critical, min: 75}
+
+areas:
+  operations:
+    dataset_umbrella: Operations & Delivery
+    weight: 0.30
+    sub_scores: [Operational_Resilience_Score, Quality_Risk_Score, Sub_Tier_Visibility_Score, Digital_Security_Score]
+  financial:
+    dataset_umbrella: Financial
+    weight: 0.16
+    sub_scores: [Financial_Health_Score, Credit_Rating_Score]
+  people:
+    dataset_umbrella: People & Safety
+    weight: 0.15
+    sub_scores: [Labor_Stability_Score, Safety_Incident_Score, ESG_Performance_Score]
+  legal:
+    dataset_umbrella: Legal & Governance
+    weight: 0.13
+    sub_scores: [Compliance_Risk_Score, Governance_Risk_Score]
+  country:
+    dataset_umbrella: Country & Location
+    weight: 0.13
+    sub_scores: [Geopolitical_Risk_Score, Political_Stability_Score, Environmental_Exposure_Score]
+  reputation:
+    dataset_umbrella: Reputation & Outside View
+    weight: 0.13
+    sub_scores: [Media_Sentiment_Score, Market_Sentiment_Score, External_Intelligence_Score, Industry_Benchmark_Score]

@@ -17,3 +17,16 @@ Rules:
   similarly named companies too, faithfully naming them; a later step checks the entity.
 - "event_date": the date the event happened, not the article date, if stated.
 - Return an empty list if the page has nothing relevant.
+
+Numbers for scoring (field "numbers"; leave empty if none). List only these, when the page
+states them for this company:
+- credit_rating: a long-term issuer rating by S&P, Moody's or Fitch (detail = agency,
+  outlook if stated);
+- annual-accounts lines from one balance sheet or income statement: revenue, current_assets,
+  current_liabilities, retained_earnings, ebit, total_equity, total_liabilities, total_assets
+  (period = fiscal year end; unit = currency and scale, e.g. "EUR million");
+- fine_amount: the amount of a fine or settlement against the company (unit = currency);
+- injury_rate: the company's own TRIR, DART or LTIFR (detail = metric);
+- ecovadis_score: the EcoVadis score 0-100 (not just a medal).
+"value" must be copied exactly as written (e.g. "9.523,4", "A-"), and "quote" must contain it.
+Do not calculate, convert or round anything.

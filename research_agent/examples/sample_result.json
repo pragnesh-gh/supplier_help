@@ -18,10 +18,10 @@
   },
   "clarification": null,
   "verdict": "Red flags — review before shortlisting",
-  "summary": "One red flag was found: the German competition authority fined Veltrava EUR 4.2 million for price-fixing in March 2026, and the company has appealed. Watch items include a July 2026 profit warning, a door-actuator recall and a February 2026 strike that delayed deliveries. Reputation could not be assessed because no trusted source returned evidence.",
+  "summary": "One red flag was found: the German competition authority fined Veltrava EUR 4.2 million for price-fixing in March 2026, and the company has appealed. Watch items include a door-actuator recall, a July 2026 profit warning, a February 2026 strike that delayed deliveries, and an allegation on an unverified blog about brake-pad test reports that no trusted source confirms. Reputation could not be assessed because no trusted source returned evidence.",
   "flags": [
     {
-      "id": "F4",
+      "id": "F5",
       "colour": "red",
       "area": "legal",
       "event_type": "regulatory_fine",
@@ -31,14 +31,29 @@
       "quote": "Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million. The decision is not yet final.",
       "event_date": "2026-03-11",
       "source_ids": [
-        "S2",
-        "S9"
+        "S4",
+        "S11"
       ],
       "company_stated": false,
+      "trust": "trusted",
+      "capped_unverified": false,
       "knockout": false,
       "stale": false,
       "rule_note": "regulatory_fine → red",
-      "found_in_followup": false
+      "quote_context": "Bonn, 11 March 2026. The Bundeskartellamt has imposed fines totalling EUR 9.8 million on two manufacturers of rail brake pads for price-fixing. Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million. The decision is not yet final.",
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "named_source",
+        "corroborated_by_trusted": true,
+        "independent_domains": 2,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
     },
     {
       "id": "F9",
@@ -51,13 +66,28 @@
       "quote": "Veltrava Rail Components has recalled around 1,800 door actuators fitted to regional trains after a sensor fault",
       "event_date": "2026-08",
       "source_ids": [
-        "S8"
+        "S9"
       ],
       "company_stated": false,
+      "trust": "trusted",
+      "capped_unverified": false,
       "knockout": false,
       "stale": false,
       "rule_note": "product_recall → amber",
-      "found_in_followup": false
+      "quote_context": "Veltrava Rail Components has recalled around 1,800 door actuators fitted to regional trains after a sensor fault caused doors to open slowly. The company said replacement parts would ship by December.",
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "named_source",
+        "corroborated_by_trusted": false,
+        "independent_domains": 1,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
     },
     {
       "id": "F8",
@@ -70,16 +100,31 @@
       "quote": "Die operative Marge werde 2026 nur noch bei rund 4 Prozent liegen, nach zuvor 7 Prozent",
       "event_date": "2026-07-13",
       "source_ids": [
-        "S6"
+        "S7"
       ],
       "company_stated": false,
+      "trust": "trusted",
+      "capped_unverified": false,
       "knockout": false,
       "stale": false,
       "rule_note": "profit_warning → amber",
-      "found_in_followup": false
+      "quote_context": "Leipzig. Der Bahnzulieferer Veltrava Rail Components hat am Montag seine Gewinnprognose gesenkt. Die operative Marge werde 2026 nur noch bei rund 4 Prozent liegen, nach zuvor 7 Prozent, teilte das Unternehmen mit.",
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "named_source",
+        "corroborated_by_trusted": false,
+        "independent_domains": 1,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
     },
     {
-      "id": "F11",
+      "id": "F12",
       "colour": "amber",
       "area": "legal",
       "event_type": "major_lawsuit",
@@ -89,13 +134,28 @@
       "quote": "The appeal before the Higher Regional Court of Duesseldorf could take more than a year",
       "event_date": "2026-05-18",
       "source_ids": [
-        "S9"
+        "S11"
       ],
       "company_stated": false,
+      "trust": "trusted",
+      "capped_unverified": false,
       "knockout": false,
       "stale": false,
       "rule_note": "major_lawsuit → amber",
-      "found_in_followup": true
+      "quote_context": "Rail supplier Veltrava Rail Components said on Monday it had appealed against the EUR 4.2 million fine imposed by the Bundeskartellamt in March. The appeal before the Higher Regional Court of Duesseldorf could take more than a year, the company said.",
+      "found_in_followup": true,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "named_source",
+        "corroborated_by_trusted": false,
+        "independent_domains": 1,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
     },
     {
       "id": "F6",
@@ -108,13 +168,62 @@
       "quote": "A two-week strike by IG Metall members halted production at Veltrava's Leipzig brake plant in February 2026, delaying deliveries",
       "event_date": "2026-02",
       "source_ids": [
-        "S4"
+        "S5"
       ],
       "company_stated": false,
+      "trust": "trusted",
+      "capped_unverified": false,
       "knockout": false,
       "stale": false,
       "rule_note": "strike_or_labour_dispute → amber",
-      "found_in_followup": false
+      "quote_context": "A two-week strike by IG Metall members halted production at Veltrava's Leipzig brake plant in February 2026, delaying deliveries to at least two train builders. The plant was also the site of a fatal accident in 2019, when a worker died in a press-shop incident.",
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "named_source",
+        "corroborated_by_trusted": false,
+        "independent_domains": 1,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
+    },
+    {
+      "id": "F10",
+      "colour": "amber",
+      "area": "legal",
+      "event_type": "fraud_or_corruption_case",
+      "severity": "high",
+      "claim_status": "alleged",
+      "summary": "Alleged by former employees: brake-pad test reports signed off without completed tests (April 2026).",
+      "quote": "allege that Veltrava Rail Components managers signed off brake-pad test reports without completing the tests",
+      "event_date": "2026-04",
+      "source_ids": [
+        "S10"
+      ],
+      "company_stated": false,
+      "trust": "unverified",
+      "capped_unverified": true,
+      "knockout": false,
+      "stale": false,
+      "rule_note": "fraud_or_corruption_case → red; unverified source only: red → amber",
+      "quote_context": "Unverified blog post. Rail Insider has heard from two former employees who allege that Veltrava Rail Components managers signed off brake-pad test reports without completing the tests in April 2026. The company did not respond to our questions.",
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": false,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "anonymous_or_rumour",
+        "corroborated_by_trusted": false,
+        "independent_domains": 1,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
     },
     {
       "id": "F7",
@@ -127,16 +236,31 @@
       "quote": "a fatal accident in 2019, when a worker died in a press-shop incident",
       "event_date": "2019",
       "source_ids": [
-        "S4"
+        "S5"
       ],
       "company_stated": false,
+      "trust": "trusted",
+      "capped_unverified": false,
       "knockout": false,
       "stale": true,
       "rule_note": "safety_accident → red; older than 3 years: red → amber",
-      "found_in_followup": false
+      "quote_context": "A two-week strike by IG Metall members halted production at Veltrava's Leipzig brake plant in February 2026, delaying deliveries to at least two train builders. The plant was also the site of a fatal accident in 2019, when a worker died in a press-shop incident.",
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "named_source",
+        "corroborated_by_trusted": false,
+        "independent_domains": 1,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
     },
     {
-      "id": "F2",
+      "id": "F3",
       "colour": "green",
       "area": "operations",
       "event_type": "iris_certified",
@@ -146,16 +270,119 @@
       "quote": "In September 2025 our Leipzig plant was re-certified to ISO/TS 22163 (IRIS) with no major findings.",
       "event_date": "2025-09",
       "source_ids": [
-        "S1"
+        "S3"
       ],
       "company_stated": true,
+      "trust": "trusted",
+      "capped_unverified": false,
       "knockout": false,
       "stale": false,
       "rule_note": "iris_certified → green; company-stated",
-      "found_in_followup": false
+      "quote_context": "Annual Report 2025. Revenue rose 8 percent to EUR 412 million and the order backlog reached a record EUR 1.1 billion. In September 2025 our Leipzig plant was re-certified to ISO/TS 22163 (IRIS) with no major findings. Risk report: we depend on a single supplier for sintered brake discs; a disruption at this supplier could delay our deliveries. Consolidated balance sheet at 31 December 2025 (EUR million): current a…",
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "named_source",
+        "corroborated_by_trusted": false,
+        "independent_domains": 1,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
     },
     {
       "id": "F1",
+      "colour": "green",
+      "area": "country",
+      "event_type": "country_risk_low",
+      "severity": "low",
+      "claim_status": "confirmed",
+      "summary": "Germany: low country risk in official indices — Political Stability 69/100; Control of Corruption 82/100; Rule of Law 85/100; Corruption Perceptions Index 77/100 (rank 10 of 182) (2025).",
+      "quote": "\"date\":\"2025\",\"value\":69.2575511",
+      "event_date": "2025",
+      "source_ids": [
+        "S1",
+        "S2"
+      ],
+      "company_stated": false,
+      "trust": "trusted",
+      "capped_unverified": false,
+      "knockout": false,
+      "stale": false,
+      "rule_note": "country_risk_low → green; bands on 0-100: < 33.3 elevated, >= 66.7 low; worst indicator decides",
+      "quote_context": null,
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": true,
+        "attribution": "firsthand_official",
+        "corroborated_by_trusted": true,
+        "independent_domains": 2,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": {
+        "figures": [
+          {
+            "indicator": "GOV_WGI_PV.SC",
+            "label": "Political Stability (WGI)",
+            "value": 69.2575511,
+            "year": 2025,
+            "scale": "0-100, higher = better governed",
+            "rank": null,
+            "of": null,
+            "source_url": "https://api.worldbank.org/v2/country/DE/indicator/GOV_WGI_PV.SC;GOV_WGI_CC.SC;GOV_WGI_RL.SC?format=json&source=3&mrv=1",
+            "quote": "\"date\":\"2025\",\"value\":69.2575511"
+          },
+          {
+            "indicator": "GOV_WGI_CC.SC",
+            "label": "Control of Corruption (WGI)",
+            "value": 81.8514313,
+            "year": 2025,
+            "scale": "0-100, higher = better governed",
+            "rank": null,
+            "of": null,
+            "source_url": "https://api.worldbank.org/v2/country/DE/indicator/GOV_WGI_PV.SC;GOV_WGI_CC.SC;GOV_WGI_RL.SC?format=json&source=3&mrv=1",
+            "quote": "\"date\":\"2025\",\"value\":81.8514313"
+          },
+          {
+            "indicator": "GOV_WGI_RL.SC",
+            "label": "Rule of Law (WGI)",
+            "value": 85.067519,
+            "year": 2025,
+            "scale": "0-100, higher = better governed",
+            "rank": null,
+            "of": null,
+            "source_url": "https://api.worldbank.org/v2/country/DE/indicator/GOV_WGI_PV.SC;GOV_WGI_CC.SC;GOV_WGI_RL.SC?format=json&source=3&mrv=1",
+            "quote": "\"date\":\"2025\",\"value\":85.067519"
+          },
+          {
+            "indicator": "CPI",
+            "label": "Corruption Perceptions Index (TI)",
+            "value": 77.0,
+            "year": 2025,
+            "scale": "0-100, higher = cleaner",
+            "rank": 10,
+            "of": 182,
+            "source_url": "https://www.transparency.org/en/cpi/2025",
+            "quote": "Germany DEU WE/EU 77 10"
+          }
+        ],
+        "band": {
+          "GOV_WGI_PV.SC": "low",
+          "GOV_WGI_CC.SC": "low",
+          "GOV_WGI_RL.SC": "low",
+          "CPI": "low"
+        }
+      }
+    },
+    {
+      "id": "F2",
       "colour": "green",
       "area": "financial",
       "event_type": "credit_upgrade_or_strong_results",
@@ -165,16 +392,31 @@
       "quote": "Revenue rose 8 percent to EUR 412 million and the order backlog reached a record EUR 1.1 billion.",
       "event_date": "2025",
       "source_ids": [
-        "S1"
+        "S3"
       ],
       "company_stated": true,
+      "trust": "trusted",
+      "capped_unverified": false,
       "knockout": false,
       "stale": false,
       "rule_note": "credit_upgrade_or_strong_results → green; company-stated",
-      "found_in_followup": false
+      "quote_context": "Annual Report 2025. Revenue rose 8 percent to EUR 412 million and the order backlog reached a record EUR 1.1 billion. In September 2025 our Leipzig plant was re-certified to ISO/TS 22163 (IRIS) with no major findings. Risk report: we depend on a single supplier for sintered brake discs; a disruption at this supplier…",
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "named_source",
+        "corroborated_by_trusted": false,
+        "independent_domains": 1,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
     },
     {
-      "id": "F3",
+      "id": "F4",
       "colour": "neutral",
       "area": "financial",
       "event_type": "company_disclosed_risk",
@@ -184,32 +426,28 @@
       "quote": "we depend on a single supplier for sintered brake discs; a disruption at this supplier could delay our deliveries.",
       "event_date": "2025",
       "source_ids": [
-        "S1"
+        "S3"
       ],
       "company_stated": true,
+      "trust": "trusted",
+      "capped_unverified": false,
       "knockout": false,
       "stale": false,
       "rule_note": "company_disclosed_risk → neutral; company-stated",
-      "found_in_followup": false
-    },
-    {
-      "id": "F5",
-      "colour": "neutral",
-      "area": "country",
-      "event_type": "other_neutral",
-      "severity": "low",
-      "claim_status": "confirmed",
-      "summary": "Germany: stable political environment and strong rule of law (World Bank).",
-      "quote": "Germany has a stable political environment and strong rule of law",
-      "event_date": "2026",
-      "source_ids": [
-        "S3"
-      ],
-      "company_stated": false,
-      "knockout": false,
-      "stale": false,
-      "rule_note": "other_neutral → neutral",
-      "found_in_followup": false
+      "quote_context": "…e 8 percent to EUR 412 million and the order backlog reached a record EUR 1.1 billion. In September 2025 our Leipzig plant was re-certified to ISO/TS 22163 (IRIS) with no major findings. Risk report: we depend on a single supplier for sintered brake discs; a disruption at this supplier could delay our deliveries. Consolidated balance sheet at 31 December 2025 (EUR million): current assets 186.0; total assets 402.5; current liabilities 121.3; total equity 158.9; retained earnings 97.4. EBIT for 2025 was EUR 24…",
+      "found_in_followup": false,
+      "signals": {
+        "publisher_named": true,
+        "dated": true,
+        "claim_specific_checkable": true,
+        "cites_primary_document": false,
+        "attribution": "named_source",
+        "corroborated_by_trusted": false,
+        "independent_domains": 1,
+        "contradicted_by_trusted": false,
+        "excluded_site_type": null
+      },
+      "data": null
     }
   ],
   "areas": [
@@ -220,30 +458,40 @@
       "finding": "Profit warning: 2026 operating margin forecast cut to about 4% from 7%.",
       "flag_ids": [
         "F8",
-        "F1"
+        "F2"
       ],
-      "pages_checked": 2
+      "pages_checked": 2,
+      "unverified_pages_checked": 0,
+      "trusted_pages_used": 2,
+      "unverified_pages_used": 0
     },
     {
       "area": "legal",
-      "label": "Legal & Compliance",
+      "label": "Legal & Governance",
       "status": "red",
       "finding": "Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not yet final.",
       "flag_ids": [
-        "F4",
-        "F11"
+        "F5",
+        "F12",
+        "F10"
       ],
-      "pages_checked": 3
+      "pages_checked": 3,
+      "unverified_pages_checked": 0,
+      "trusted_pages_used": 2,
+      "unverified_pages_used": 1
     },
     {
       "area": "country",
       "label": "Country & Location",
       "status": "green",
-      "finding": "Germany: stable political environment and strong rule of law (World Bank).",
+      "finding": "Germany: low country risk in official indices — Political Stability 69/100; Control of Corruption 82/100; Rule of Law 85/100; Corruption Perceptions Index 77/100 (rank 10 of 182) (2025).",
       "flag_ids": [
-        "F5"
+        "F1"
       ],
-      "pages_checked": 1
+      "pages_checked": 2,
+      "unverified_pages_checked": 0,
+      "trusted_pages_used": 2,
+      "unverified_pages_used": 0
     },
     {
       "area": "people",
@@ -254,41 +502,153 @@
         "F6",
         "F7"
       ],
-      "pages_checked": 1
+      "pages_checked": 1,
+      "unverified_pages_checked": 0,
+      "trusted_pages_used": 1,
+      "unverified_pages_used": 0
     },
     {
       "area": "operations",
-      "label": "Operations & Quality",
+      "label": "Operations & Delivery",
       "status": "amber",
       "finding": "Recall of about 1,800 door actuators (sensor fault) in August 2026; replacements due by December.",
       "flag_ids": [
         "F9",
-        "F2"
+        "F3"
       ],
-      "pages_checked": 2
+      "pages_checked": 2,
+      "unverified_pages_checked": 0,
+      "trusted_pages_used": 2,
+      "unverified_pages_used": 0
     },
     {
       "area": "reputation",
-      "label": "Reputation",
+      "label": "Reputation & Outside View",
       "status": "not_assessed",
       "finding": "Not assessed — no trusted source returned evidence.",
       "flag_ids": [],
-      "pages_checked": 0
+      "pages_checked": 0,
+      "unverified_pages_checked": 1,
+      "trusted_pages_used": 0,
+      "unverified_pages_used": 0
     }
   ],
+  "scores": {
+    "areas": [
+      {
+        "area": "financial",
+        "score": 26,
+        "level": "Medium",
+        "coverage": "assessed",
+        "trusted_pages": 2,
+        "unverified_pages": 0,
+        "sub_scores": {
+          "Financial_Health_Score": 20,
+          "Credit_Rating_Score": 37
+        },
+        "method": "weighted mean of 2 of 2 sub-scores (Financial_Health 20 x 0.1, Credit_Rating 37 x 0.06) / 0.16; coverage 100 %"
+      },
+      {
+        "area": "legal",
+        "score": 37,
+        "level": "Medium",
+        "coverage": "assessed",
+        "trusted_pages": 2,
+        "unverified_pages": 1,
+        "sub_scores": {
+          "Compliance_Risk_Score": 53,
+          "Governance_Risk_Score": 12
+        },
+        "method": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13; coverage 100 %"
+      },
+      {
+        "area": "country",
+        "score": 31,
+        "level": "Medium",
+        "coverage": "assessed",
+        "trusted_pages": 2,
+        "unverified_pages": 0,
+        "sub_scores": {
+          "Geopolitical_Risk_Score": null,
+          "Political_Stability_Score": 31,
+          "Environmental_Exposure_Score": null
+        },
+        "method": "weighted mean of 1 of 3 sub-scores (Political_Stability 31 x 0.04) / 0.04; coverage 31 %"
+      },
+      {
+        "area": "people",
+        "score": 20,
+        "level": "Low",
+        "coverage": "assessed",
+        "trusted_pages": 1,
+        "unverified_pages": 0,
+        "sub_scores": {
+          "Labor_Stability_Score": 22,
+          "Safety_Incident_Score": 8,
+          "ESG_Performance_Score": 32
+        },
+        "method": "weighted mean of 3 of 3 sub-scores (Labor_Stability 22 x 0.04, Safety_Incident 8 x 0.06, ESG_Performance 32 x 0.05) / 0.15; coverage 100 %"
+      },
+      {
+        "area": "operations",
+        "score": 17,
+        "level": "Low",
+        "coverage": "assessed",
+        "trusted_pages": 2,
+        "unverified_pages": 0,
+        "sub_scores": {
+          "Operational_Resilience_Score": 12,
+          "Quality_Risk_Score": 24,
+          "Sub_Tier_Visibility_Score": null,
+          "Digital_Security_Score": 12
+        },
+        "method": "weighted mean of 3 of 4 sub-scores (Operational_Resilience 12 x 0.1, Quality_Risk 24 x 0.1, Digital_Security 12 x 0.04) / 0.24; coverage 80 %"
+      },
+      {
+        "area": "reputation",
+        "score": null,
+        "level": null,
+        "coverage": "not_assessed",
+        "trusted_pages": 0,
+        "unverified_pages": 0,
+        "sub_scores": {
+          "Media_Sentiment_Score": null,
+          "Market_Sentiment_Score": null,
+          "External_Intelligence_Score": null,
+          "Industry_Benchmark_Score": null
+        },
+        "method": "not scored: area not assessed (no evidence), so no score is given, not even 0"
+      }
+    ],
+    "total": 24,
+    "total_level": "Low",
+    "weights": {
+      "operations": 0.3,
+      "financial": 0.16,
+      "people": 0.15,
+      "legal": 0.13,
+      "country": 0.13,
+      "reputation": 0.13
+    },
+    "coverage": 0.72,
+    "range_low": 17,
+    "range_high": 45,
+    "total_method": "weighted average of 11 of 18 sub-scores = 17.34 / 0.72; coverage 72 %; if unassessed scores were 0 or 100: 17-45"
+  },
   "followups": [
     {
       "id": "followup-1",
-      "flag_id": "F4",
+      "flag_id": "F5",
       "flag_summary": "Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not yet final.",
       "question": "Was the fine paid, or is it being appealed?",
       "query": "Veltrava Rail Components Bundeskartellamt fine appeal",
+      "query_local": "Veltrava Rail Components Bußgeld Beschwerde",
       "pages_checked": 1,
       "new_flag_ids": [
-        "F11"
+        "F12"
       ],
       "corroborating_source_ids": [
-        "S9"
+        "S11"
       ],
       "outcome": "Confirmed by a second source. New: Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year."
     }
@@ -299,117 +659,163 @@
     "Request the latest financial statements or a credit report and review payment terms."
   ],
   "limits": [
-    "Checked 9 pages from 8 allowlisted publishers; 1 result from other sites ignored. Not assessed: Reputation.",
+    "Checked 10 pages from 9 trusted publishers and 1 page from 1 unverified site; 3 results from off-list or blocked sites ignored. Not assessed: Reputation & Outside View.",
     "Automated public-source research, not independent verification or supplier qualification; 3 unsupported, off-topic or namesake facts discarded.",
     "Not linked to the anonymized SUPP_* records in the challenge dataset."
   ],
   "sources": [
     {
       "id": "S1",
+      "url": "https://api.worldbank.org/v2/country/DE/indicator/GOV_WGI_PV.SC;GOV_WGI_CC.SC;GOV_WGI_RL.SC?format=json&source=3&mrv=1",
+      "title": "World Bank WGI: Germany",
+      "publisher": "World Bank (WGI)",
+      "tier": "country_data",
+      "trust": "trusted",
+      "published_date": "2026-09-25",
+      "retrieved_at": "2026-10-18T09:00:00+00:00",
+      "found_by": "country-data",
+      "umbrella": "country",
+      "reliability": null,
+      "text_origin": "data"
+    },
+    {
+      "id": "S2",
+      "url": "https://www.transparency.org/en/cpi/2025",
+      "title": "Corruption Perceptions Index 2025 results: Germany",
+      "publisher": "Transparency International (CPI)",
+      "tier": "country_data",
+      "trust": "trusted",
+      "published_date": "2026-02-10",
+      "retrieved_at": "2026-10-18T09:00:00+00:00",
+      "found_by": "country-data",
+      "umbrella": "country",
+      "reliability": null,
+      "text_origin": "data"
+    },
+    {
+      "id": "S3",
       "url": "https://veltrava-rail.example/investors/annual-report-2025",
       "title": "Annual Report 2025",
       "publisher": "Veltrava Rail Components GmbH",
       "tier": "company_own",
+      "trust": "trusted",
       "published_date": "2026-03-20",
       "retrieved_at": "2026-10-18T09:00:00+00:00",
       "found_by": "financial-1",
       "umbrella": "financial",
-      "text_origin": "extract"
-    },
-    {
-      "id": "S2",
-      "url": "https://www.bundeskartellamt.de/fixture/veltrava-bussgeld",
-      "title": "Bundeskartellamt fines brake-pad manufacturers",
-      "publisher": "Bundeskartellamt",
-      "tier": "official",
-      "published_date": "2026-03-11",
-      "retrieved_at": "2026-10-18T09:00:00+00:00",
-      "found_by": "legal-1",
-      "umbrella": "legal",
-      "text_origin": "extract"
-    },
-    {
-      "id": "S3",
-      "url": "https://www.worldbank.org/fixture/germany-overview",
-      "title": "Germany overview",
-      "publisher": "World Bank",
-      "tier": "country_data",
-      "published_date": "2026-04-01",
-      "retrieved_at": "2026-10-18T09:00:00+00:00",
-      "found_by": "country-1",
-      "umbrella": "country",
+      "reliability": null,
       "text_origin": "extract"
     },
     {
       "id": "S4",
-      "url": "https://www.railjournal.com/fixture/veltrava-strike",
-      "title": "Strike halts Veltrava Leipzig production",
-      "publisher": "International Railway Journal",
-      "tier": "rail_trade",
-      "published_date": "2026-02-20",
+      "url": "https://www.bundeskartellamt.de/fixture/veltrava-bussgeld",
+      "title": "Bundeskartellamt fines brake-pad manufacturers",
+      "publisher": "Bundeskartellamt",
+      "tier": "official",
+      "trust": "trusted",
+      "published_date": "2026-03-11",
       "retrieved_at": "2026-10-18T09:00:00+00:00",
-      "found_by": "people-1",
-      "umbrella": "people",
+      "found_by": "legal-1",
+      "umbrella": "legal",
+      "reliability": null,
       "text_origin": "extract"
     },
     {
       "id": "S5",
-      "url": "https://www.railwayage.com/fixture/sponsored-veltrava",
-      "title": "Sponsored: Veltrava supplier update",
-      "publisher": "Railway Age",
+      "url": "https://www.railjournal.com/fixture/veltrava-strike",
+      "title": "Strike halts Veltrava Leipzig production",
+      "publisher": "International Railway Journal",
       "tier": "rail_trade",
-      "published_date": "2026-09-01",
+      "trust": "trusted",
+      "published_date": "2026-02-20",
       "retrieved_at": "2026-10-18T09:00:00+00:00",
-      "found_by": "operations-1",
-      "umbrella": "operations",
+      "found_by": "people-1",
+      "umbrella": "people",
+      "reliability": null,
       "text_origin": "extract"
     },
     {
       "id": "S6",
-      "url": "https://www.handelsblatt.com/fixture/veltrava-gewinnwarnung",
-      "title": "Veltrava senkt Prognose",
-      "publisher": "Handelsblatt",
-      "tier": "major_news",
-      "published_date": "2026-07-14",
+      "url": "https://www.railwayage.com/fixture/sponsored-veltrava",
+      "title": "Sponsored: Veltrava supplier update",
+      "publisher": "Railway Age",
+      "tier": "rail_trade",
+      "trust": "trusted",
+      "published_date": "2026-09-01",
       "retrieved_at": "2026-10-18T09:00:00+00:00",
-      "found_by": "financial-2",
-      "umbrella": "financial",
+      "found_by": "operations-2",
+      "umbrella": "operations",
+      "reliability": null,
       "text_origin": "extract"
     },
     {
       "id": "S7",
-      "url": "https://www.reuters.com/fixture/veltrava-foods-fined",
-      "title": "UK regulator fines Veltrava Foods over labelling",
-      "publisher": "Reuters",
+      "url": "https://www.handelsblatt.com/fixture/veltrava-gewinnwarnung",
+      "title": "Veltrava senkt Prognose",
+      "publisher": "Handelsblatt",
       "tier": "major_news",
-      "published_date": "2026-05-02",
+      "trust": "trusted",
+      "published_date": "2026-07-14",
       "retrieved_at": "2026-10-18T09:00:00+00:00",
-      "found_by": "legal-2",
-      "umbrella": "legal",
+      "found_by": "financial-2",
+      "umbrella": "financial",
+      "reliability": null,
       "text_origin": "extract"
     },
     {
       "id": "S8",
-      "url": "https://www.railway-technology.com/fixture/veltrava-recall",
-      "title": "Veltrava recalls door actuators",
-      "publisher": "Railway Technology",
-      "tier": "rail_trade",
-      "published_date": "2026-08-05",
+      "url": "https://www.reuters.com/fixture/veltrava-foods-fined",
+      "title": "UK regulator fines Veltrava Foods over labelling",
+      "publisher": "Reuters",
+      "tier": "major_news",
+      "trust": "trusted",
+      "published_date": "2026-05-02",
       "retrieved_at": "2026-10-18T09:00:00+00:00",
-      "found_by": "operations-1",
-      "umbrella": "operations",
+      "found_by": "legal-2",
+      "umbrella": "legal",
+      "reliability": null,
       "text_origin": "extract"
     },
     {
       "id": "S9",
+      "url": "https://www.railway-technology.com/fixture/veltrava-recall",
+      "title": "Veltrava recalls door actuators",
+      "publisher": "Railway Technology",
+      "tier": "rail_trade",
+      "trust": "trusted",
+      "published_date": "2026-08-05",
+      "retrieved_at": "2026-10-18T09:00:00+00:00",
+      "found_by": "operations-1",
+      "umbrella": "operations",
+      "reliability": null,
+      "text_origin": "extract"
+    },
+    {
+      "id": "S10",
+      "url": "https://random-blog.example/veltrava-scandal",
+      "title": "Rail Insider blog: Veltrava test reports questioned",
+      "publisher": "random-blog.example",
+      "tier": "open_web",
+      "trust": "unverified",
+      "published_date": "2026-09-10",
+      "retrieved_at": "2026-10-18T09:00:00+00:00",
+      "found_by": "reputation-web",
+      "umbrella": "reputation",
+      "reliability": "D",
+      "text_origin": "extract"
+    },
+    {
+      "id": "S11",
       "url": "https://www.reuters.com/fixture/veltrava-appeal",
       "title": "Veltrava appeals German cartel fine",
       "publisher": "Reuters",
       "tier": "major_news",
+      "trust": "trusted",
       "published_date": "2026-05-18",
       "retrieved_at": "2026-10-18T09:00:00+00:00",
       "found_by": "followup-1",
       "umbrella": "legal",
+      "reliability": null,
       "text_origin": "extract"
     }
   ],
@@ -427,130 +833,374 @@
       ],
       "topic": "general",
       "start_date": null,
+      "lang": "en",
       "status": "done",
+      "open_web": false,
       "results_kept": 3,
-      "results_dropped_not_allowlisted": 0
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
     },
     {
       "id": "financial-1",
       "umbrella": "financial",
       "purpose": "Financial: official, company_own",
-      "query": "Veltrava Rail Components GmbH annual report results credit rating",
+      "query": "Veltrava Rail Components GmbH annual report results",
       "tiers": [
         "official",
         "company_own"
       ],
       "topic": "general",
       "start_date": "2023-10-18",
+      "lang": "en",
       "status": "done",
+      "open_web": false,
       "results_kept": 1,
-      "results_dropped_not_allowlisted": 0
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
     },
     {
       "id": "financial-2",
       "umbrella": "financial",
-      "purpose": "Financial: major_news",
-      "query": "Veltrava Rail Components GmbH profit warning OR credit rating OR losses OR results",
+      "purpose": "Financial: major_news (local language)",
+      "query": "Veltrava Rail Components GmbH Gewinnwarnung Herabstufung",
       "tiers": [
         "major_news"
       ],
       "topic": "news",
       "start_date": "2023-10-18",
+      "lang": "local",
       "status": "done",
+      "open_web": false,
       "results_kept": 1,
-      "results_dropped_not_allowlisted": 0
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
     },
     {
       "id": "legal-1",
       "umbrella": "legal",
-      "purpose": "Legal & Compliance: official",
-      "query": "Veltrava Rail Components GmbH sanctions OR insolvency OR fine OR court",
+      "purpose": "Legal & Governance: official",
+      "query": "Veltrava Rail Components GmbH sanctions insolvency fine",
       "tiers": [
         "official"
       ],
       "topic": "general",
       "start_date": "2016-10-18",
+      "lang": "en",
       "status": "done",
+      "open_web": false,
       "results_kept": 1,
-      "results_dropped_not_allowlisted": 0
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
     },
     {
       "id": "legal-2",
       "umbrella": "legal",
-      "purpose": "Legal & Compliance: major_news",
-      "query": "Veltrava Rail Components GmbH fine OR lawsuit OR investigation OR corruption OR insolvency",
+      "purpose": "Legal & Governance: major_news",
+      "query": "Veltrava Rail Components GmbH fine lawsuit investigation",
       "tiers": [
         "major_news"
       ],
       "topic": "news",
       "start_date": "2016-10-18",
+      "lang": "en",
       "status": "done",
+      "open_web": false,
       "results_kept": 1,
-      "results_dropped_not_allowlisted": 0
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
     },
     {
-      "id": "country-1",
-      "umbrella": "country",
-      "purpose": "Country & Location: country_data",
-      "query": "Germany country risk corruption index",
+      "id": "legal-3",
+      "umbrella": "legal",
+      "purpose": "Legal & Governance: major_news (local language)",
+      "query": "Veltrava Rail Components GmbH Bußgeld Klage Korruption",
       "tiers": [
-        "country_data"
+        "major_news"
+      ],
+      "topic": "news",
+      "start_date": "2016-10-18",
+      "lang": "local",
+      "status": "done",
+      "open_web": false,
+      "results_kept": 0,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
+    },
+    {
+      "id": "legal-4",
+      "umbrella": "legal",
+      "purpose": "Legal & Governance: official, major_news",
+      "query": "Veltrava Rail Components GmbH lawsuit settlement court ruling",
+      "tiers": [
+        "official",
+        "major_news"
       ],
       "topic": "general",
-      "start_date": "2023-10-18",
+      "start_date": "2016-10-18",
+      "lang": "en",
       "status": "done",
+      "open_web": false,
       "results_kept": 1,
-      "results_dropped_not_allowlisted": 0
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": [
+        {
+          "url": "https://www.reuters.com/fixture/veltrava-foods-fined",
+          "title": "UK regulator fines Veltrava Foods over labelling",
+          "reason": "duplicate"
+        }
+      ]
     },
     {
       "id": "people-1",
       "umbrella": "people",
       "purpose": "People & Safety: major_news, rail_trade",
-      "query": "Veltrava Rail Components GmbH strike OR accident OR injury OR labour dispute OR human rights",
+      "query": "Veltrava Rail Components GmbH strike accident workers",
       "tiers": [
         "major_news",
         "rail_trade"
       ],
       "topic": "general",
       "start_date": "2023-10-18",
+      "lang": "en",
       "status": "done",
+      "open_web": false,
       "results_kept": 1,
-      "results_dropped_not_allowlisted": 0
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
+    },
+    {
+      "id": "people-2",
+      "umbrella": "people",
+      "purpose": "People & Safety: major_news, rail_trade (local language)",
+      "query": "Veltrava Rail Components GmbH Streik Arbeitsunfall",
+      "tiers": [
+        "major_news",
+        "rail_trade"
+      ],
+      "topic": "general",
+      "start_date": "2023-10-18",
+      "lang": "local",
+      "status": "done",
+      "open_web": false,
+      "results_kept": 0,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
     },
     {
       "id": "operations-1",
       "umbrella": "operations",
-      "purpose": "Operations & Quality: rail_trade, major_news, company_own",
-      "query": "Veltrava Rail Components GmbH recall OR defect OR delivery delay OR cyber attack OR plant OR IRIS certification",
+      "purpose": "Operations & Delivery: rail_trade, major_news",
+      "query": "Veltrava Rail Components GmbH recall defect quality",
       "tiers": [
         "rail_trade",
-        "major_news",
-        "company_own"
+        "major_news"
       ],
       "topic": "general",
       "start_date": "2023-10-18",
+      "lang": "en",
       "status": "done",
-      "results_kept": 2,
-      "results_dropped_not_allowlisted": 0
+      "open_web": false,
+      "results_kept": 1,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
+    },
+    {
+      "id": "operations-2",
+      "umbrella": "operations",
+      "purpose": "Operations & Delivery: rail_trade, major_news",
+      "query": "Veltrava Rail Components GmbH delivery delay cyber attack",
+      "tiers": [
+        "rail_trade",
+        "major_news"
+      ],
+      "topic": "general",
+      "start_date": "2023-10-18",
+      "lang": "en",
+      "status": "done",
+      "open_web": false,
+      "results_kept": 1,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
+    },
+    {
+      "id": "operations-3",
+      "umbrella": "operations",
+      "purpose": "Operations & Delivery: rail_trade, major_news (local language)",
+      "query": "Veltrava Rail Components GmbH Rückruf Lieferverzögerung",
+      "tiers": [
+        "rail_trade",
+        "major_news"
+      ],
+      "topic": "general",
+      "start_date": "2023-10-18",
+      "lang": "local",
+      "status": "done",
+      "open_web": false,
+      "results_kept": 0,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
+    },
+    {
+      "id": "operations-4",
+      "umbrella": "operations",
+      "purpose": "Operations & Delivery: company_own, rail_trade",
+      "query": "Veltrava Rail Components GmbH IRIS certification",
+      "tiers": [
+        "company_own",
+        "rail_trade"
+      ],
+      "topic": "general",
+      "start_date": "2023-10-18",
+      "lang": "en",
+      "status": "done",
+      "open_web": false,
+      "results_kept": 0,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
     },
     {
       "id": "reputation-1",
       "umbrella": "reputation",
-      "purpose": "Reputation: major_news",
-      "query": "Veltrava Rail Components GmbH scandal OR controversy OR governance OR allegations",
+      "purpose": "Reputation & Outside View: major_news",
+      "query": "Veltrava Rail Components GmbH scandal controversy",
       "tiers": [
         "major_news"
       ],
       "topic": "news",
       "start_date": "2023-10-18",
+      "lang": "en",
       "status": "done",
+      "open_web": false,
       "results_kept": 0,
-      "results_dropped_not_allowlisted": 1
+      "results_dropped_not_allowlisted": 1,
+      "results_dropped_denylisted": 1,
+      "results_dropped_off_topic": 1,
+      "dropped": [
+        {
+          "url": "https://random-blog.example/veltrava-scandal",
+          "title": "Rail Insider blog: Veltrava test reports questioned",
+          "reason": "not_allowlisted"
+        },
+        {
+          "url": "https://www.reddit.com/r/railways/comments/fixture/veltrava_scandal",
+          "title": "Veltrava is going bankrupt?? (forum thread)",
+          "reason": "denylisted"
+        },
+        {
+          "url": "https://www.reuters.com/fixture/gerresheimer-probe",
+          "title": "German watchdog probes Gerresheimer accounts",
+          "reason": "off_topic"
+        }
+      ]
+    },
+    {
+      "id": "reputation-2",
+      "umbrella": "reputation",
+      "purpose": "Reputation & Outside View: major_news (local language)",
+      "query": "Veltrava Rail Components GmbH Skandal Vorwürfe",
+      "tiers": [
+        "major_news"
+      ],
+      "topic": "news",
+      "start_date": "2023-10-18",
+      "lang": "local",
+      "status": "done",
+      "open_web": false,
+      "results_kept": 0,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
+    },
+    {
+      "id": "country-data",
+      "umbrella": "country",
+      "purpose": "Country & Location: index data",
+      "query": "CPI, GOV_WGI_CC.SC, GOV_WGI_PV.SC, GOV_WGI_RL.SC",
+      "tiers": [
+        "country_data"
+      ],
+      "topic": "general",
+      "start_date": null,
+      "lang": "en",
+      "status": "done",
+      "open_web": false,
+      "results_kept": 4,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
+    },
+    {
+      "id": "reputation-web",
+      "umbrella": "reputation",
+      "purpose": "Reputation & Outside View: open web (gap fill, 0 trusted pages found)",
+      "query": "Veltrava Rail Components GmbH scandal controversy",
+      "tiers": [],
+      "topic": "news",
+      "start_date": "2023-10-18",
+      "lang": "en",
+      "status": "done",
+      "open_web": true,
+      "results_kept": 1,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 1,
+      "results_dropped_off_topic": 0,
+      "dropped": [
+        {
+          "url": "https://www.reddit.com/r/railways/comments/fixture/veltrava_scandal",
+          "title": "Veltrava is going bankrupt?? (forum thread)",
+          "reason": "denylisted"
+        }
+      ]
+    },
+    {
+      "id": "operations-web",
+      "umbrella": "operations",
+      "purpose": "Operations & Delivery: open web (gap fill, 2 trusted pages found)",
+      "query": "Veltrava Rail Components GmbH recall defect quality",
+      "tiers": [],
+      "topic": "general",
+      "start_date": "2023-10-18",
+      "lang": "en",
+      "status": "done",
+      "open_web": true,
+      "results_kept": 0,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
     },
     {
       "id": "followup-1",
       "umbrella": "legal",
-      "purpose": "Follow-up on F4: Was the fine paid, or is it being appealed?",
+      "purpose": "Follow-up on F5: Was the fine paid, or is it being appealed?",
       "query": "Veltrava Rail Components Bundeskartellamt fine appeal",
       "tiers": [
         "official",
@@ -560,9 +1210,42 @@
       ],
       "topic": "general",
       "start_date": "2016-10-18",
+      "lang": "en",
       "status": "done",
+      "open_web": false,
       "results_kept": 2,
-      "results_dropped_not_allowlisted": 0
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": [
+        {
+          "url": "https://www.bundeskartellamt.de/fixture/veltrava-bussgeld",
+          "title": "Bundeskartellamt fines brake-pad manufacturers",
+          "reason": "duplicate"
+        }
+      ]
+    },
+    {
+      "id": "followup-1-local",
+      "umbrella": "legal",
+      "purpose": "Follow-up on F5: Was the fine paid, or is it being appealed?",
+      "query": "Veltrava Rail Components Bußgeld Beschwerde",
+      "tiers": [
+        "official",
+        "major_news",
+        "rail_trade",
+        "company_own"
+      ],
+      "topic": "general",
+      "start_date": "2016-10-18",
+      "lang": "local",
+      "status": "done",
+      "open_web": false,
+      "results_kept": 0,
+      "results_dropped_not_allowlisted": 0,
+      "results_dropped_denylisted": 0,
+      "results_dropped_off_topic": 0,
+      "dropped": []
     }
   ],
   "trail": [
@@ -611,95 +1294,167 @@
     },
     {
       "kind": "plan",
-      "message": "Research plan: 8 searches across 6 risk areas, official sources first, then news.",
+      "message": "Research plan: 14 searches across 6 risk areas, official sources first, then news; open web only to fill gaps.",
       "data": {
         "steps": [
           {
             "id": "financial-1",
             "area": "financial",
-            "query": "Veltrava Rail Components GmbH annual report results credit rating",
+            "query": "Veltrava Rail Components GmbH annual report results",
             "tiers": [
               "official",
               "company_own"
             ],
+            "lang": "en",
             "status": "planned"
           },
           {
             "id": "financial-2",
             "area": "financial",
-            "query": "Veltrava Rail Components GmbH profit warning OR credit rating OR losses OR results",
+            "query": "Veltrava Rail Components GmbH Gewinnwarnung Herabstufung",
             "tiers": [
               "major_news"
             ],
+            "lang": "local",
             "status": "planned"
           },
           {
             "id": "legal-1",
             "area": "legal",
-            "query": "Veltrava Rail Components GmbH sanctions OR insolvency OR fine OR court",
+            "query": "Veltrava Rail Components GmbH sanctions insolvency fine",
             "tiers": [
               "official"
             ],
+            "lang": "en",
             "status": "planned"
           },
           {
             "id": "legal-2",
             "area": "legal",
-            "query": "Veltrava Rail Components GmbH fine OR lawsuit OR investigation OR corruption OR insolvency",
+            "query": "Veltrava Rail Components GmbH fine lawsuit investigation",
             "tiers": [
               "major_news"
             ],
+            "lang": "en",
             "status": "planned"
           },
           {
-            "id": "country-1",
-            "area": "country",
-            "query": "Germany country risk corruption index",
+            "id": "legal-3",
+            "area": "legal",
+            "query": "Veltrava Rail Components GmbH Bußgeld Klage Korruption",
             "tiers": [
-              "country_data"
+              "major_news"
             ],
+            "lang": "local",
+            "status": "planned"
+          },
+          {
+            "id": "legal-4",
+            "area": "legal",
+            "query": "Veltrava Rail Components GmbH lawsuit settlement court ruling",
+            "tiers": [
+              "official",
+              "major_news"
+            ],
+            "lang": "en",
             "status": "planned"
           },
           {
             "id": "people-1",
             "area": "people",
-            "query": "Veltrava Rail Components GmbH strike OR accident OR injury OR labour dispute OR human rights",
+            "query": "Veltrava Rail Components GmbH strike accident workers",
             "tiers": [
               "major_news",
               "rail_trade"
             ],
+            "lang": "en",
+            "status": "planned"
+          },
+          {
+            "id": "people-2",
+            "area": "people",
+            "query": "Veltrava Rail Components GmbH Streik Arbeitsunfall",
+            "tiers": [
+              "major_news",
+              "rail_trade"
+            ],
+            "lang": "local",
             "status": "planned"
           },
           {
             "id": "operations-1",
             "area": "operations",
-            "query": "Veltrava Rail Components GmbH recall OR defect OR delivery delay OR cyber attack OR plant OR IRIS certification",
+            "query": "Veltrava Rail Components GmbH recall defect quality",
             "tiers": [
               "rail_trade",
-              "major_news",
-              "company_own"
+              "major_news"
             ],
+            "lang": "en",
+            "status": "planned"
+          },
+          {
+            "id": "operations-2",
+            "area": "operations",
+            "query": "Veltrava Rail Components GmbH delivery delay cyber attack",
+            "tiers": [
+              "rail_trade",
+              "major_news"
+            ],
+            "lang": "en",
+            "status": "planned"
+          },
+          {
+            "id": "operations-3",
+            "area": "operations",
+            "query": "Veltrava Rail Components GmbH Rückruf Lieferverzögerung",
+            "tiers": [
+              "rail_trade",
+              "major_news"
+            ],
+            "lang": "local",
+            "status": "planned"
+          },
+          {
+            "id": "operations-4",
+            "area": "operations",
+            "query": "Veltrava Rail Components GmbH IRIS certification",
+            "tiers": [
+              "company_own",
+              "rail_trade"
+            ],
+            "lang": "en",
             "status": "planned"
           },
           {
             "id": "reputation-1",
             "area": "reputation",
-            "query": "Veltrava Rail Components GmbH scandal OR controversy OR governance OR allegations",
+            "query": "Veltrava Rail Components GmbH scandal controversy",
             "tiers": [
               "major_news"
             ],
+            "lang": "en",
+            "status": "planned"
+          },
+          {
+            "id": "reputation-2",
+            "area": "reputation",
+            "query": "Veltrava Rail Components GmbH Skandal Vorwürfe",
+            "tiers": [
+              "major_news"
+            ],
+            "lang": "local",
             "status": "planned"
           }
         ],
         "budget": {
           "wall_clock_seconds": 120.0,
-          "max_searches": 12,
-          "max_extracts": 12,
+          "max_searches": 22,
+          "max_extracts": 19,
           "extracts_reserved_for_followups": 4,
           "max_followups": 2,
           "pages_per_followup": 2,
           "max_results_per_search": 8,
-          "max_pages_per_umbrella": 3,
+          "max_trusted_pages": 12,
           "llm_timeout_seconds": 60.0,
           "search_timeout_seconds": 30.0,
           "parallel_workers": 6
@@ -708,8 +1463,24 @@
       "elapsed_s": 0.0
     },
     {
+      "kind": "extract",
+      "message": "Reading country data for Germany: World Bank WGI (via Tavily extract), TI CPI (official file).",
+      "data": {},
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Country data: Germany: low country risk in official indices — Political Stability 69/100; Control of Corruption 82/100; Rule of Law 85/100; Corruption Perceptions Index 77/100 (rank 10 of 182) (2025).",
+      "data": {
+        "colours": [
+          "green"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
       "kind": "search",
-      "message": "Searching financial-1: Veltrava Rail Components GmbH annual report results credit rating",
+      "message": "Searching financial-1: Veltrava Rail Components GmbH annual report results",
       "data": {
         "step": "financial-1",
         "tiers": [
@@ -721,7 +1492,7 @@
     },
     {
       "kind": "search",
-      "message": "Searching financial-2: Veltrava Rail Components GmbH profit warning OR credit rating OR losses OR results",
+      "message": "Searching financial-2: Veltrava Rail Components GmbH Gewinnwarnung Herabstufung",
       "data": {
         "step": "financial-2",
         "tiers": [
@@ -732,7 +1503,7 @@
     },
     {
       "kind": "search",
-      "message": "Searching legal-1: Veltrava Rail Components GmbH sanctions OR insolvency OR fine OR court",
+      "message": "Searching legal-1: Veltrava Rail Components GmbH sanctions insolvency fine",
       "data": {
         "step": "legal-1",
         "tiers": [
@@ -743,7 +1514,41 @@
     },
     {
       "kind": "search",
-      "message": "Searching people-1: Veltrava Rail Components GmbH strike OR accident OR injury OR labour dispute OR human rights",
+      "message": "Searching legal-2: Veltrava Rail Components GmbH fine lawsuit investigation",
+      "data": {
+        "step": "legal-2",
+        "tiers": [
+          "major_news"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "search",
+      "message": "Searching legal-3: Veltrava Rail Components GmbH Bußgeld Klage Korruption",
+      "data": {
+        "step": "legal-3",
+        "tiers": [
+          "major_news"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "search",
+      "message": "Searching legal-4: Veltrava Rail Components GmbH lawsuit settlement court ruling",
+      "data": {
+        "step": "legal-4",
+        "tiers": [
+          "official",
+          "major_news"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "search",
+      "message": "Searching people-1: Veltrava Rail Components GmbH strike accident workers",
       "data": {
         "step": "people-1",
         "tiers": [
@@ -755,21 +1560,23 @@
     },
     {
       "kind": "search",
-      "message": "Searching country-1: Germany country risk corruption index",
+      "message": "Searching people-2: Veltrava Rail Components GmbH Streik Arbeitsunfall",
       "data": {
-        "step": "country-1",
+        "step": "people-2",
         "tiers": [
-          "country_data"
+          "major_news",
+          "rail_trade"
         ]
       },
       "elapsed_s": 0.0
     },
     {
       "kind": "search",
-      "message": "Searching legal-2: Veltrava Rail Components GmbH fine OR lawsuit OR investigation OR corruption OR insolvency",
+      "message": "Searching operations-1: Veltrava Rail Components GmbH recall defect quality",
       "data": {
-        "step": "legal-2",
+        "step": "operations-1",
         "tiers": [
+          "rail_trade",
           "major_news"
         ]
       },
@@ -777,20 +1584,43 @@
     },
     {
       "kind": "search",
-      "message": "Searching operations-1: Veltrava Rail Components GmbH recall OR defect OR delivery delay OR cyber attack OR plant OR IRIS certification",
+      "message": "Searching operations-2: Veltrava Rail Components GmbH delivery delay cyber attack",
       "data": {
-        "step": "operations-1",
+        "step": "operations-2",
         "tiers": [
           "rail_trade",
-          "major_news",
-          "company_own"
+          "major_news"
         ]
       },
       "elapsed_s": 0.0
     },
     {
       "kind": "search",
-      "message": "Searching reputation-1: Veltrava Rail Components GmbH scandal OR controversy OR governance OR allegations",
+      "message": "Searching operations-3: Veltrava Rail Components GmbH Rückruf Lieferverzögerung",
+      "data": {
+        "step": "operations-3",
+        "tiers": [
+          "rail_trade",
+          "major_news"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "search",
+      "message": "Searching operations-4: Veltrava Rail Components GmbH IRIS certification",
+      "data": {
+        "step": "operations-4",
+        "tiers": [
+          "company_own",
+          "rail_trade"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "search",
+      "message": "Searching reputation-1: Veltrava Rail Components GmbH scandal controversy",
       "data": {
         "step": "reputation-1",
         "tiers": [
@@ -800,18 +1630,79 @@
       "elapsed_s": 0.0
     },
     {
+      "kind": "search",
+      "message": "Searching reputation-2: Veltrava Rail Components GmbH Skandal Vorwürfe",
+      "data": {
+        "step": "reputation-2",
+        "tiers": [
+          "major_news"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "plan",
+      "message": "Open web: filling gaps in Reputation & Outside View, Operations & Delivery.",
+      "data": {
+        "steps": [
+          {
+            "id": "reputation-web",
+            "area": "reputation",
+            "query": "Veltrava Rail Components GmbH scandal controversy",
+            "open_web": true
+          },
+          {
+            "id": "operations-web",
+            "area": "operations",
+            "query": "Veltrava Rail Components GmbH recall defect quality",
+            "open_web": true
+          }
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "search",
+      "message": "Searching the open web for reputation-web: Veltrava Rail Components GmbH scandal controversy",
+      "data": {
+        "step": "reputation-web",
+        "open_web": true
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "search",
+      "message": "Searching the open web for operations-web: Veltrava Rail Components GmbH recall defect quality",
+      "data": {
+        "step": "operations-web",
+        "open_web": true
+      },
+      "elapsed_s": 0.0
+    },
+    {
       "kind": "extract",
-      "message": "Reading 8 pages from trusted sources.",
+      "message": "Reading 8 pages (1 from unverified sites).",
       "data": {
         "urls": [
           "https://veltrava-rail.example/investors/annual-report-2025",
           "https://www.bundeskartellamt.de/fixture/veltrava-bussgeld",
-          "https://www.worldbank.org/fixture/germany-overview",
           "https://www.railjournal.com/fixture/veltrava-strike",
           "https://www.railwayage.com/fixture/sponsored-veltrava",
           "https://www.handelsblatt.com/fixture/veltrava-gewinnwarnung",
           "https://www.reuters.com/fixture/veltrava-foods-fined",
-          "https://www.railway-technology.com/fixture/veltrava-recall"
+          "https://www.railway-technology.com/fixture/veltrava-recall",
+          "https://random-blog.example/veltrava-scandal"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Bundeskartellamt: 1 of 1 facts verified.",
+      "data": {
+        "source_id": "S4",
+        "colours": [
+          "red"
         ]
       },
       "elapsed_s": 0.0
@@ -820,7 +1711,7 @@
       "kind": "verify",
       "message": "Veltrava Rail Components GmbH: 3 of 3 facts verified.",
       "data": {
-        "source_id": "S1",
+        "source_id": "S3",
         "colours": [
           "green",
           "green",
@@ -833,7 +1724,7 @@
       "kind": "verify",
       "message": "International Railway Journal: 2 of 2 facts verified.",
       "data": {
-        "source_id": "S4",
+        "source_id": "S5",
         "colours": [
           "amber",
           "amber"
@@ -845,7 +1736,16 @@
       "kind": "verify",
       "message": "Reuters: 0 of 1 facts verified.",
       "data": {
-        "source_id": "S7",
+        "source_id": "S8",
+        "colours": []
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Railway Age: 0 of 2 facts verified.",
+      "data": {
+        "source_id": "S6",
         "colours": []
       },
       "elapsed_s": 0.0
@@ -854,7 +1754,7 @@
       "kind": "verify",
       "message": "Handelsblatt: 1 of 1 facts verified.",
       "data": {
-        "source_id": "S6",
+        "source_id": "S7",
         "colours": [
           "amber"
         ]
@@ -863,31 +1763,11 @@
     },
     {
       "kind": "verify",
-      "message": "Railway Age: 0 of 2 facts verified.",
+      "message": "random-blog.example: 1 of 1 facts verified.",
       "data": {
-        "source_id": "S5",
-        "colours": []
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
-      "message": "Bundeskartellamt: 1 of 1 facts verified.",
-      "data": {
-        "source_id": "S2",
+        "source_id": "S10",
         "colours": [
-          "red"
-        ]
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
-      "message": "World Bank: 1 of 1 facts verified.",
-      "data": {
-        "source_id": "S3",
-        "colours": [
-          "neutral"
+          "amber"
         ]
       },
       "elapsed_s": 0.0
@@ -896,7 +1776,7 @@
       "kind": "verify",
       "message": "Railway Technology: 1 of 1 facts verified.",
       "data": {
-        "source_id": "S8",
+        "source_id": "S9",
         "colours": [
           "amber"
         ]
@@ -908,8 +1788,9 @@
       "message": "Digging deeper on: Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not yet final. — Was the fine paid, or is it being appealed?",
       "data": {
         "followup_id": "followup-1",
-        "flag_id": "F4",
-        "query": "Veltrava Rail Components Bundeskartellamt fine appeal"
+        "flag_id": "F5",
+        "query": "Veltrava Rail Components Bundeskartellamt fine appeal",
+        "query_local": "Veltrava Rail Components Bußgeld Beschwerde"
       },
       "elapsed_s": 0.0
     },
@@ -928,8 +1809,22 @@
       "elapsed_s": 0.0
     },
     {
+      "kind": "search",
+      "message": "Searching followup-1-local: Veltrava Rail Components Bußgeld Beschwerde",
+      "data": {
+        "step": "followup-1-local",
+        "tiers": [
+          "official",
+          "major_news",
+          "rail_trade",
+          "company_own"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
       "kind": "extract",
-      "message": "Reading 1 pages from trusted sources.",
+      "message": "Reading 1 page.",
       "data": {
         "urls": [
           "https://www.reuters.com/fixture/veltrava-appeal"
@@ -941,7 +1836,7 @@
       "kind": "verify",
       "message": "Reuters: 2 of 2 facts verified.",
       "data": {
-        "source_id": "S9",
+        "source_id": "S11",
         "colours": [
           "red",
           "amber"
@@ -959,11 +1854,24 @@
     },
     {
       "kind": "report",
+      "message": "Results not read, by reason: 2 denylisted, 2 duplicate, 1 not allowlisted, 1 off topic.",
+      "data": {
+        "drop_reasons": {
+          "not_allowlisted": 1,
+          "denylisted": 2,
+          "off_topic": 1,
+          "duplicate": 2
+        }
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "report",
       "message": "Report ready.",
       "data": {
         "verdict": "Red flags — review before shortlisting",
-        "flags": 10,
-        "cited_sources": 7
+        "flags": 11,
+        "cited_sources": 9
       },
       "elapsed_s": 0.0
     },
@@ -978,33 +1886,44 @@
   ],
   "rejected": [
     {
-      "source_id": "S7",
-      "claim": "Veltrava Foods Ltd was fined 300,000 pounds over allergen labelling.",
-      "reason": "Different company (UK food producer), not the rail supplier."
-    },
-    {
-      "source_id": "S5",
+      "source_id": "S6",
       "claim": "Veltrava has been cleared of all charges by every regulator.",
       "reason": "Quote not found in source text"
     },
     {
-      "source_id": "S5",
+      "source_id": "S8",
+      "claim": "Veltrava Foods Ltd was fined 300,000 pounds over allergen labelling.",
+      "reason": "Different company (UK food producer), not the rail supplier."
+    },
+    {
+      "source_id": "S6",
       "claim": "Veltrava Rail Components is fully certified and risk-free.",
       "reason": "Instruction-like promotional text, not evidence."
     }
   ],
   "stats": {
-    "searches_used": 10,
-    "extracts_used": 9,
+    "searches_used": 19,
+    "extracts_used": 10,
     "followups_used": 1,
-    "pages_read": 9,
+    "pages_read": 11,
+    "trusted_pages_read": 10,
+    "unverified_pages_read": 1,
     "results_dropped_not_allowlisted": 1,
+    "results_dropped_denylisted": 2,
+    "results_dropped_off_topic": 1,
+    "drop_reasons": {
+      "not_allowlisted": 1,
+      "denylisted": 2,
+      "off_topic": 1,
+      "duplicate": 2
+    },
+    "cache_hits": 0,
     "candidate_facts": 14,
     "rejected_quote_not_found": 1,
     "rejected_by_verifier": 1,
     "rejected_namesake_or_unclear_entity": 1,
     "rejected_irrelevant": 0,
-    "verified_facts": 11,
+    "verified_facts": 12,
     "llm_errors": 0,
     "elapsed_s": 0.0
   },
@@ -1013,5 +1932,1044 @@
     "gatherer": "fake-gatherer",
     "verifier": "fake-verifier"
   },
-  "notice": "Example generated from invented fixture data. Veltrava Rail Components GmbH is fictional; nothing here describes a real company."
+  "notice": "Example generated from invented fixture data. Veltrava Rail Components GmbH is fictional; nothing here describes a real company.",
+  "numeric_facts": [
+    {
+      "kind": "fine_amount",
+      "value": "4.2",
+      "amount": 4200000.0,
+      "currency": "EUR",
+      "unit": "EUR million",
+      "period": "2026-03-11",
+      "detail": "",
+      "outlook": "",
+      "quote": "Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million",
+      "source_id": "S4",
+      "trust": "trusted",
+      "company_stated": false,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "revenue",
+      "value": "412",
+      "amount": 412000000.0,
+      "currency": "EUR",
+      "unit": "EUR million",
+      "period": "2025",
+      "detail": "",
+      "outlook": "",
+      "quote": "Revenue rose 8 percent to EUR 412 million",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "current_assets",
+      "value": "186.0",
+      "amount": 186000000.0,
+      "currency": "EUR",
+      "unit": "EUR million",
+      "period": "2025-12-31",
+      "detail": "",
+      "outlook": "",
+      "quote": "(EUR million): current assets 186.0",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "total_assets",
+      "value": "402.5",
+      "amount": 402500000.0,
+      "currency": "EUR",
+      "unit": "EUR million",
+      "period": "2025-12-31",
+      "detail": "",
+      "outlook": "",
+      "quote": "total assets 402.5",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "current_liabilities",
+      "value": "121.3",
+      "amount": 121300000.0,
+      "currency": "EUR",
+      "unit": "EUR million",
+      "period": "2025-12-31",
+      "detail": "",
+      "outlook": "",
+      "quote": "current liabilities 121.3",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "total_equity",
+      "value": "158.9",
+      "amount": 158900000.0,
+      "currency": "EUR",
+      "unit": "EUR million",
+      "period": "2025-12-31",
+      "detail": "",
+      "outlook": "",
+      "quote": "total equity 158.9",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "retained_earnings",
+      "value": "97.4",
+      "amount": 97400000.0,
+      "currency": "EUR",
+      "unit": "EUR million",
+      "period": "2025-12-31",
+      "detail": "",
+      "outlook": "",
+      "quote": "retained earnings 97.4",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "ebit",
+      "value": "24.6",
+      "amount": 24600000.0,
+      "currency": "EUR",
+      "unit": "EUR million",
+      "period": "2025-12-31",
+      "detail": "",
+      "outlook": "",
+      "quote": "EBIT for 2025 was EUR 24.6 million",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "credit_rating",
+      "value": "BB+",
+      "amount": null,
+      "currency": "",
+      "unit": "",
+      "period": "2025-05",
+      "detail": "S&P",
+      "outlook": "stable",
+      "quote": "S&P Global Ratings affirmed Veltrava at BB+ with a stable outlook in May 2025",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "ecovadis_score",
+      "value": "68",
+      "amount": 68.0,
+      "currency": "",
+      "unit": "",
+      "period": "2025",
+      "detail": "",
+      "outlook": "",
+      "quote": "Our EcoVadis score is 68 (Gold, 2025)",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "injury_rate",
+      "value": "1.9",
+      "amount": 1.9,
+      "currency": "",
+      "unit": "",
+      "period": "2025",
+      "detail": "TRIR",
+      "outlook": "",
+      "quote": "Our TRIR was 1.9 in 2025",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": true,
+      "reject_reason": ""
+    },
+    {
+      "kind": "total_assets",
+      "value": "999",
+      "amount": null,
+      "currency": "",
+      "unit": "EUR million",
+      "period": "2025-12-31",
+      "detail": "",
+      "outlook": "",
+      "quote": "total assets 402.5",
+      "source_id": "S3",
+      "trust": "trusted",
+      "company_stated": true,
+      "accepted": false,
+      "reject_reason": "value not in the quote"
+    }
+  ],
+  "scoring_inputs": {
+    "credit_ratings": [
+      {
+        "agency": "S&P",
+        "rating": "BB+",
+        "outlook": "stable",
+        "evidence": {
+          "source_url": "https://veltrava-rail.example/investors/annual-report-2025",
+          "quote": "S&P Global Ratings affirmed Veltrava at BB+ with a stable outlook in May 2025",
+          "date": "2025-05",
+          "trust": "trusted",
+          "source_id": "S3",
+          "company_stated": true
+        }
+      }
+    ],
+    "altman": {
+      "fiscal_year_end": "2025-12-31",
+      "current_assets": 186000000.0,
+      "current_liabilities": 121300000.0,
+      "retained_earnings": 97400000.0,
+      "ebit": 24600000.0,
+      "book_equity": 158900000.0,
+      "total_liabilities": 243600000.0,
+      "total_assets": 402500000.0,
+      "currency": "EUR",
+      "evidence": {
+        "source_url": "https://veltrava-rail.example/investors/annual-report-2025",
+        "quote": "(EUR million): current assets 186.0 … total assets 402.5 … current liabilities 121.3 … total equity 158.9 … retained earnings 97.4 … EBIT for 2025 was EUR 24.6 million",
+        "date": "2025-12-31",
+        "trust": "trusted",
+        "source_id": "S3",
+        "company_stated": true
+      }
+    },
+    "fines": [
+      {
+        "flag_id": "F5",
+        "amount": 4200000.0,
+        "revenue": 412000000.0,
+        "currency": "EUR",
+        "evidence": {
+          "source_url": "https://www.bundeskartellamt.de/fixture/veltrava-bussgeld",
+          "quote": "Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million",
+          "date": "2026-03-11",
+          "trust": "trusted",
+          "source_id": "S4",
+          "company_stated": false
+        }
+      }
+    ],
+    "injury_rate": {
+      "metric": "TRIR",
+      "company_rate": 1.9,
+      "benchmark_rate": 2.4,
+      "benchmark_label": "BLS SOII 2024, NAICS 3365, TRIR",
+      "year": 2025,
+      "evidence": {
+        "source_url": "https://veltrava-rail.example/investors/annual-report-2025",
+        "quote": "Our TRIR was 1.9 in 2025",
+        "date": "2025",
+        "trust": "trusted",
+        "source_id": "S3",
+        "company_stated": true
+      },
+      "benchmark_evidence": {
+        "source_url": "https://www.bls.gov/web/osh/table-1-industry-rates-national.htm",
+        "quote": "BLS SOII 2024, NAICS 3365, TRIR",
+        "date": "2024",
+        "trust": "trusted",
+        "source_id": null,
+        "company_stated": false
+      }
+    },
+    "ecovadis": {
+      "score": 68.0,
+      "evidence": {
+        "source_url": "https://veltrava-rail.example/investors/annual-report-2025",
+        "quote": "Our EcoVadis score is 68 (Gold, 2025)",
+        "date": "2025",
+        "trust": "trusted",
+        "source_id": "S3",
+        "company_stated": true
+      }
+    },
+    "licensed_esg": [],
+    "security_rating": null,
+    "country_indices": [
+      {
+        "index": "wgi_political_stability",
+        "country_code": "DE",
+        "value": 69.2575511,
+        "year": 2025,
+        "basis": "hq",
+        "share": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "evidence": {
+          "source_url": "https://api.worldbank.org/v2/country/DE/indicator/GOV_WGI_PV.SC;GOV_WGI_CC.SC;GOV_WGI_RL.SC?format=json&source=3&mrv=1",
+          "quote": "\"date\":\"2025\",\"value\":69.2575511",
+          "date": "2026-09-25",
+          "trust": "trusted",
+          "source_id": "S1",
+          "company_stated": false
+        }
+      }
+    ],
+    "source_reliability": {
+      "S10": "D"
+    }
+  },
+  "scoring_detail": {
+    "as_of": "2026-10-18",
+    "total": 24,
+    "total_level": "Low",
+    "total_shown": true,
+    "total_formula": "weighted average of 11 of 18 sub-scores = 17.34 / 0.72; coverage 72 %; if unassessed scores were 0 or 100: 17-45",
+    "coverage": 0.72,
+    "coverage_unverified_only": 0.0,
+    "range_low": 17,
+    "range_high": 45,
+    "knockout": false,
+    "confidence_shares": {
+      "high": 0.3472,
+      "medium": 0.3889,
+      "low": 0.2639
+    },
+    "areas": [
+      {
+        "area": "financial",
+        "label": "Financial",
+        "score": 26,
+        "level": "Medium",
+        "weight": 0.16,
+        "coverage_fraction": 1.0,
+        "formula": "weighted mean of 2 of 2 sub-scores (Financial_Health 20 x 0.1, Credit_Rating 37 x 0.06) / 0.16",
+        "sub_scores": [
+          {
+            "name": "Financial_Health_Score",
+            "area": "financial",
+            "weight": 0.1,
+            "score": 20,
+            "level": "Low",
+            "confidence": "high",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 7.92) x product(1 - p/100) over 1 counted event(s) = 20.29 -> 20",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "index_or_events:altman",
+                "label": "Z'' = 6.19 -> A- (FY 2025-12-31)",
+                "points": 7.92,
+                "rule": "Altman Z'' -> nearest 2013 rating median -> credit scale (appendix §A2)",
+                "source": "S3"
+              },
+              {
+                "kind": "event",
+                "ref": "F8",
+                "label": "Profit warning: 2026 operating margin forecast cut to about 4% from 7%.",
+                "points": 13.43,
+                "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-07-13; decay 0.5^(0.27/1.94) = 0.909; source weight 1: trusted source on the allowlist [S7]; profit_warning -> amber (rules.yaml)",
+                "source": "S7"
+              }
+            ]
+          },
+          {
+            "name": "Credit_Rating_Score",
+            "area": "financial",
+            "weight": 0.06,
+            "score": 37,
+            "level": "Medium",
+            "confidence": "high",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 36.8) x product(1 - p/100) over 0 counted event(s) = 36.8 -> 37",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "index:credit_rating",
+                "label": "S&P BB+ -> BB+ (36.8)",
+                "points": 36.8,
+                "rule": "S&P 3-year default rate on a log scale (S&P 2024 study T26; EU 2016/1799); several ratings combined by CRR Art. 138; S&P outlook stable (shown, not scored)",
+                "source": "S3"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "area": "legal",
+        "label": "Legal & Governance",
+        "score": 37,
+        "level": "Medium",
+        "weight": 0.13,
+        "coverage_fraction": 1.0,
+        "formula": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13",
+        "sub_scores": [
+          {
+            "name": "Compliance_Risk_Score",
+            "area": "legal",
+            "weight": 0.08,
+            "score": 53,
+            "level": "High",
+            "confidence": "medium",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 2 counted event(s) = 52.75 -> 53",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "events",
+                "label": "default base",
+                "points": 12.0,
+                "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)",
+                "source": ""
+              },
+              {
+                "kind": "not_counted",
+                "ref": "F10",
+                "label": "Alleged by former employees: brake-pad test reports signed off without completed tests (April 2026).",
+                "points": 0.0,
+                "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2026-04; decay 0.5^(0.55/6.46) = 0.943; source weight 0: unverified, fails the eligibility gate: E1 not on the record (anonymous_or_rumour); E3 no accountable publisher (appendix §A4) [S10]; fraud_or_corruption_case -> red (rules.yaml)",
+                "source": "S10"
+              },
+              {
+                "kind": "event",
+                "ref": "F12",
+                "label": "Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year.",
+                "points": 13.5,
+                "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-05-18; decay 0.5^(0.42/3.23) = 0.914; source weight 1: trusted source on the allowlist [S11]; major_lawsuit -> amber (rules.yaml)",
+                "source": "S11"
+              },
+              {
+                "kind": "event",
+                "ref": "F5",
+                "label": "Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not yet final.",
+                "points": 37.93,
+                "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2026-03-11; decay 0.5^(0.61/3.23) = 0.878; source weight 1: trusted source on the allowlist [S4, S11]; regulatory_fine -> red (rules.yaml); amount 1.019 % of revenue -> not low severity (threshold 0.1 %, calibration parameter §A6)",
+                "source": "S4, S11"
+              }
+            ]
+          },
+          {
+            "name": "Governance_Risk_Score",
+            "area": "legal",
+            "weight": 0.05,
+            "score": 12,
+            "level": "Low",
+            "confidence": "low",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 0 counted event(s) = 12.0 -> 12",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "events",
+                "label": "nothing adverse found in the sources checked",
+                "points": 12.0,
+                "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)",
+                "source": ""
+              },
+              {
+                "kind": "not_counted",
+                "ref": "F10",
+                "label": "Alleged by former employees: brake-pad test reports signed off without completed tests (April 2026).",
+                "points": 0.0,
+                "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2026-04; decay 0.5^(0.55/6.46) = 0.943; source weight 0: unverified, fails the eligibility gate: E1 not on the record (anonymous_or_rumour); E3 no accountable publisher (appendix §A4) [S10]; fraud_or_corruption_case -> red (rules.yaml)",
+                "source": "S10"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "area": "country",
+        "label": "Country & Location",
+        "score": 31,
+        "level": "Medium",
+        "weight": 0.13,
+        "coverage_fraction": 0.3077,
+        "formula": "weighted mean of 1 of 3 sub-scores (Political_Stability 31 x 0.04) / 0.04",
+        "sub_scores": [
+          {
+            "name": "Geopolitical_Risk_Score",
+            "area": "country",
+            "weight": 0.05,
+            "score": null,
+            "level": null,
+            "confidence": null,
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "no input value for this index score",
+            "formula": "",
+            "contributions": []
+          },
+          {
+            "name": "Political_Stability_Score",
+            "area": "country",
+            "weight": 0.04,
+            "score": 31,
+            "level": "Medium",
+            "confidence": "high",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 30.74) x product(1 - p/100) over 0 counted event(s) = 30.74 -> 31",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "index:wgi_political_stability",
+                "label": "HQ country: DE 69.2576 (2025)",
+                "points": 30.74,
+                "rule": "100 - WGI Political Stability score (WGI 2025, appendix §A2); basis = HQ country (Decision 3)",
+                "source": "S1"
+              }
+            ]
+          },
+          {
+            "name": "Environmental_Exposure_Score",
+            "area": "country",
+            "weight": 0.04,
+            "score": null,
+            "level": null,
+            "confidence": null,
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "no input value for this index score",
+            "formula": "",
+            "contributions": []
+          }
+        ]
+      },
+      {
+        "area": "people",
+        "label": "People & Safety",
+        "score": 20,
+        "level": "Low",
+        "weight": 0.15,
+        "coverage_fraction": 1.0,
+        "formula": "weighted mean of 3 of 3 sub-scores (Labor_Stability 22 x 0.04, Safety_Incident 8 x 0.06, ESG_Performance 32 x 0.05) / 0.15",
+        "sub_scores": [
+          {
+            "name": "Labor_Stability_Score",
+            "area": "people",
+            "weight": 0.04,
+            "score": 22,
+            "level": "Low",
+            "confidence": "medium",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 1 counted event(s) = 22.09 -> 22",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "events",
+                "label": "default base",
+                "points": 12.0,
+                "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)",
+                "source": ""
+              },
+              {
+                "kind": "event",
+                "ref": "F6",
+                "label": "Two-week strike halted Leipzig brake production in February 2026, delaying deliveries to two train builders.",
+                "points": 11.46,
+                "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-02; decay 0.5^(0.71/1.94) = 0.776; source weight 1: trusted source on the allowlist [S5]; strike_or_labour_dispute -> amber (rules.yaml)",
+                "source": "S5"
+              }
+            ]
+          },
+          {
+            "name": "Safety_Incident_Score",
+            "area": "people",
+            "weight": 0.06,
+            "score": 8,
+            "level": "Low",
+            "confidence": "medium",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 7.62) x product(1 - p/100) over 0 counted event(s) = 7.62 -> 8",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "index_or_events:injury_rate",
+                "label": "TRIR 1.9 vs BLS SOII 2024, NAICS 3365, TRIR 2.4 (ratio 0.79)",
+                "points": 7.62,
+                "rule": "base 12 + 13 x log2(ratio): industry average = nothing adverse, 2x = one amber event (calibration parameter, appendix §A6)",
+                "source": "S3; https://www.bls.gov/web/osh/table-1-industry-rates-national.htm"
+              },
+              {
+                "kind": "not_counted",
+                "ref": "F7",
+                "label": "Fatal press-shop accident at the Leipzig plant in 2019.",
+                "points": 0.0,
+                "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2019; older than 2 x 3 y: dropped; source weight 1: trusted source on the allowlist [S5]; safety_accident -> red (rules.yaml)",
+                "source": "S5"
+              }
+            ]
+          },
+          {
+            "name": "ESG_Performance_Score",
+            "area": "people",
+            "weight": 0.05,
+            "score": 32,
+            "level": "Medium",
+            "confidence": "high",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 32.0) x product(1 - p/100) over 0 counted event(s) = 32.0 -> 32",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "index_or_events:esg",
+                "label": "EcoVadis 68/100",
+                "points": 32.0,
+                "rule": "100 - EcoVadis score (EcoVadis 2026 methodology, appendix §A2)",
+                "source": "S3"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "area": "operations",
+        "label": "Operations & Delivery",
+        "score": 17,
+        "level": "Low",
+        "weight": 0.3,
+        "coverage_fraction": 0.8,
+        "formula": "weighted mean of 3 of 4 sub-scores (Operational_Resilience 12 x 0.1, Quality_Risk 24 x 0.1, Digital_Security 12 x 0.04) / 0.24",
+        "sub_scores": [
+          {
+            "name": "Operational_Resilience_Score",
+            "area": "operations",
+            "weight": 0.1,
+            "score": 12,
+            "level": "Low",
+            "confidence": "low",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 0 counted event(s) = 12.0 -> 12",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "events",
+                "label": "nothing adverse found in the sources checked",
+                "points": 12.0,
+                "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)",
+                "source": ""
+              }
+            ]
+          },
+          {
+            "name": "Quality_Risk_Score",
+            "area": "operations",
+            "weight": 0.1,
+            "score": 24,
+            "level": "Low",
+            "confidence": "medium",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 1 counted event(s) = 24.04 -> 24",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "events",
+                "label": "default base",
+                "points": 12.0,
+                "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)",
+                "source": ""
+              },
+              {
+                "kind": "event",
+                "ref": "F9",
+                "label": "Recall of about 1,800 door actuators (sensor fault) in August 2026; replacements due by December.",
+                "points": 13.69,
+                "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-08; decay 0.5^(0.21/1.94) = 0.926; source weight 1: trusted source on the allowlist [S9]; product_recall -> amber (rules.yaml)",
+                "source": "S9"
+              }
+            ]
+          },
+          {
+            "name": "Sub_Tier_Visibility_Score",
+            "area": "operations",
+            "weight": 0.06,
+            "score": null,
+            "level": null,
+            "confidence": null,
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "no verified fact for this area or score",
+            "formula": "",
+            "contributions": []
+          },
+          {
+            "name": "Digital_Security_Score",
+            "area": "operations",
+            "weight": 0.04,
+            "score": 12,
+            "level": "Low",
+            "confidence": "low",
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "",
+            "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 0 counted event(s) = 12.0 -> 12",
+            "contributions": [
+              {
+                "kind": "base",
+                "ref": "index_or_events:security_rating",
+                "label": "nothing adverse found in the sources checked",
+                "points": 12.0,
+                "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)",
+                "source": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "area": "reputation",
+        "label": "Reputation & Outside View",
+        "score": null,
+        "level": null,
+        "weight": 0.13,
+        "coverage_fraction": 0.0,
+        "formula": "Not assessed: no sub-score has evidence (never 0)",
+        "sub_scores": [
+          {
+            "name": "Media_Sentiment_Score",
+            "area": "reputation",
+            "weight": 0.03,
+            "score": null,
+            "level": null,
+            "confidence": null,
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "the research pipeline found no trusted evidence for this area, so nothing in it is scored (never 0)",
+            "formula": "",
+            "contributions": []
+          },
+          {
+            "name": "Market_Sentiment_Score",
+            "area": "reputation",
+            "weight": 0.03,
+            "score": null,
+            "level": null,
+            "confidence": null,
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "the research pipeline found no trusted evidence for this area, so nothing in it is scored (never 0)",
+            "formula": "",
+            "contributions": []
+          },
+          {
+            "name": "External_Intelligence_Score",
+            "area": "reputation",
+            "weight": 0.03,
+            "score": null,
+            "level": null,
+            "confidence": null,
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "the research pipeline found no trusted evidence for this area, so nothing in it is scored (never 0)",
+            "formula": "",
+            "contributions": []
+          },
+          {
+            "name": "Industry_Benchmark_Score",
+            "area": "reputation",
+            "weight": 0.04,
+            "score": null,
+            "level": null,
+            "confidence": null,
+            "includes_unverified": false,
+            "unverified_only": false,
+            "not_assessed_reason": "the research pipeline found no trusted evidence for this area, so nothing in it is scored (never 0)",
+            "formula": "",
+            "contributions": []
+          }
+        ]
+      }
+    ],
+    "constants": {
+      "base": 12.0,
+      "p_red": 43.1818,
+      "p_amber": 14.7727,
+      "halflife_factor": 0.6462,
+      "band_width": 25.0,
+      "unverified_cap": 25.0,
+      "min_coverage": 0.5,
+      "safety_slope": 13.0
+    },
+    "decisions": {
+      "anchors (Decision 1)": "nothing adverse 12, fresh red 50, fresh amber 25",
+      "licensed data (Decision 2)": "msci=off, sustainalytics=off, securityscorecard=off",
+      "country basis (Decision 3)": "sites_then_hq"
+    },
+    "card": {
+      "areas": [
+        {
+          "area": "financial",
+          "score": 26,
+          "level": "Medium",
+          "coverage": "assessed",
+          "trusted_pages": 2,
+          "unverified_pages": 0,
+          "sub_scores": {
+            "Financial_Health_Score": 20,
+            "Credit_Rating_Score": 37
+          },
+          "method": "weighted mean of 2 of 2 sub-scores (Financial_Health 20 x 0.1, Credit_Rating 37 x 0.06) / 0.16; coverage 100 %"
+        },
+        {
+          "area": "legal",
+          "score": 37,
+          "level": "Medium",
+          "coverage": "assessed",
+          "trusted_pages": 2,
+          "unverified_pages": 1,
+          "sub_scores": {
+            "Compliance_Risk_Score": 53,
+            "Governance_Risk_Score": 12
+          },
+          "method": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13; coverage 100 %"
+        },
+        {
+          "area": "country",
+          "score": 31,
+          "level": "Medium",
+          "coverage": "assessed",
+          "trusted_pages": 2,
+          "unverified_pages": 0,
+          "sub_scores": {
+            "Geopolitical_Risk_Score": null,
+            "Political_Stability_Score": 31,
+            "Environmental_Exposure_Score": null
+          },
+          "method": "weighted mean of 1 of 3 sub-scores (Political_Stability 31 x 0.04) / 0.04; coverage 31 %"
+        },
+        {
+          "area": "people",
+          "score": 20,
+          "level": "Low",
+          "coverage": "assessed",
+          "trusted_pages": 1,
+          "unverified_pages": 0,
+          "sub_scores": {
+            "Labor_Stability_Score": 22,
+            "Safety_Incident_Score": 8,
+            "ESG_Performance_Score": 32
+          },
+          "method": "weighted mean of 3 of 3 sub-scores (Labor_Stability 22 x 0.04, Safety_Incident 8 x 0.06, ESG_Performance 32 x 0.05) / 0.15; coverage 100 %"
+        },
+        {
+          "area": "operations",
+          "score": 17,
+          "level": "Low",
+          "coverage": "assessed",
+          "trusted_pages": 2,
+          "unverified_pages": 0,
+          "sub_scores": {
+            "Operational_Resilience_Score": 12,
+            "Quality_Risk_Score": 24,
+            "Sub_Tier_Visibility_Score": null,
+            "Digital_Security_Score": 12
+          },
+          "method": "weighted mean of 3 of 4 sub-scores (Operational_Resilience 12 x 0.1, Quality_Risk 24 x 0.1, Digital_Security 12 x 0.04) / 0.24; coverage 80 %"
+        },
+        {
+          "area": "reputation",
+          "score": null,
+          "level": null,
+          "coverage": "not_assessed",
+          "trusted_pages": 0,
+          "unverified_pages": 0,
+          "sub_scores": {
+            "Media_Sentiment_Score": null,
+            "Market_Sentiment_Score": null,
+            "External_Intelligence_Score": null,
+            "Industry_Benchmark_Score": null
+          },
+          "method": "not scored: area not assessed (no evidence), so no score is given, not even 0"
+        }
+      ],
+      "total": 24,
+      "total_level": "Low",
+      "weights": {
+        "operations": 0.3,
+        "financial": 0.16,
+        "people": 0.15,
+        "legal": 0.13,
+        "country": 0.13,
+        "reputation": 0.13
+      },
+      "coverage": null,
+      "range_low": null,
+      "range_high": null,
+      "total_method": "weighted average of 11 of 18 sub-scores = 17.34 / 0.72; coverage 72 %; if unassessed scores were 0 or 100: 17-45"
+    }
+  },
+  "fingerprint": {
+    "config_hash": "1b4d9c5dd3eceb65",
+    "models": {
+      "gatherer": "fake-gatherer",
+      "verifier": "fake-verifier"
+    },
+    "effort": {
+      "gatherer": "medium",
+      "verifier": "medium"
+    },
+    "cache_day": null,
+    "country_data": "tavily",
+    "queries": [
+      {
+        "id": "identity-1",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components company headquarters legal name DE"
+      },
+      {
+        "id": "financial-1",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH annual report results"
+      },
+      {
+        "id": "financial-2",
+        "lang": "local",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH Gewinnwarnung Herabstufung"
+      },
+      {
+        "id": "legal-1",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH sanctions insolvency fine"
+      },
+      {
+        "id": "legal-2",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH fine lawsuit investigation"
+      },
+      {
+        "id": "legal-3",
+        "lang": "local",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH Bußgeld Klage Korruption"
+      },
+      {
+        "id": "legal-4",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH lawsuit settlement court ruling"
+      },
+      {
+        "id": "people-1",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH strike accident workers"
+      },
+      {
+        "id": "people-2",
+        "lang": "local",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH Streik Arbeitsunfall"
+      },
+      {
+        "id": "operations-1",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH recall defect quality"
+      },
+      {
+        "id": "operations-2",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH delivery delay cyber attack"
+      },
+      {
+        "id": "operations-3",
+        "lang": "local",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH Rückruf Lieferverzögerung"
+      },
+      {
+        "id": "operations-4",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH IRIS certification"
+      },
+      {
+        "id": "reputation-1",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH scandal controversy"
+      },
+      {
+        "id": "reputation-2",
+        "lang": "local",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH Skandal Vorwürfe"
+      },
+      {
+        "id": "country-data",
+        "lang": "en",
+        "status": "done",
+        "query": "CPI, GOV_WGI_CC.SC, GOV_WGI_PV.SC, GOV_WGI_RL.SC"
+      },
+      {
+        "id": "reputation-web",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH scandal controversy"
+      },
+      {
+        "id": "operations-web",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components GmbH recall defect quality"
+      },
+      {
+        "id": "followup-1",
+        "lang": "en",
+        "status": "done",
+        "query": "Veltrava Rail Components Bundeskartellamt fine appeal"
+      },
+      {
+        "id": "followup-1-local",
+        "lang": "local",
+        "status": "done",
+        "query": "Veltrava Rail Components Bußgeld Beschwerde"
+      }
+    ]
+  }
 }

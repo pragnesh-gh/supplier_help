@@ -40,12 +40,19 @@ def slugify(text: str) -> str:
     return s[:60] or "company"
 
 
-def write_outputs(result: ResearchResult, out_dir: Path) -> tuple[Path, Path]:
+def write_outputs(result: ResearchResult, out_dir: Path, page_texts: dict[str, str] | None = None) -> tuple[Path, Path]:
+    """report.md, result.json and report.html. Page texts only feed the HTML citation context."""
     out_dir.mkdir(parents=True, exist_ok=True)
     md_path = out_dir / "report.md"
     json_path = out_dir / "result.json"
     md_path.write_text(render_markdown(result), encoding="utf-8")
     json_path.write_text(result.model_dump_json(indent=2), encoding="utf-8")
+    try:
+        from .report_html import write_report_html
+
+        write_report_html(result, out_dir, page_texts=page_texts or {})
+    except Exception as exc:  # the HTML is an extra view; never lose report.md / result.json over it
+        print(f"report.html not written: {type(exc).__name__}: {exc}", file=sys.stderr)
     return md_path, json_path
 
 
@@ -61,11 +68,19 @@ def check() -> int:
         for name in ("identity", "plan", "extract", "verify", "followup", "summary"):
             load_prompt(name)
         n_domains = sum(len(d) for d in cfg.allowlist.tiers.values())
-        print(f"config: OK ({n_domains} allowlisted domains, {len(cfg.rules.event_types)} event rules, 6 risk areas)")
-        print(f"models: gatherer={cfg.settings.models.gatherer} verifier={cfg.settings.models.verifier}")
+        print(f"config: OK ({n_domains} allowlisted domains, {len(cfg.allowlist.denied)} denylisted, "
+              f"{len(cfg.rules.event_types)} event rules, 6 risk areas)")
+        m = cfg.settings.models
+        print(f"models: gatherer={m.gatherer} (effort {m.gatherer_effort or 'default'}) "
+              f"verifier={m.verifier} (effort {m.verifier_effort or 'default'})")
         b = cfg.settings.budget
+        ow = cfg.settings.open_web
         print(f"budget: {b.max_searches} searches, {b.max_extracts} page extracts, "
-              f"{b.max_followups} follow-ups, {b.wall_clock_seconds:.0f} s")
+              f"{b.max_followups} follow-ups, {b.wall_clock_seconds:.0f} s; open web "
+              + (f"up to {ow.max_searches} searches / {ow.max_pages} pages" if ow.enabled else "off"))
+        cd = cfg.settings.country_data
+        print(f"country data: WGI via {cd.wgi_source}; CPI file {cd.cpi_file or 'off'}; "
+              f"cache {'on' if cfg.settings.cache.enabled else 'off'} ({cfg.settings.cache.dir})")
     except ConfigError as exc:
         print(f"config: ERROR {exc}")
         ok = False
@@ -88,9 +103,10 @@ def run_fixture(out_dir: Path) -> ResearchResult:
     from .orchestrator import run_research
 
     fx = load_fixture()
+    texts: dict[str, str] = {}
     result = run_research(
         "Veltrava Rail Components", "DE", "veltrava-rail.example", on_progress=_print_progress,
-        llm=FakeLLM(fx), search=FakeSearch(fx), today=date(2026, 10, 18),
+        llm=FakeLLM(fx), search=FakeSearch(fx), today=date(2026, 10, 18), page_texts_out=texts,
     )
     result.notice = FIXTURE_NOTICE
     result.researched_at = "2026-10-18T09:00:00+00:00"
@@ -99,7 +115,7 @@ def run_fixture(out_dir: Path) -> ResearchResult:
     for ev in result.trail:
         ev.elapsed_s = 0.0
     result.stats.elapsed_s = 0.0
-    write_outputs(result, out_dir)
+    write_outputs(result, out_dir, texts)
     return result
 
 
@@ -126,9 +142,10 @@ def main(argv: list[str] | None = None) -> int:
 
     from .orchestrator import run_research
 
-    result = run_research(args.company, args.country, args.website, on_progress=_print_progress)
+    texts: dict[str, str] = {}
+    result = run_research(args.company, args.country, args.website, on_progress=_print_progress, page_texts_out=texts)
     out = args.out or PKG_DIR / "output" / f"{slugify(args.company)}-{date.today().isoformat()}"
-    md_path, json_path = write_outputs(result, out)
+    md_path, json_path = write_outputs(result, out, texts)
     print(f"status: {result.status}")
     if result.status == "needs_clarification" and result.clarification:
         print(result.clarification.question)

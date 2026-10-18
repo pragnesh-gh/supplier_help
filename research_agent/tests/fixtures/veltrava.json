@@ -1,6 +1,6 @@
 {
   "_notice": "INVENTED FIXTURE DATA. Veltrava Rail Components GmbH, Veltrava Holdings and Veltrava Foods are fictional. Every page, URL path, quote, date and figure below is made up for offline tests. None of it describes a real company.",
-  "summary_text": "One red flag was found: the German competition authority fined Veltrava EUR 4.2 million for price-fixing in March 2026, and the company has appealed. Watch items include a July 2026 profit warning, a door-actuator recall and a February 2026 strike that delayed deliveries. Reputation could not be assessed because no trusted source returned evidence.",
+  "summary_text": "One red flag was found: the German competition authority fined Veltrava EUR 4.2 million for price-fixing in March 2026, and the company has appealed. Watch items include a door-actuator recall, a July 2026 profit warning, a February 2026 strike that delayed deliveries, and an allegation on an unverified blog about brake-pad test reports that no trusted source confirms. Reputation could not be assessed because no trusted source returned evidence.",
   "identity_candidates": [
     {
       "legal_name": "Veltrava Rail Components GmbH",
@@ -22,7 +22,8 @@
   "followup_queries": {
     "price-fixing": {
       "question": "Was the fine paid, or is it being appealed?",
-      "query": "Veltrava Rail Components Bundeskartellamt fine appeal"
+      "query": "Veltrava Rail Components Bundeskartellamt fine appeal",
+      "query_local": "Veltrava Rail Components Bußgeld Beschwerde"
     }
   },
   "documents": [
@@ -59,7 +60,7 @@
       "published_date": "2026-03-20",
       "keywords": ["annual report"],
       "score": 0.9,
-      "raw_content": "Annual Report 2025. Revenue rose 8 percent to EUR 412 million and the order backlog reached a record EUR 1.1 billion. In September 2025 our Leipzig plant was re-certified to ISO/TS 22163 (IRIS) with no major findings. Risk report: we depend on a single supplier for sintered brake discs; a disruption at this supplier could delay our deliveries.",
+      "raw_content": "Annual Report 2025. Revenue rose 8 percent to EUR 412 million and the order backlog reached a record EUR 1.1 billion. In September 2025 our Leipzig plant was re-certified to ISO/TS 22163 (IRIS) with no major findings. Risk report: we depend on a single supplier for sintered brake discs; a disruption at this supplier could delay our deliveries. Consolidated balance sheet at 31 December 2025 (EUR million): current assets 186.0; total assets 402.5; current liabilities 121.3; total equity 158.9; retained earnings 97.4. EBIT for 2025 was EUR 24.6 million. S&P Global Ratings affirmed Veltrava at BB+ with a stable outlook in May 2025. Our EcoVadis score is 68 (Gold, 2025). Our TRIR was 1.9 in 2025.",
       "facts": [
         {
           "claim": "Veltrava reported 8 percent revenue growth to EUR 412 million and a record EUR 1.1 billion order backlog for 2025.",
@@ -82,13 +83,26 @@
           "event_date": "2025",
           "verdict": {"supported": true, "entity_match": "exact", "relevant": true, "event_type": "company_disclosed_risk", "severity": "medium", "claim_status": "confirmed", "event_date": "2025", "summary": "Company discloses single-source dependency for sintered brake discs.", "reject_reason": ""}
         }
+      ],
+      "numbers": [
+        {"kind": "revenue", "value": "412", "unit": "EUR million", "period": "2025", "detail": "", "outlook": "", "quote": "Revenue rose 8 percent to EUR 412 million"},
+        {"kind": "current_assets", "value": "186.0", "unit": "EUR million", "period": "2025-12-31", "detail": "", "outlook": "", "quote": "(EUR million): current assets 186.0"},
+        {"kind": "total_assets", "value": "402.5", "unit": "EUR million", "period": "2025-12-31", "detail": "", "outlook": "", "quote": "total assets 402.5"},
+        {"kind": "current_liabilities", "value": "121.3", "unit": "EUR million", "period": "2025-12-31", "detail": "", "outlook": "", "quote": "current liabilities 121.3"},
+        {"kind": "total_equity", "value": "158.9", "unit": "EUR million", "period": "2025-12-31", "detail": "", "outlook": "", "quote": "total equity 158.9"},
+        {"kind": "retained_earnings", "value": "97.4", "unit": "EUR million", "period": "2025-12-31", "detail": "", "outlook": "", "quote": "retained earnings 97.4"},
+        {"kind": "ebit", "value": "24.6", "unit": "EUR million", "period": "2025-12-31", "detail": "", "outlook": "", "quote": "EBIT for 2025 was EUR 24.6 million"},
+        {"kind": "credit_rating", "value": "BB+", "unit": "", "period": "2025-05", "detail": "S&P", "outlook": "stable", "quote": "S&P Global Ratings affirmed Veltrava at BB+ with a stable outlook in May 2025"},
+        {"kind": "ecovadis_score", "value": "68", "unit": "", "period": "2025", "detail": "", "outlook": "", "quote": "Our EcoVadis score is 68 (Gold, 2025)"},
+        {"kind": "injury_rate", "value": "1.9", "unit": "", "period": "2025", "detail": "TRIR", "outlook": "", "quote": "Our TRIR was 1.9 in 2025"},
+        {"kind": "total_assets", "value": "999", "unit": "EUR million", "period": "2025-12-31", "detail": "", "outlook": "", "quote": "total assets 402.5"}
       ]
     },
     {
       "url": "https://www.handelsblatt.com/fixture/veltrava-gewinnwarnung",
       "title": "Veltrava senkt Prognose",
-      "published_date": "2026-07-14",
-      "keywords": ["profit warning"],
+      "published_date": "Tue, 14 Jul 2026 06:00:00 GMT",
+      "keywords": ["profit warning", "gewinnwarnung"],
       "score": 0.8,
       "raw_content": "Leipzig. Der Bahnzulieferer Veltrava Rail Components hat am Montag seine Gewinnprognose gesenkt. Die operative Marge werde 2026 nur noch bei rund 4 Prozent liegen, nach zuvor 7 Prozent, teilte das Unternehmen mit.",
       "facts": [
@@ -116,6 +130,9 @@
           "event_date": "2026-03-11",
           "verdict": {"supported": true, "entity_match": "exact", "relevant": true, "event_type": "regulatory_fine", "severity": "high", "claim_status": "confirmed", "event_date": "2026-03-11", "summary": "Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not yet final.", "reject_reason": ""}
         }
+      ],
+      "numbers": [
+        {"kind": "fine_amount", "value": "4.2", "unit": "EUR million", "period": "2026-03-11", "detail": "", "outlook": "", "quote": "Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million"}
       ]
     },
     {
@@ -138,8 +155,8 @@
     {
       "url": "https://www.worldbank.org/fixture/germany-overview",
       "title": "Germany overview",
-      "published_date": "2026-04-01",
-      "keywords": ["country risk"],
+      "published_date": "Wed, 01 Apr 2026 00:00:00 GMT",
+      "keywords": ["country risk", "corruption perceptions"],
       "score": 0.6,
       "raw_content": "Germany has a stable political environment and strong rule of law; governance indicators remain among the highest in the region.",
       "facts": [
@@ -219,13 +236,21 @@
     },
     {
       "url": "https://random-blog.example/veltrava-scandal",
-      "title": "Veltrava scandal EXPOSED",
+      "title": "Rail Insider blog: Veltrava test reports questioned",
       "published_date": "2026-09-10",
       "keywords": ["scandal"],
       "ignore_domain_filter": true,
       "score": 0.99,
-      "raw_content": "Unverified blog post alleging a Veltrava scandal.",
-      "facts": []
+      "raw_content": "Unverified blog post. Rail Insider has heard from two former employees who allege that Veltrava Rail Components managers signed off brake-pad test reports without completing the tests in April 2026. The company did not respond to our questions.",
+      "facts": [
+        {
+          "claim": "Former employees allege Veltrava Rail Components managers signed off brake-pad test reports without completing the tests in April 2026.",
+          "quote": "allege that Veltrava Rail Components managers signed off brake-pad test reports without completing the tests",
+          "entity_named": "Veltrava Rail Components",
+          "event_date": "2026-04",
+          "verdict": {"supported": true, "entity_match": "exact", "relevant": true, "event_type": "fraud_or_corruption_case", "severity": "high", "claim_status": "alleged", "event_date": "2026-04", "summary": "Alleged by former employees: brake-pad test reports signed off without completed tests (April 2026).", "reject_reason": "", "publisher_named": false, "dated": true, "claim_specific_checkable": true, "cites_primary_document": false, "attribution": "anonymous_or_rumour"}
+        }
+      ]
     },
     {
       "url": "https://www.reuters.com/fixture/veltrava-appeal",
@@ -250,6 +275,42 @@
           "verdict": {"supported": true, "entity_match": "exact", "relevant": true, "event_type": "major_lawsuit", "severity": "medium", "claim_status": "confirmed", "event_date": "2026-05-18", "summary": "Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year.", "reject_reason": ""}
         }
       ]
+    },
+    {
+      "url": "https://www.reddit.com/r/railways/comments/fixture/veltrava_scandal",
+      "title": "Veltrava is going bankrupt?? (forum thread)",
+      "published_date": "2026-09-12",
+      "keywords": ["scandal"],
+      "ignore_domain_filter": true,
+      "score": 0.95,
+      "raw_content": "Anonymous user: I heard Veltrava Rail Components filed for insolvency last week.",
+      "facts": [
+        {
+          "claim": "Veltrava Rail Components filed for insolvency.",
+          "quote": "Veltrava Rail Components filed for insolvency last week",
+          "entity_named": "Veltrava Rail Components",
+          "event_date": "2026-09",
+          "verdict": {"supported": true, "entity_match": "exact", "relevant": true, "event_type": "insolvency_filing", "severity": "high", "claim_status": "alleged", "event_date": "2026-09", "summary": "Forum post claims insolvency filing.", "reject_reason": ""}
+        }
+      ]
+    },
+    {
+      "url": "https://www.reuters.com/fixture/gerresheimer-probe",
+      "title": "German watchdog probes Gerresheimer accounts",
+      "published_date": "Tue, 10 Mar 2026 06:05:40 GMT",
+      "keywords": ["scandal"],
+      "score": 0.8,
+      "raw_content": "Germany's financial watchdog BaFin opened a probe into Gerresheimer over possible accounting errors.",
+      "facts": []
+    },
+    {
+      "url": "https://api.worldbank.org/v2/country/DE/indicator/GOV_WGI_PV.SC;GOV_WGI_CC.SC;GOV_WGI_RL.SC?format=json&source=3&mrv=1",
+      "title": "World Bank API",
+      "published_date": null,
+      "keywords": [],
+      "score": 1.0,
+      "raw_content": "[{\"page\":1,\"pages\":1,\"per_page\":50,\"total\":4,\"sourceid\":null,\"lastupdated\":\"2026-09-25\"},[{\"indicator\":{\"id\":\"GOV_WGI_PV.SC\",\"value\":\"Political Stability - Governance score (0-100)\"},\"country\":{\"id\":\"DE\",\"value\":\"Germany\"},\"countryiso3code\":\"DEU\",\"date\":\"2025\",\"value\":69.2575511,\"unit\":\"\",\"obs_status\":\"\",\"decimal\":1},{\"indicator\":{\"id\":\"GOV_WGI_CC.SC\",\"value\":\"Control of Corruption - Governance score (0-100)\"},\"country\":{\"id\":\"DE\",\"value\":\"Germany\"},\"countryiso3code\":\"DEU\",\"date\":\"2025\",\"value\":81.8514313,\"unit\":\"\",\"obs_status\":\"\",\"decimal\":1},{\"indicator\":{\"id\":\"GOV_WGI_RL.SC\",\"value\":\"Rule of Law - Governance score (0-100)\"},\"country\":{\"id\":\"DE\",\"value\":\"Germany\"},\"countryiso3code\":\"DEU\",\"date\":\"2025\",\"value\":85.067519,\"unit\":\"\",\"obs_status\":\"\",\"decimal\":1},{\"indicator\":{\"id\":\"GOV_WGI_PV.EST\",\"value\":\"Political Stability - Governance estimate (approx. -2.5 to +2.5)\"},\"country\":{\"id\":\"DE\",\"value\":\"Germany\"},\"countryiso3code\":\"DEU\",\"date\":\"2025\",\"value\":0.2082813,\"unit\":\"\",\"obs_status\":\"\",\"decimal\":1}]]",
+      "facts": []
     }
   ]
 }

@@ -45,6 +45,20 @@ def test_search_without_domains_never_calls_open_web():
     assert _tavily(handler).search(SearchRequest(query="x", include_domains=[])) == []
 
 
+def test_open_web_search_sends_no_include_domains_but_excludes_denylist():
+    seen: dict[str, Any] = {}
+
+    def handler(req: httpx2.Request) -> httpx2.Response:
+        seen["body"] = json.loads(req.content)
+        return httpx2.Response(200, json={"results": []})
+
+    _tavily(handler).search(SearchRequest(query="Veltrava scandal", include_domains=[], open_web=True,
+                                          exclude_domains=["reddit.com", "x.com"]))
+    b = seen["body"]
+    assert "include_domains" not in b and "include_domains_mode" not in b  # mode without domains is a 400
+    assert b["exclude_domains"] == ["reddit.com", "x.com"]
+
+
 def test_extract_splits_results_and_failures():
     def handler(req):
         body = json.loads(req.content)
@@ -109,6 +123,40 @@ def test_anthropic_adapter_uses_parse_with_pydantic_output_format(monkeypatch):
     assert calls[0]["output_format"] is SummaryOutput
     assert calls[0]["system"] == "sys"
     assert calls[0]["messages"] == [{"role": "user", "content": "u"}]
+    assert "output_config" not in calls[0]  # no effort configured -> nothing sent
+    assert "thinking" not in calls[0]
+
+
+def test_anthropic_adapter_sends_effort_per_role(monkeypatch):
+    calls = _install_stub(monkeypatch, lambda **kw: types.SimpleNamespace(
+        stop_reason="end_turn", parsed_output=SummaryOutput(summary="Hi.")))
+    llm = AnthropicLLM("claude-sonnet-5-5", "claude-opus-5-5", api_key="sk-test",
+                       gatherer_effort="medium", verifier_effort="high")
+    llm.structured(role="gatherer", system="s", user="u", schema=SummaryOutput)
+    llm.structured(role="verifier", system="s", user="u", schema=SummaryOutput)
+    assert calls[0]["model"] == "claude-sonnet-5-5" and calls[0]["output_config"] == {"effort": "medium"}
+    assert calls[1]["model"] == "claude-opus-5-5" and calls[1]["output_config"] == {"effort": "high"}
+    assert calls[0]["output_format"] is SummaryOutput
+
+
+def test_parse_merges_effort_with_schema_in_real_sdk():
+    """Real anthropic SDK over a mock transport: one output_config with both effort and format."""
+    anthropic = pytest.importorskip("anthropic")
+    seen: dict[str, Any] = {}
+
+    def handler(req: httpx2.Request) -> httpx2.Response:
+        seen["body"] = json.loads(req.content)
+        return httpx2.Response(200, json={
+            "id": "msg_1", "type": "message", "role": "assistant", "model": "claude-sonnet-5-5",
+            "content": [{"type": "text", "text": '{"summary": "Hi."}'}], "stop_reason": "end_turn",
+            "stop_sequence": None, "usage": {"input_tokens": 1, "output_tokens": 1}})
+
+    client = anthropic.Anthropic(api_key="sk-test", http_client=httpx2.Client(transport=httpx2.MockTransport(handler)))
+    out = client.messages.parse(model="claude-sonnet-5-5", max_tokens=100, messages=[{"role": "user", "content": "u"}],
+                                output_format=SummaryOutput, output_config={"effort": "medium"})
+    oc = seen["body"]["output_config"]
+    assert oc["effort"] == "medium" and oc["format"]["type"] == "json_schema"
+    assert out.parsed_output == SummaryOutput(summary="Hi.")
 
 
 def test_anthropic_adapter_errors_become_llmerror(monkeypatch):

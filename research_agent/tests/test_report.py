@@ -61,9 +61,9 @@ def _result(n_red=2, n_amber=2, n_green=1, n_sources=6, followups=True):
 
 def test_has_all_sections_in_order():
     md = render_markdown(_result())
-    order = ["# Supplier risk research: Veltrava Rail Components GmbH", "**Verdict:", "Red flags", "Watch items",
-             "Strengths", "Risk areas", "What we dug into", "Limits of this report",
-             "Recommended next steps", "Sources"]
+    order = ["# Supplier risk research: Veltrava Rail Components GmbH", "**Verdict:", "**Total risk score",
+             "## Risk areas", "## 🔴 Red flags", "## 🟡 Watch items", "## 🟢 Strengths", "## Recommended next steps",
+             "\n---\n", "## What we dug into", "## How to read this report", "## Limits of this report", "## Sources"]
     pos = [md.find(h) for h in order]
     assert all(p >= 0 for p in pos), list(zip(order, pos))
     assert pos == sorted(pos)
@@ -188,3 +188,47 @@ def test_markdown_injection_in_titles_is_escaped():
     md = render_markdown(r)
     assert "<script>" not in md
     assert "](https://evil.example)" not in md
+
+
+def test_unverified_source_gets_yellow_marker_inline_and_in_sources():
+    r = _result()
+    r.sources[1].trust = "unverified"
+    r.sources[1].tier = "open_web"
+    r.sources[1].publisher = "blog.example"
+    r.flags[0].source_ids = ["S2"]
+    r.flags[0].trust = "unverified"
+    md = render_markdown(r)
+    body, sources = md.split("## Sources", 1)
+    line = next(ln for ln in body.splitlines() if ln.startswith("- ") and r.flags[0].summary in ln)
+    assert "🟨 not in our trusted source list" in line and "unverified source only" in line
+    src_line = next(ln for ln in sources.splitlines() if "blog.example" in ln)
+    assert src_line.split(" ", 1)[1].startswith("🟨 not in our trusted source list")
+    trusted_lines = [ln for ln in sources.splitlines() if re.match(r"^\d+\. ", ln) and "blog.example" not in ln]
+    assert trusted_lines and all("✅ trusted" in ln for ln in trusted_lines)
+
+
+def test_trusted_only_report_has_no_yellow_marker():
+    assert "🟨 not in our trusted source list ·" not in render_markdown(_result())
+
+
+def test_first_page_has_total_and_area_score_placeholders():
+    from research_agent.scoring import score_result
+    r = _result()
+    r.scores = score_result(r.flags, r.areas)
+    md = render_markdown(r)
+    page1, page2 = md.split("\n---\n", 1)
+    assert "**Total risk score (0–100):** — (not scored yet)" in page1
+    rows = [ln for ln in page1.splitlines() if ln.startswith("| ") and "---" not in ln and not ln.startswith("| Area")]
+    assert len(rows) == 6 and all("— · " in r for r in rows)
+    assert any("— · no evidence" in r for r in rows)  # not-assessed area is never scored 0
+    assert "Method: not scored yet" in page2 and "Method:" not in page1
+    assert "## Sources" in page2 and "## Red flags" not in page2.replace("🔴 ", "")
+
+
+def test_rfc2822_source_dates_are_shown_as_iso():
+    r = _result()
+    for src in r.sources:
+        src.published_date = "Wed, 29 Jul 2026 00:00:00 GMT"
+    md = render_markdown(r)
+    assert "Wed, 29 Ju" not in md
+    assert "2026-07-29 (accessed" in md

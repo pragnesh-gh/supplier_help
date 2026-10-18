@@ -2,7 +2,7 @@
 
 This page answers four questions for the team:
 1. How does the agent plan its research?
-2. Which sources count as trusted, and why?
+2. Which sources count as trusted, which are only "unverified", which are blocked, and why?
 3. What exactly is searched for each risk area?
 4. What is still missing, and how do we split the work?
 
@@ -20,20 +20,28 @@ Buyer clicks "Deep research" in the chatbot
                  If several companies match → ask the buyer to pick one.
         │
         ▼
-2. Plan          Fixed search slots per risk area (config/settings.yaml).
-                 Small model (Haiku) only rewrites the wording of each query,
-                 e.g. adds German terms like "Insolvenz", "Bußgeld", "Rückruf".
-                 It can NOT add websites or change the list of sources.
+2. Plan          Fixed search slots per risk area (config/settings.yaml): 14 short
+                 queries, company name + 1-3 terms each, in English AND the local
+                 language (e.g. German "Rückruf Lieferverzögerung"). Heavier areas get
+                 more slots (Operations 4). The gatherer (Sonnet) only rewrites or
+                 translates the wording; it can NOT add websites or sources.
         │
         ▼
-3. Search        Tavily searches ONLY the allowlisted domains for each slot.
-                 Official sources first, then company site, then news.
+3. Search        a) Tavily searches ONLY the allowlisted domains for each slot.
+                    Official sources first, then company site, then news.
+                    News results that don't name the company are skipped.
+                    Country: the country's CPI page is read directly.
+                 b) Gap fill: areas with fewer than 3 trusted pages get ONE open-web
+                    search (max 2 per run). Blocked sites are excluded. Pages from
+                    sites not on our list are kept, marked 🟨 "unverified".
         │
         ▼
-4. Read pages    Up to 12 full pages are extracted.
+4. Read pages    Up to 19 full pages: 12 trusted, split by area weight (Operations 4,
+                 Financial 2, People 2, Legal 2, Country 1, Reputation 1), + 1 country
+                 page, 2 open web, 4 kept for follow-ups.
         │
         ▼
-5. Extract       Small model pulls candidate facts, each with an exact quote.
+5. Extract       Gatherer model (Sonnet) pulls candidate facts, each with an exact quote.
         │
         ▼
 6. Check quotes  Code: the quote must really be on the page, or the fact is dropped.
@@ -43,17 +51,22 @@ Buyer clicks "Deep research" in the chatbot
                  Labels each fact with an event type (e.g. "product_recall").
         │
         ▼
-8. Dig deeper    Up to 2 red flags get a narrow follow-up search
-                 (e.g. "was the fine appealed?").
+8. Dig deeper    Up to 2 red flags get short follow-up searches on trusted sources,
+                 in English and the local language (e.g. "was the fine appealed?").
+                 This can also confirm an unverified fact.
         │
         ▼
 9. Flags         Rulebook (config/rules.yaml) decides 🔴 / 🟡 / 🟢. Not the AI.
+                 A fact found only on an unverified site is at most 🟡 and never a knock-out.
         │
         ▼
-10. Report       1-page Markdown report + full data (JSON) for the chatbot.
+10. Report       Markdown report (page 1 at a glance, page 2 details) + full data (JSON).
+                 Score columns are placeholders ("not scored yet") until the method is agreed.
 ```
 
 **Why it's built this way:** the AI only *reads and checks*. Choosing sources, colours and the verdict is fixed code and config, so the same evidence always gives the same result.
+
+**Why short queries in two languages:** the first live run (Knorr-Bremse) used one German query per area listing eight topics; Operations and People & Safety found nothing. A search engine matches a few terms well and a long list badly, and local press writes in the local language while international press writes in English.
 
 **How news is found:** Tavily has a `news` mode that favours recent articles with publication dates. The agent uses it for financial, legal, reputation and people searches, limited to the trusted news sites below. It looks back **3 years** normally and **10 years** for legal matters (sanctions, insolvency, court cases).
 
@@ -70,7 +83,16 @@ A source is trusted only if **all** of these hold:
 | **Dated**: the page shows when it was published | Old news must be recognisable as old |
 | **Stable URL** | The buyer can open the link later |
 
-**Not trusted:** blogs, forums, social media, press-release aggregators, AI-written sites, anonymous review sites, leak sites.
+Sites that fail these tests fall into two groups:
+
+| Group | What happens | Examples | Why |
+|---|---|---|---|
+| **Blocked** (denylist in `config/sources.yaml`) | Dropped in every search, before any model sees them | Social media, forums and anonymous review sites, leak sites, press-release and company-profile aggregators (e.g. publicnow.com, which re-hosts many companies' releases and reports; the original is on the company site or a register), user-edited or mass-produced content | Unaccountable, easy to fake, or a copy of an original we should cite instead. Leaked data is also legally risky. |
+| **Unverified** (any other site) | Used only to fill gaps, marked 🟨 "not in our trusted source list" | Smaller news sites, blogs, local press, industry newsletters | They can hold real early signals, especially on reputation and labour issues, but nobody on the team has checked them. |
+
+Rules for unverified facts: same exact-quote check and Opus check as everything else. Alone, they can be at most a 🟡 watch item (a 🔴 becomes 🟡, a 🟢 is not shown as a strength) and never a knock-out. If a trusted source reports the same event, the fact gets its full colour. Facts carry grading signals (named publisher? dated? specific? primary document cited? firsthand, named, or anonymous/rumour? how many independent sites?) for the later scoring step.
+
+The denylist is a list of domains, so new junk sites appear as "unverified" until someone adds them.
 
 **Special case: company's own website.** Used, but always labelled **"company-stated"**. A company describes itself favourably, so its claims are never presented as independent facts.
 
@@ -128,11 +150,11 @@ Railway Gazette International, International Railway Journal, Railway Technology
 | Risk area | Sources searched | What we look for | Typical 🔴 / 🟡 / 🟢 |
 |---|---|---|---|
 | **Financial** | Official + company site; then major news | Annual results, credit ratings, losses, profit warnings, insolvency | 🔴 insolvency · 🟡 profit warning, downgrade · 🟢 strong results |
-| **Legal & Compliance** | Official; then major news (10-year look-back) | Sanctions, insolvency, fines, lawsuits, corruption, investigations | 🔴 sanctions (knock-out), fine, fraud · 🟡 lawsuit |
-| **Country & Location** | Country data | Country corruption, stability and hazard indices | 🟡 elevated country risk |
+| **Legal & Governance** | Official; then major news (10-year look-back) | Sanctions, insolvency, fines, lawsuits, corruption, investigations | 🔴 sanctions (knock-out), fine, fraud · 🟡 lawsuit |
+| **Country & Location** | No web search. World Bank WGI (via Tavily extract of the World Bank API) and the official TI CPI file, read by code | Political Stability, Control of Corruption, Rule of Law (0–100) and CPI score and rank | 🟡 elevated country risk (any index below 33) · 🟢 low country risk (all 67+) |
 | **People & Safety** | Major news + rail trade | Strikes, accidents, injuries, labour disputes, human rights | 🔴 fatal accident, forced labour · 🟡 strike |
-| **Operations & Quality** | Rail trade + news + company site | Recalls, defects, delivery delays, cyber attacks, plant outages, IRIS certificate | 🟡 recall, cyber incident · 🟢 IRIS / ISO certified |
-| **Reputation** | Major news | Scandals, controversies, governance problems | 🟡 leadership scandal · 🟢 major award or contract |
+| **Operations & Delivery** | Rail trade + news + company site | Recalls, defects, delivery delays, cyber attacks, plant outages, IRIS certificate | 🟡 recall, cyber incident · 🟢 IRIS / ISO certified |
+| **Reputation & Outside View** | Major news | Scandals, controversies, governance problems | 🟡 leadership scandal · 🟢 major award or contract |
 
 The exact queries are in `config/settings.yaml` under `umbrellas`. The colour rules are in `config/rules.yaml`.
 
@@ -155,8 +177,14 @@ Each of these needs a quick check: does the site have public, dated pages that T
 | Other countries' registers | France (Infogreffe, BODACC), Italy, Spain, India (MCA) | Needed when researching non-German suppliers |
 | Credit ratings | S&P, Moody's, Fitch press releases | Only free press releases; the full ratings are paid |
 
+**Same company, same day, same result:** queries come from fixed templates (with fixed German, French, Italian and Spanish versions), results are ordered the same way every time, and search results, pages and model answers are cached for the day. A litigation-history search looks for known legal matters on purpose. `python -m research_agent.diff_runs` compares two runs.
+
+**Context status:** an area whose only facts are old or neutral (e.g. a 2018 settled case) shows "⚪ Context: older or resolved matter", never "No issues found".
+
+**Coverage rule:** an area is only "No issues found" if a trusted page actually gave a verified fact about this company for it. Pages about a namesake or methodology pages don't count; the area is then "Not assessed".
+
 **Known weak spots today:**
-- **Reputation** has only one search, so it is often "Not assessed".
+- **Reputation** has only one trusted search, so it is often "Not assessed". It is first in line for the open-web gap fill, but unverified pages alone still leave it "Not assessed" unless they produce a watch item.
 - **People & Safety** relies on news; free official data at company level is rare.
 - **Non-European companies** have few official registers on the list yet.
 
@@ -171,6 +199,8 @@ Each workstream can run in its own thread and touches mostly separate files:
 | A | **First live run and tuning**: run on 3 known rail suppliers, review results | `config/settings.yaml`, `prompts/` | Reports look right for all 3 |
 | B | **Source coverage**: check the 🟡 sources above, add the good ones | `config/sources.yaml` | Each new domain returns real, dated pages |
 | C | **Search slots**: add slots for the gaps (recalls, IRIS, Bundesanzeiger) | `config/settings.yaml` | Every risk area is assessed in most runs |
-| D | **Rulebook review**: check colours and look-back years with the team | `config/rules.yaml` | Team agrees on every rule |
+| D | **Rulebook review**: check colours and look-back years with the team, including the unverified cap | `config/rules.yaml` | Team agrees on every rule |
+| G | **Denylist and open web**: review which unverified sites show up in live runs; move good ones to the allowlist, bad ones to the denylist | `config/sources.yaml`, `config/settings.yaml` (`open_web`) | Unverified pages are mostly useful |
+| H | **Scores**: agree the facts-to-scores method and the area mapping, then fill in `score_area` / `score_total` | `scoring.py`, `config/scoring.yaml` | Scores shown on page 1 of the report |
 | E | **Chatbot connection**: Deep Research button calls `run_research(...)`, shows progress and the clarification question | the chatbot code (outside this folder) | Button works end to end |
 | F | **Reality check**: test on companies with known trouble vs. stable companies | `tests/`, a small results note | Troubled companies get 🔴, stable ones don't |
