@@ -1107,15 +1107,10 @@ dialog::backdrop {
   min-width: 220px;
   flex: 1;
 }
-.portfolio-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
 /* Each card spans 7 shared rows, so sections line up across a row. */
 .portfolio-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0 16px;
 }
 .portfolio-widget {
@@ -1124,12 +1119,12 @@ dialog::backdrop {
   grid-template-rows: subgrid;
   row-gap: 0;
   align-content: start;
-  padding: 24px 26px;
+  padding: 18px 20px;
   margin-bottom: 16px;
   border-radius: 14px;
 }
 .portfolio-widget > * {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 .portfolio-widget > :last-child,
 .portfolio-widget > .attention-slot:empty {
@@ -1144,15 +1139,15 @@ dialog::backdrop {
   align-items: center;
 }
 .widget-id {
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .portfolio-widget h2 {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 600;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
 }
 .title-link {
   all: unset;
@@ -1166,7 +1161,7 @@ dialog::backdrop {
 }
 .widget-sub {
   color: var(--muted);
-  font-size: 15px;
+  font-size: 13px;
 }
 .widget-line {
   display: flex;
@@ -1174,49 +1169,51 @@ dialog::backdrop {
   align-items: center;
   gap: 12px;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 13px;
 }
 .widget-line .risk {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 5px 11px;
+  padding: 3px 9px;
   border-radius: 6px;
 }
 .widget-metrics {
   border-top: 1px solid var(--line);
-  padding-top: 20px;
+  padding-top: 14px;
   align-self: start;
 }
 .attention {
   background: var(--panel);
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 10px 12px;
 }
 .attention-title {
   color: var(--accent);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 .attention p {
-  margin: 6px 0 0;
-  font-size: 15px;
-  line-height: 1.5;
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
 }
 .widget-metrics {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, auto);
+  justify-content: space-between;
   gap: 8px;
 }
 .widget-metrics span {
   display: block;
   color: var(--muted);
-  font-size: 13px;
-  margin-bottom: 8px;
+  font-size: 12px;
+  margin-bottom: 4px;
+  white-space: nowrap;
 }
 .widget-metrics strong {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 500;
 }
 .widget-actions {
@@ -1226,13 +1223,14 @@ dialog::backdrop {
 }
 .compare-button {
   font-weight: 600;
-  font-size: 15px;
-  padding: 9px 16px;
+  font-size: 13px;
+  padding: 7px 12px;
+  white-space: nowrap;
 }
 /* Material Symbols mask icon (icons.js), sized to the 15px Compare label. */
 .compare-button .msi {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   vertical-align: 0;
 }
 .compare-button[aria-pressed="true"] {
@@ -1286,6 +1284,11 @@ dialog::backdrop {
 .portfolio-tools [aria-pressed="true"] {
   background: var(--accent);
   color: white;
+}
+@media (max-width: 1400px) {
+  .portfolio-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 @media (max-width: 1000px) {
   .portfolio-grid {

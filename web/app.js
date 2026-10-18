@@ -578,7 +578,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const saveButton = (r) =>
       `<button class="icon-button save-toggle" data-action="favorite" data-id="${esc(r.supplierID)}" aria-pressed="${state.favorites.has(r.supplierID)}" aria-label="${state.favorites.has(r.supplierID) ? "Remove" : "Save"} ${esc(r.supplierID)} ${state.favorites.has(r.supplierID) ? "from" : "to"} favorites">${icon(state.favorites.has(r.supplierID) ? "bookmark_filled" : "bookmark")}</button>`;
     const compareButton = (r) =>
-      `<button class="compare-button" data-action="toggle-compare" data-id="${esc(r.supplierID)}" aria-pressed="${state.compare.includes(r.supplierID)}">${icon("compare_arrows", "sm")}${state.compare.includes(r.supplierID) ? "Remove from compare" : "Compare"}</button>`;
+      `<button class="compare-button" data-action="toggle-compare" data-id="${esc(r.supplierID)}" aria-pressed="${state.compare.includes(r.supplierID)}" title="${state.compare.includes(r.supplierID) ? "In comparison · click to remove" : "Add to comparison"}">${icon("compare_arrows", "sm")}${state.compare.includes(r.supplierID) ? "Comparing" : "Compare"}</button>`;
     const level = (name, value) =>
       `<span class="risk ${esc(name || "Unknown")}">${esc(name || "Unknown")}${typeof value === "number" ? ` · ${fmt(value)}/100` : ""}</span>`;
     const euro = (x) =>
@@ -613,9 +613,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 .toLowerCase()
                 .includes(p.q.toLowerCase())),
         ),
-        pages = Math.max(1, Math.ceil(rs.length / 9));
+        pages = Math.max(1, Math.ceil(rs.length / 12));
       p.page = Math.min(p.page, pages);
-      let rows = rs.slice((p.page - 1) * 9, p.page * 9),
+      let rows = rs.slice((p.page - 1) * 12, p.page * 12),
         actions = (r) =>
           `<div class="row widget-actions">${compareButton(r)}${saveButton(r)}</div>`;
       return `<div class="screen-title"><div><div class="eyebrow">Your supplier collections</div><h1>My suppliers</h1><p class="muted">A quick view of favorites and demo supplier relationships.</p></div><button class="primary" data-action="compare" ${!state.compare.length ? "disabled" : ""}>${icon("compare_arrows", "sm")}Compare selected (${state.compare.length}/20)</button></div><div class="portfolio-tools"><div class="toggle-group" role="group" aria-label="Collection">${[
