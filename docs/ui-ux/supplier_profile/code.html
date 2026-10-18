@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-surface": "#0f1d28", "tertiary": "#2d4654", "primary-fixed": "#a4effa", "surface-tint": "#0c6872", "error-container": "#ffdad6", "on-secondary": "#ffffff", "surface-container-low": "#ecf4ff", "surface-container-high": "#dbeafa", "outline-variant": "#bec8ca", "surface-variant": "#d6e4f4", "tertiary-container": "#455d6d", "secondary-container": "#4ee0ff", "primary-container": "#00646e", "error": "#ba1a1a", "primary": "#004a52", "on-tertiary-fixed": "#021e2c", "tertiary-fixed": "#cce6f9", "surface-container-highest": "#d6e4f4", "on-tertiary-fixed-variant": "#314a59", "on-primary-fixed": "#001f23", "inverse-on-surface": "#e7f2ff", "on-primary-fixed-variant": "#004f57", "surface-container-lowest": "#ffffff", "secondary-fixed": "#aaedff", "inverse-surface": "#24323e", "on-tertiary-container": "#bcd5e8", "outline": "#6f797a", "tertiary-fixed-dim": "#b0cadc", "primary-fixed-dim": "#88d2dd", "on-tertiary": "#ffffff", "surface-bright": "#f7f9ff", "on-primary-container": "#93dee9", "inverse-primary": "#88d2dd", "on-error-container": "#93000a", "surface-dim": "#cddceb", "background": "#f7f9ff", "on-background": "#0f1d28", "secondary-fixed-dim": "#41d8f6", "on-surface-variant": "#3f484a", "on-secondary-container": "#006171", "secondary": "#006879", "on-secondary-fixed": "#001f26", "surface": "#f7f9ff", "on-secondary-fixed-variant": "#004e5c", "on-error": "#ffffff", "surface-container": "#e1efff", "on-primary": "#ffffff" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "0.75rem", "space-xs": "0.25rem", "gutter-dense": "0.5rem", "space-lg": "1.25rem", "margin": "1.5rem", "space-xl": "1.75rem", "margin-sm": "1rem", "gutter": "1rem", "space-sm": "0.375rem" }, "fontFamily": { "label-data": ["JetBrains Mono"], "headline-md": ["Inter"], "body-lg": ["Inter"], "headline-lg": ["Inter"], "body-md": ["Inter"], "label-data-sm": ["JetBrains Mono"], "headline-xl": ["Inter"], "body-sm": ["Inter"], "headline-sm": ["Inter"], "label-ui": ["Inter"] }, "fontSize": { "label-data": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-lg": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "headline-lg": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "label-data-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }], "headline-xl": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "headline-sm": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.005em", "fontWeight": "600" }], "label-ui": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }] } } } };</script></head><body class="bg-surface text-on-surface antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest/90 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter flex items-center justify-between gap-space-lg"><div class="flex items-center gap-space-lg flex-shrink-0"><img alt="Siemens Mobility Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WQktVJ5-wW3pWLXo7eBK3Zt8A2bPgJySqS_igurf9uT3BzFYvJczosTh7wPpbMjI0DD_HCHHmM_az3r5vLaFMZJYzR8udql9NeyGQ8wTmPDKmta_zLt5p7TzPkS9TC8xvhIg3BNGI_4ueg8QuLECUYvvZdd0jdYDK1bTnb3GFAtysW3AdH8bcKs4uuD-MjCAi36fxI6JBc5fLTfOSRQ3xIzi6zq5W4DFSuosEFDod55m4ET6L6Inkq1EyL"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">Supplier Risk Intelligence</span><div class="flex items-center gap-space-xs text-on-surface-variant font-label-data-sm text-label-data-sm"><span class="material-symbols-outlined text-[13px] text-surface-tint">train</span><span>Rolling Stock: Velaro Novo &amp; Mireo Plus H — Critical Components</span></div></div></div><div class="flex-1 max-w-xl mx-space-md"><div class="relative flex items-center bg-surface-container-low rounded-lg px-space-md py-space-xs"><span class="material-symbols-outlined text-outline text-[18px] mr-space-sm">search</span><input class="w-full bg-transparent border-0 focus:outline-none font-body-md text-body-md text-on-surface placeholder:text-outline" placeholder="Search critical suppliers, DUNS, IRIS certificates, supply tiers..." type="text"/><kbd class="font-label-data-sm text-label-data-sm px-space-xs py-0.5 bg-surface-container-lowest text-on-surface-variant rounded shadow-sm">Ctrl+K</kbd></div></div><div class="flex items-center gap-space-lg flex-shrink-0"><div class="hidden xl:flex items-center gap-space-sm px-space-md py-space-xs rounded bg-surface-container-low"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-data-sm text-label-data-sm text-tertiary font-medium">10,000 Suppliers Synced • Iris Rail Certified</span></div><div class="relative flex items-center"><button class="relative p-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute -top-1 -right-1 px-1.5 py-0.2 bg-error text-on-error font-label-data-sm text-[10px] font-bold rounded-full">3 Critical</span></button></div><div class="flex items-center gap-space-md pl-space-sm"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDylvVIMxm6WF2R1VwDLurxJLj2FVGvOUS8HYEE5o1W3hLu8yTWzpsP8KblSPpo2EO7Mjk1l_PtuDMvvbfuPbPS8NauITNFjxLv14LwaUN0P7SDDXNuiqfc2O-AGnbYLojMKTGY49SJtBTQsMd4w2qRyAbrQ8l0ztzEP3h2_vrU4LQqOeCa40qW4BgcK90yz4IKDnnCdJgfrjoFG6lvzlDkeY606Lg9rQkWAKxVGDHU7J6fZ3ho6Wm-Hg"/><div class="flex flex-col text-left"><span class="font-headline-sm text-headline-sm text-on-surface leading-tight">Dr. Elena Weber</span><span class="font-label-ui text-label-ui text-on-surface-variant uppercase tracking-wider">Lead Sourcing Director</span></div></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-72 bg-primary text-on-primary z-40 flex flex-col justify-between shadow-[2px_0_12px_rgba(0,31,38,0.06)]"><div class="flex flex-col flex-1 py-space-lg"><div class="px-space-lg pb-space-md mb-space-sm"><div class="font-label-ui text-label-ui text-on-primary-container uppercase tracking-wider">Navigation Engine</div></div><nav class="flex-1 px-space-md space-y-1.5" data-active-classes="bg-primary-container text-on-primary font-semibold shadow-sm"><a class="flex items-center justify-between px-space-md py-space-md rounded-lg text-inverse-on-surface hover:bg-primary-container hover:text-on-primary transition-colors" data-path="supplier-matrix-compare" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="font-headline-sm text-headline-sm">Supplier Matrix &amp; Compare</span></div><span class="font-label-data-sm text-label-data-sm px-space-xs py-0.5 rounded bg-surface-tint text-on-primary">20 Matrix</span></a><a class="flex items-center justify-between px-space-md py-space-md rounded-lg text-inverse-on-surface hover:bg-primary-container hover:text-on-primary transition-colors" data-path="supplier-360-profile" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">verified_user</span><span class="font-headline-sm text-headline-sm">Supplier 360° Profile</span></div><span class="font-label-data-sm text-label-data-sm px-space-xs py-0.5 rounded bg-secondary text-on-secondary">Audit</span></a><a class="flex items-center justify-between px-space-md py-space-md rounded-lg text-inverse-on-surface hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ai-sourcing-copilot" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">smart_toy</span><span class="font-headline-sm text-headline-sm">AI Sourcing Copilot</span></div><span class="font-label-data-sm text-label-data-sm px-space-xs py-0.5 rounded bg-surface-tint text-on-primary">v2.4</span></a><a class="flex items-center justify-between px-space-md py-space-md rounded-lg text-inverse-on-surface hover:bg-primary-container hover:text-on-primary transition-colors" data-path="osint-research-agent" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">radar</span><span class="font-headline-sm text-headline-sm">OSINT Research Agent</span></div><span class="font-label-data-sm text-label-data-sm px-space-xs py-0.5 rounded bg-error text-on-error">Live</span></a></nav></div><div class="p-space-md bg-on-primary-fixed"><div class="p-space-md rounded bg-primary/60 flex items-center justify-between"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-secondary-fixed text-[18px]">shield</span><div class="flex flex-col"><span class="font-label-ui text-label-ui text-secondary-fixed">SYSTEM SHIELD</span><span class="font-label-data-sm text-label-data-sm text-on-primary-container">Active Monitoring</span></div></div><span class="font-label-data-sm text-label-data-sm px-1.5 py-0.5 rounded bg-primary-container text-on-primary">ONLINE</span></div></div></aside><div class="pl-72"><main class="relative pt-16 min-h-screen bg-surface"><div class="flex flex-col w-full">
+<!-- Top Context Breadcrumbs & Sourcing Header Strip -->
+<div class="w-full px-gutter py-space-sm bg-surface-container-low/70 flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-xs font-label-data-sm text-label-data-sm text-on-surface-variant">
+<span class="hover:text-primary cursor-pointer transition-colors">Supplier Discovery</span>
+<span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
+<span class="hover:text-primary cursor-pointer transition-colors">Bogie Subsystems</span>
+<span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
+<span class="text-primary font-semibold">SUPP_00018 (Schunk Carbon Technology)</span>
+<span class="ml-space-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-data-sm text-[10px] uppercase font-bold tracking-wider">IRIS Rev 04</span>
+</div>
+<!-- Quick utility pills -->
+<div class="flex items-center gap-space-md font-label-data-sm text-label-data-sm">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-tertiary">schedule</span>
+<span>Telemetry Refresh: <span class="text-on-surface font-semibold">3 mins ago</span></span>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container text-primary font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>Procurement ID: <span class="font-bold">VEL-MIR-2024-C</span></span>
+</div>
+</div>
+</div>
+<!-- Main Executive Dossier Banner -->
+<div class="w-full px-gutter pt-space-lg pb-space-xl bg-surface-container-lowest">
+<div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-space-lg">
+<!-- Supplier Identity & Scope -->
+<div class="flex flex-col gap-space-xs max-w-4xl min-w-0">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="px-2 py-0.5 rounded bg-primary text-on-primary font-label-data-sm text-label-data-sm tracking-wide uppercase">SUPP_00018</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-data-sm text-label-data-sm">Tier-2 Sub-Assembly</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-data-sm text-label-data-sm">DUNS: 31-584-9021</span>
+<span class="flex items-center gap-1 text-error font-label-data-sm text-label-data-sm font-semibold bg-error-container/60 px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+            Single-Source Bottleneck Alert
+          </span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight mt-1">
+          Schunk Carbon Technology GmbH
+        </h1>
+<div class="flex flex-wrap items-center gap-y-1 gap-x-space-md text-on-surface-variant font-body-md text-body-md">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">location_on</span>
+            Wettenberg, Hesse, Germany
+          </span>
+<span class="text-outline">|</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">electric_bolt</span>
+<span>Category: <strong class="text-on-surface font-medium">Current Collector Strips, Pantograph Carbon Shoes &amp; Bogie Grounding Contacts</strong></span>
+</span>
+<span class="text-outline">|</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">train</span>
+<span>Programs: <span class="text-on-surface font-medium">Velaro Novo (350 km/h) &amp; Mireo Plus H</span></span>
+</span>
+</div>
+</div>
+<!-- Action Panel & Primary CTAs -->
+<div class="flex flex-wrap items-center gap-space-sm flex-shrink-0">
+<button class="flex items-center gap-2 px-space-md py-2 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded font-label-ui text-label-ui uppercase tracking-wider hover:opacity-95 shadow-sm transition-all transform active:scale-95" id="copilotOpenBtn" type="button">
+<span class="material-symbols-outlined text-[18px] text-secondary-fixed animate-pulse">auto_awesome</span>
+<span>Ask Why (Open Copilot)</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-md py-2 bg-surface-container-low hover:bg-surface-container text-primary rounded font-label-ui text-label-ui uppercase tracking-wider transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[17px]">compare_arrows</span>
+<span>Add to Compare Tray <span class="ml-1 px-1.5 py-0.2 rounded bg-primary-fixed text-on-primary-fixed font-label-data-sm text-[10px]">1/20</span></span>
+</button>
+<button class="flex items-center gap-1.5 px-space-md py-2 bg-surface-container-low hover:bg-surface-container text-on-surface rounded font-label-ui text-label-ui uppercase tracking-wider transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[17px] text-tertiary">download</span>
+<span>Export Dossier (PDF)</span>
+</button>
+<button class="p-2 bg-surface-container-low hover:bg-error-container hover:text-error text-on-surface-variant rounded transition-colors" title="Flag for Sourcing Review" type="button">
+<span class="material-symbols-outlined text-[19px]">flag</span>
+</button>
+</div>
+</div>
+<!-- Composite Risk Spotlight Card (Negative Margins on Header for Visual Elevation) -->
+<div class="mt-space-lg p-space-lg rounded-xl bg-gradient-to-r from-surface-container-low via-surface-container to-surface-container-low shadow-sm flex flex-col lg:flex-row items-stretch justify-between gap-space-lg">
+<!-- Primary Gauge & Composite Number -->
+<div class="flex items-center gap-space-lg">
+<div class="relative w-28 h-28 flex items-center justify-center flex-shrink-0 bg-surface-container-lowest rounded-xl shadow-inner">
+<svg class="w-24 h-24 transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#E2E8F0" stroke-width="8"></circle>
+<!-- 78% of 251.2 = 195.9 stroke-dasharray -->
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#9A3412" stroke-dasharray="251.2" stroke-dashoffset="55.2" stroke-linecap="round" stroke-width="9"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-label-data text-headline-sm font-bold text-[#9A3412]">78</span>
+<span class="font-label-data-sm text-[10px] text-outline font-semibold">/100</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-ui text-label-ui uppercase tracking-wider text-on-surface-variant font-bold">Total Composite Risk Index</span>
+<!-- EXPLICIT RISK BADGE: HIGH 78/100 in exact hex #9A3412 -->
+<span class="px-2 py-0.5 rounded text-[11px] font-label-data font-bold tracking-wide uppercase text-white shadow-sm" style="background-color: #9A3412;">
+              High 78/100
+            </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface max-w-xl">
+            Critical threshold breached due to single-source synthetic pitch graphite dependencies in Liaoning and recent 91.5% OTD slip on Velaro Novo bogie batch #402.
+          </p>
+<div class="flex items-center gap-space-md mt-1 font-label-data-sm text-label-data-sm">
+<span class="text-[#9A3412] font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">trending_up</span> +14 pts past 90 days
+            </span>
+<span class="text-outline">|</span>
+<span class="text-on-surface-variant">Procurement Escalation Level: <strong class="text-primary font-semibold">Tier-1 Sourcing Committee</strong></span>
+</div>
+</div>
+</div>
+<!-- Quick AI Diagnostic Box within Banner -->
+<div class="lg:w-96 p-space-md rounded-lg bg-surface-container-lowest/80 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-ui text-label-ui uppercase tracking-wider text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">psychology</span> Copilot Synthesis
+          </span>
+<span class="font-label-data-sm text-[10px] px-1.5 py-0.5 rounded bg-surface-tint text-on-primary font-medium">IRIS Rev 04 Valid</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1.5">
+          "Key hazard is raw material maritime bottleneck combined with 18.6% revision variance on sub-assemblies. Immediate dual-sourcing validation is advised."
+        </p>
+<button class="mt-2 text-left font-label-data-sm text-label-data-sm text-primary font-semibold hover:text-primary-container flex items-center gap-1" id="quickAnalyzeBtn">
+<span>Inspect Root Cause Matrix</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Analytical Workspace (2-Column Bento Structure) -->
+<div class="w-full px-gutter py-space-lg flex flex-col xl:flex-row gap-space-lg">
+<!-- Left Main Column (65% width) -->
+<div class="w-full xl:w-2/3 flex flex-col gap-space-lg">
+<!-- 1. Key KPI Metric Grid -->
+<section class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex items-center justify-between pb-space-sm mb-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">speed</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Mission-Critical Operational KPIs</h2>
+</div>
+<span class="font-label-data-sm text-label-data-sm text-on-surface-variant">Rolling 12-Month Telemetry</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-md">
+<!-- KPI 1 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/60 flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant font-label-ui text-label-ui uppercase tracking-wider">
+<span>Annual PO Volume</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary">payments</span>
+</div>
+<div class="mt-2">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface font-label-data">€8.7M</span>
+<span class="font-label-data-sm text-label-data-sm text-tertiary ml-1">EUR</span>
+</div>
+<div class="mt-2 text-on-surface-variant font-label-data-sm text-label-data-sm flex items-center justify-between">
+<span>Strategic Rail Component</span>
+<span class="text-primary font-medium">8.4% of Bogie Cap</span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/60 flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant font-label-ui text-label-ui uppercase tracking-wider">
+<span>On-Time Delivery (OTD)</span>
+<span class="material-symbols-outlined text-[16px] text-[#9A3412]">schedule</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-[#9A3412] font-label-data">91.5%</span>
+<span class="px-1.5 py-0.2 rounded text-[10px] font-label-data font-bold text-white bg-[#9A3412]">Degraded</span>
+</div>
+<div class="mt-2 text-on-surface-variant font-label-data-sm text-label-data-sm flex items-center justify-between">
+<span>Target: ≥98.0%</span>
+<span class="text-error font-medium">-4.8% (90d var)</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/60 flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant font-label-ui text-label-ui uppercase tracking-wider">
+<span>Order Confirm Rate</span>
+<span class="material-symbols-outlined text-[16px] text-[#854D0E]">fact_check</span>
+</div>
+<div class="mt-2">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface font-label-data">94.2%</span>
+</div>
+<div class="mt-2 text-on-surface-variant font-label-data-sm text-label-data-sm flex items-center justify-between">
+<span>Historical: 99.1%</span>
+<span class="text-[#854D0E] font-medium">-4.9% vs Benchmark</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/60 flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant font-label-ui text-label-ui uppercase tracking-wider">
+<span>Order Revision Rate</span>
+<span class="material-symbols-outlined text-[16px] text-[#9A3412]">published_with_changes</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-[#9A3412] font-label-data">18.6%</span>
+<span class="font-label-data-sm text-label-data-sm text-error font-medium">Volatile</span>
+</div>
+<div class="mt-2 text-on-surface-variant font-label-data-sm text-label-data-sm flex items-center justify-between">
+<span>Industry Median: 5.2%</span>
+<span class="text-error font-medium">+13.4% variance</span>
+</div>
+</div>
+<!-- KPI 5 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/60 flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant font-label-ui text-label-ui uppercase tracking-wider">
+<span>Sourcing Risk Level</span>
+<span class="material-symbols-outlined text-[16px] text-[#9A3412]">lock</span>
+</div>
+<div class="mt-2">
+<span class="font-headline-md text-headline-md font-bold text-[#9A3412] font-label-data">Single-Source</span>
+</div>
+<div class="mt-2 text-on-surface-variant font-label-data-sm text-label-data-sm truncate">
+              Proprietary Carbon Matrix (Velaro Novo)
+            </div>
+</div>
+<!-- KPI 6 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/60 flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant font-label-ui text-label-ui uppercase tracking-wider">
+<span>Supply Chain Complexity</span>
+<span class="material-symbols-outlined text-[16px] text-primary">hub</span>
+</div>
+<div class="mt-2">
+<span class="font-headline-md text-headline-md font-bold text-on-surface font-label-data">Level 4 / High</span>
+</div>
+<div class="mt-2 text-on-surface-variant font-label-data-sm text-label-data-sm truncate">
+              Multi-tier Asian sea-freight graphite
+            </div>
+</div>
+</div>
+</section>
+<!-- 2. Ranked Risk Drivers Breakdown (Why 78/100) -->
+<section class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-space-sm mb-space-md gap-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">crisis_alert</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Ranked Risk Drivers Breakdown</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+              Root causal decomposition explaining the composite <strong>High 78/100</strong> evaluation.
+            </p>
+</div>
+<span class="font-label-data-sm text-label-data-sm text-primary font-medium px-2 py-1 bg-surface-container rounded self-start sm:self-auto">5 Vector Decomposition</span>
+</div>
+<div class="space-y-space-md">
+<!-- Ranked #1 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/40 hover:bg-surface-container-low/80 transition-colors">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-md">
+<span class="flex-shrink-0 w-6 h-6 rounded-full bg-[#9A3412] text-white flex items-center justify-center font-label-data-sm text-[11px] font-bold">1</span>
+<div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Geopolitical &amp; Raw Material Sourcing Bottleneck</span>
+<!-- EXPLICIT RISK BADGE: HIGH 84/100 -->
+<span class="px-2 py-0.5 rounded text-[11px] font-label-data font-bold tracking-wide uppercase text-white shadow-sm" style="background-color: #9A3412;">
+                      High 84/100
+                    </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                    Synthetic pitch graphite raw stock is sourced exclusively from a single refiner in Liaoning, China. Red Sea transit rerouting around the Cape of Good Hope has introduced +22 days average transit delays, resulting in local stock buffer depletion at Wettenberg facility to 11 days (Siemens safety standard: ≥45 days).
+                  </p>
+<div class="mt-2 flex flex-wrap items-center gap-space-md font-label-data-sm text-label-data-sm text-on-surface-variant">
+<span class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-[14px]">local_shipping</span> Transit delta: +22 days</span>
+<span>•</span>
+<span>Refiner DunS: 54-209-1149</span>
+<span>•</span>
+<span class="text-error font-semibold">Stock Buffer: 11 Days (Critical)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Ranked #2 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/40 hover:bg-surface-container-low/80 transition-colors">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-md">
+<span class="flex-shrink-0 w-6 h-6 rounded-full bg-[#9A3412] text-white flex items-center justify-center font-label-data-sm text-[11px] font-bold">2</span>
+<div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Financial Leverage &amp; Working Capital Stress</span>
+<!-- EXPLICIT RISK BADGE: HIGH 74/100 -->
+<span class="px-2 py-0.5 rounded text-[11px] font-label-data font-bold tracking-wide uppercase text-white shadow-sm" style="background-color: #9A3412;">
+                      High 74/100
+                    </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                    Quick Ratio tightened to 0.88x (safe threshold &gt;1.10x). Altman Z-Score stands at 2.15 ("Grey Zone"). Debt-service coverage ratio contracted significantly following recent high-temperature furnace capex investments, elevating operational exposure should production volumes stall.
+                  </p>
+<div class="mt-2 flex flex-wrap items-center gap-space-md font-label-data-sm text-label-data-sm text-on-surface-variant">
+<span class="font-label-data">Quick Ratio: <strong class="text-on-surface">0.88x</strong></span>
+<span>•</span>
+<span class="font-label-data">Altman Z: <strong class="text-[#854D0E]">2.15 (Grey)</strong></span>
+<span>•</span>
+<span class="font-label-data">DSCR: <strong class="text-on-surface">1.24x</strong></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Ranked #3 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/40 hover:bg-surface-container-low/80 transition-colors">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-md">
+<span class="flex-shrink-0 w-6 h-6 rounded-full bg-[#854D0E] text-white flex items-center justify-center font-label-data-sm text-[11px] font-bold">3</span>
+<div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Delivery Reliability &amp; Late Cycle Volatility</span>
+<!-- EXPLICIT RISK BADGE: MEDIUM 68/100 -->
+<span class="px-2 py-0.5 rounded text-[11px] font-label-data font-bold tracking-wide uppercase text-white shadow-sm" style="background-color: #854D0E;">
+                      Medium 68/100
+                    </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                    Rolling OTD has slid to 91.5%. Three consecutive delivery batches for Velaro bogie batch #402 were received with an average delay of 8 business days, forcing Siemens Krefeld final assembly buffers into yellow alert status.
+                  </p>
+<div class="mt-2 flex flex-wrap items-center gap-space-md font-label-data-sm text-label-data-sm text-on-surface-variant">
+<span>Batch #402 Delay: <strong class="text-[#854D0E]">8 Business Days</strong></span>
+<span>•</span>
+<span>Assembly Line Impact: <strong class="text-primary font-medium">Buffered via Internal Stock</strong></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Ranked #4 (Explicit N/A) -->
+<div class="p-space-md rounded-lg bg-surface-container-low/40 hover:bg-surface-container-low/80 transition-colors">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-md">
+<span class="flex-shrink-0 w-6 h-6 rounded-full bg-outline text-white flex items-center justify-center font-label-data-sm text-[11px] font-bold">4</span>
+<div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">ESG &amp; Scope 3 Carbon Disclosures</span>
+<!-- EXPLICIT MISSING/PENDING BADGE -->
+<span class="px-2 py-0.5 rounded text-[11px] font-label-data font-bold tracking-wide bg-surface-container-highest text-on-surface-variant">
+                      — N/A (Pending 2025 Audit)
+                    </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                    No Scope 3 GHG emissions reporting disclosed for synthetic graphite thermal purification steps. Supplier Code of Conduct ESG recertification is past due by 64 days; penalty clause under review.
+                  </p>
+<div class="mt-2 flex flex-wrap items-center gap-space-md font-label-data-sm text-label-data-sm text-outline">
+<span>Scope 1 &amp; 2: Disclosed</span>
+<span>•</span>
+<span class="text-error">Scope 3: — N/A (Not Disclosed)</span>
+<span>•</span>
+<span>Next Audit Window: Q2 2025</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Ranked #5 -->
+<div class="p-space-md rounded-lg bg-surface-container-low/40 hover:bg-surface-container-low/80 transition-colors">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-md">
+<span class="flex-shrink-0 w-6 h-6 rounded-full bg-[#115E59] text-white flex items-center justify-center font-label-data-sm text-[11px] font-bold">5</span>
+<div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Cyber Security &amp; Industrial OT Systems</span>
+<!-- EXPLICIT RISK BADGE: LOW 24/100 -->
+<span class="px-2 py-0.5 rounded text-[11px] font-label-data font-bold tracking-wide uppercase text-white shadow-sm" style="background-color: #115E59;">
+                      Low 24/100
+                    </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                    Industrial plant networks in Wettenberg operate air-gapped SCADA systems. Valid IEC 62443 Level 2 certification verified by TÜV Rheinland in October 2023 with zero critical vulnerabilities reported.
+                  </p>
+<div class="mt-2 flex flex-wrap items-center gap-space-md font-label-data-sm text-label-data-sm text-on-surface-variant">
+<span class="text-primary font-medium">IEC 62443-3-3: Compliant</span>
+<span>•</span>
+<span>CISO Signed-Off: Valid through 2026</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Operational Telemetry & Purchase Order Breakdown -->
+<section class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-space-sm mb-space-md gap-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">precision_manufacturing</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Active Purchase Orders &amp; Delivery Telemetry</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+              Siemens Mobility contracted batches for Velaro Novo &amp; Mireo Plus H programs.
+            </p>
+</div>
+<button class="text-primary font-label-data-sm text-label-data-sm font-semibold hover:underline flex items-center gap-1 self-start sm:self-auto">
+<span>View SAP PO History</span>
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</button>
+</div>
+<!-- Inline Sparkline Trend: 6-Month OTD Drop -->
+<div class="p-space-md rounded-lg bg-surface-container-low/60 mb-space-md flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+<div class="flex flex-col">
+<span class="font-label-ui text-label-ui uppercase tracking-wider text-on-surface-variant font-bold">6-Month OTD Performance Trajectory</span>
+<span class="font-body-sm text-body-sm text-on-surface mt-0.5">Systematic degradation from 98.2% (May) down to 91.5% (October)</span>
+</div>
+<!-- Micro SVG Sparkline (Under 2KB) -->
+<div class="flex items-center gap-space-md flex-shrink-0">
+<div class="flex flex-col text-right">
+<span class="font-label-data text-headline-sm font-bold text-[#9A3412]">91.5%</span>
+<span class="font-label-data-sm text-[10px] text-error font-medium">-6.7% vs May baseline</span>
+</div>
+<svg class="w-48 h-10 overflow-visible" viewbox="0 0 160 36">
+<!-- Target Line at 98% -->
+<line stroke="#BEC8CA" stroke-dasharray="3,3" stroke-width="1" x1="0" x2="160" y1="6" y2="6"></line>
+<!-- Sparkline Path -->
+<path d="M 0,6 L 32,8 L 64,12 L 96,16 L 128,24 L 160,32" fill="none" stroke="#9A3412" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Data Points -->
+<circle cx="0" cy="6" fill="#115E59" r="3"></circle>
+<circle cx="32" cy="8" fill="#115E59" r="2.5"></circle>
+<circle cx="64" cy="12" fill="#854D0E" r="2.5"></circle>
+<circle cx="96" cy="16" fill="#854D0E" r="2.5"></circle>
+<circle cx="128" cy="24" fill="#9A3412" r="3"></circle>
+<circle cx="160" cy="32" fill="#9A3412" r="4"></circle>
+</svg>
+</div>
+</div>
+<!-- PO History Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-md text-body-md">
+<thead>
+<tr class="bg-surface-container font-label-ui text-label-ui text-on-surface-variant uppercase tracking-wider">
+<th class="py-2.5 px-space-md">PO Identifier</th>
+<th class="py-2.5 px-space-md">Component Description</th>
+<th class="py-2.5 px-space-md">Assigned Program</th>
+<th class="py-2.5 px-space-md text-right">PO Value</th>
+<th class="py-2.5 px-space-md text-center">Status Flag</th>
+<th class="py-2.5 px-space-md text-right">Target Due Date</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Row 1 (Delayed) -->
+<tr class="hover:bg-error-container/20 transition-colors">
+<td class="py-3 px-space-md font-label-data text-label-data text-primary font-bold">PO-2024-8841</td>
+<td class="py-3 px-space-md text-on-surface">
+<div class="font-medium">Mireo Pantograph Strips</div>
+<div class="font-label-data-sm text-[11px] text-on-surface-variant">420 units • Spec RH95-C</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-data-sm text-[11px] font-medium text-tertiary">Mireo Plus H</span>
+</td>
+<td class="py-3 px-space-md text-right font-label-data font-semibold text-on-surface">€2.4M</td>
+<td class="py-3 px-space-md text-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-data-sm text-[11px] font-bold text-white bg-[#9A3412]">
+<span class="material-symbols-outlined text-[13px]">error</span> 12 Days Delayed
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right font-label-data text-label-data-sm text-error font-medium">14 Oct 2024 (Overdue)</td>
+</tr>
+<!-- Row 2 (On Track) -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-3 px-space-md font-label-data text-label-data text-primary font-bold">PO-2024-9102</td>
+<td class="py-3 px-space-md text-on-surface">
+<div class="font-medium">Velaro Novo Grounding Shoes</div>
+<div class="font-label-data-sm text-[11px] text-on-surface-variant">180 sets • Copper-impregnated carbon</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-data-sm text-[11px] font-medium text-primary">Velaro Novo</span>
+</td>
+<td class="py-3 px-space-md text-right font-label-data font-semibold text-on-surface">€3.1M</td>
+<td class="py-3 px-space-md text-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-data-sm text-[11px] font-bold text-white bg-[#115E59]">
+<span class="material-symbols-outlined text-[13px]">check_circle</span> On Track
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right font-label-data text-label-data-sm text-on-surface-variant">28 Nov 2024</td>
+</tr>
+<!-- Row 3 (In Production) -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-3 px-space-md font-label-data text-label-data text-primary font-bold">PO-2024-9450</td>
+<td class="py-3 px-space-md text-on-surface">
+<div class="font-medium">Transit Batches (High-Speed Contacts)</div>
+<div class="font-label-data-sm text-[11px] text-on-surface-variant">Spares Buffer Stock Q1-2025</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-data-sm text-[11px] font-medium text-tertiary">Fleet Spares</span>
+</td>
+<td class="py-3 px-space-md text-right font-label-data font-semibold text-on-surface">€3.2M</td>
+<td class="py-3 px-space-md text-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-data-sm text-[11px] font-bold text-white bg-[#854D0E]">
+<span class="material-symbols-outlined text-[13px]">sync</span> In Production
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right font-label-data text-label-data-sm text-on-surface-variant">15 Jan 2025</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- Right Analytical Column (35% width) -->
+<div class="w-full xl:w-1/3 flex flex-col gap-space-lg">
+<!-- 4. Grouped Score Bars & Risk Domains -->
+<section class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex items-center justify-between pb-space-sm mb-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">stacked_bar_chart</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Domain Scorecard</h2>
+</div>
+<span class="font-label-data-sm text-label-data-sm text-outline">Scale 0–100</span>
+</div>
+<div class="space-y-space-md">
+<!-- Domain 1: Geopolitical & Sourcing -->
+<div>
+<div class="flex items-center justify-between font-label-data-sm text-label-data-sm mb-1">
+<span class="text-on-surface font-semibold">Geopolitical &amp; Sourcing</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-data font-bold text-white" style="background-color: #9A3412;">High 84/100</span>
+</div>
+<div class="w-full h-2 rounded bg-surface-container overflow-hidden">
+<div class="h-full rounded" style="width: 84%; background-color: #9A3412;"></div>
+</div>
+<span class="font-label-data-sm text-[10px] text-on-surface-variant">Single-source China Liaoning synthetic pitch</span>
+</div>
+<!-- Domain 2: Financial Risk -->
+<div>
+<div class="flex items-center justify-between font-label-data-sm text-label-data-sm mb-1">
+<span class="text-on-surface font-semibold">Financial &amp; Solvency</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-data font-bold text-white" style="background-color: #9A3412;">High 74/100</span>
+</div>
+<div class="w-full h-2 rounded bg-surface-container overflow-hidden">
+<div class="h-full rounded" style="width: 74%; background-color: #9A3412;"></div>
+</div>
+<span class="font-label-data-sm text-[10px] text-on-surface-variant">Quick Ratio: 0.88x • Altman Z: 2.15</span>
+</div>
+<!-- Domain 3: Operational Risk -->
+<div>
+<div class="flex items-center justify-between font-label-data-sm text-label-data-sm mb-1">
+<span class="text-on-surface font-semibold">Operational Execution</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-data font-bold text-white" style="background-color: #9A3412;">High 72/100</span>
+</div>
+<div class="w-full h-2 rounded bg-surface-container overflow-hidden">
+<div class="h-full rounded" style="width: 72%; background-color: #9A3412;"></div>
+</div>
+<span class="font-label-data-sm text-[10px] text-on-surface-variant">91.5% OTD • 18.6% revision variance</span>
+</div>
+<!-- Domain 4: Quality & IRIS Compliance -->
+<div>
+<div class="flex items-center justify-between font-label-data-sm text-label-data-sm mb-1">
+<span class="text-on-surface font-semibold">Quality &amp; IRIS Compliance</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-data font-bold text-white" style="background-color: #115E59;">Low 32/100</span>
+</div>
+<div class="w-full h-2 rounded bg-surface-container overflow-hidden">
+<div class="h-full rounded" style="width: 32%; background-color: #115E59;"></div>
+</div>
+<span class="font-label-data-sm text-[10px] text-on-surface-variant">IRIS Rev 04 Certificate Valid until Nov 2026</span>
+</div>
+<!-- Domain 5: Cyber & Infrastructure -->
+<div>
+<div class="flex items-center justify-between font-label-data-sm text-label-data-sm mb-1">
+<span class="text-on-surface font-semibold">Cyber &amp; Infrastructure OT</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-data font-bold text-white" style="background-color: #115E59;">Low 24/100</span>
+</div>
+<div class="w-full h-2 rounded bg-surface-container overflow-hidden">
+<div class="h-full rounded" style="width: 24%; background-color: #115E59;"></div>
+</div>
+<span class="font-label-data-sm text-[10px] text-on-surface-variant">IEC 62443 Level 2 audit verified</span>
+</div>
+<!-- Domain 6: ESG & Sustainability (Explicit N/A) -->
+<div>
+<div class="flex items-center justify-between font-label-data-sm text-label-data-sm mb-1">
+<span class="text-on-surface font-semibold">ESG &amp; Sustainability</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-data font-bold bg-surface-container-highest text-on-surface-variant">— N/A (Not Disclosed)</span>
+</div>
+<div class="w-full h-2 rounded bg-surface-container-high overflow-hidden">
+<div class="h-full rounded bg-outline-variant" style="width: 0%;"></div>
+</div>
+<span class="font-label-data-sm text-[10px] text-outline">Scope 3 non-reported • Audit overdue 64d</span>
+</div>
+</div>
+</section>
+<!-- 5. Interactive "Ask Why" Drawer Callout / Copilot Prompt Launcher -->
+<section class="p-space-lg rounded-xl bg-gradient-to-br from-primary via-primary-container to-secondary text-on-primary shadow-md relative overflow-hidden">
+<div class="absolute -right-8 -bottom-8 w-40 h-40 bg-secondary-container/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="relative z-10">
+<div class="flex items-center justify-between mb-space-sm">
+<span class="px-2 py-0.5 rounded bg-surface-tint text-on-primary font-label-data-sm text-[10px] uppercase font-bold tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-secondary-fixed">arrow_back_ios_new</span> AI Root Cause Agent
+            </span>
+<span class="font-label-data-sm text-label-data-sm text-secondary-fixed font-semibold">Model: RailCopilot v2.4</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-primary font-bold">
+            Why is the Total Risk Index of SUPP_00018 so high?
+          </h3>
+<p class="font-body-md text-body-md text-inverse-on-surface/90 mt-2">
+            Automated reasoning combined graph analytics over 4,800 shipping manifests, ERP transaction logs, and Liaoning mineral extraction export quotas.
+          </p>
+<div class="mt-space-md p-space-md rounded bg-on-primary-fixed/40 backdrop-blur-sm text-inverse-on-surface text-body-sm font-body-sm space-y-1.5">
+<div class="flex items-center gap-2 text-secondary-fixed font-semibold font-label-data-sm">
+<span class="material-symbols-outlined text-[15px]">verified</span>
+              3 Critical Factors Detected:
+            </div>
+<p class="font-label-data-sm text-label-data-sm text-on-tertiary-container">
+              1. 100% dependency on single refiner in Liaoning, China.<br/>
+              2. 22-day maritime delay via Cape of Good Hope routing.<br/>
+              3. Capex loan covenant leverage (DSCR 1.24x).
+            </p>
+</div>
+<button class="mt-space-md w-full py-2.5 px-space-md bg-secondary-fixed text-on-secondary-fixed font-label-ui text-label-ui uppercase tracking-wider font-bold rounded shadow-sm hover:bg-secondary-fixed-dim transition-all flex items-center justify-center gap-2" id="launchDrawerBtn" type="button">
+<span class="material-symbols-outlined text-[18px]">psychology_alt</span>
+<span>Launch Copilot Investigation</span>
+</button>
+</div>
+</section>
+<!-- 6. Alternate Qualified Dual-Source Suppliers Recommendation -->
+<section class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex items-center justify-between pb-space-sm mb-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">alt_route</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Dual-Source Recommendations</h2>
+</div>
+<span class="font-label-data-sm text-label-data-sm text-primary font-semibold">1 Direct Match</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+          Pre-audited alternate rail suppliers holding compatible IRIS certification for pantograph current collectors:
+        </p>
+<!-- Recommended Alternate Card -->
+<div class="p-space-md rounded-lg bg-surface-container-low/70 hover:bg-surface-container-low transition-all">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Mersen Rail SAS</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-data-sm text-[10px]">SUPP_00104</span>
+</div>
+<span class="font-label-data-sm text-[11px] text-on-surface-variant">Courbevoie, France • IRIS Rev 04 Valid</span>
+</div>
+<!-- Low Risk Badge in exact hex #115E59 -->
+<span class="px-2 py-0.5 rounded text-[11px] font-label-data font-bold text-white shadow-sm" style="background-color: #115E59;">
+              Low 22/100
+            </span>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-space-sm py-2 bg-surface-container-lowest/60 rounded px-2 font-label-data-sm text-label-data-sm">
+<div>
+<span class="text-outline text-[10px] block">OTD RELIABILITY</span>
+<span class="font-bold text-on-surface">98.9% (Consistent)</span>
+</div>
+<div>
+<span class="text-outline text-[10px] block">EU RAW MATERIAL BUFFER</span>
+<span class="font-bold text-[#115E59]">65 Days Local Stock</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-center justify-between pt-2">
+<span class="font-body-sm text-body-sm text-primary font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">verified_user</span> 94% Spec Overlap
+            </span>
+<button class="px-2.5 py-1 rounded bg-primary text-on-primary font-label-ui text-label-ui uppercase tracking-wider hover:bg-primary-container text-[10px] font-bold transition-colors">
+              Initiate Dual-RFP
+            </button>
+</div>
+</div>
+<!-- Secondary Alternate (Non-Qualified / Missing Spec) -->
+<div class="p-space-md rounded-lg bg-surface-container-low/30 mt-space-sm opacity-80">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Morgan Advanced Materials</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-data-sm text-[10px]">SUPP_00219</span>
+</div>
+<span class="font-label-data-sm text-[11px] text-on-surface-variant">Windsor, UK • Bogie Grounding Only</span>
+</div>
+<span class="px-2 py-0.5 rounded text-[11px] font-label-data font-bold text-white shadow-sm" style="background-color: #854D0E;">
+              Medium 44/100
+            </span>
+</div>
+<span class="text-outline font-label-data-sm text-[11px] block mt-1">Requires 6-month homologation for 350 km/h Velaro Novo pantographs</span>
+</div>
+</section>
+</div>
+</div>
+<!-- Copilot Interactive Flyout Modal/Drawer (Toggled via JS) -->
+<div class="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm hidden flex items-center justify-center p-4" id="copilotModal">
+<div class="w-full max-w-2xl bg-surface-container-lowest rounded-xl shadow-2xl p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-2">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined text-[24px]">auto_awesome</span>
+<span class="font-headline-md text-headline-md">AI Risk Intelligence Agent — Root Cause Deep-Dive</span>
+</div>
+<button class="p-1.5 rounded hover:bg-surface-container text-outline hover:text-on-surface" id="closeModalBtn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="p-space-md rounded bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[11px] font-label-data font-bold text-white" style="background-color: #9A3412;">High 78/100</span>
+<span class="font-label-data text-label-data text-on-surface font-semibold">Query: Why is SUPP_00018 Total Risk Index evaluated at 78?</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed">
+          Schunk Carbon Technology holds an impeccable IRIS Rev 04 quality score (<span class="font-bold text-[#115E59]">Low 32/100</span>) and strong OT Cyber hygiene (<span class="font-bold text-[#115E59]">Low 24/100</span>). However, its overall score is dragged into the <strong class="text-[#9A3412]">High 78/100</strong> composite band by severe geopolitical concentration in Chinese precursor synthetic graphite refineries (84/100) coupled with acute Red Sea maritime transit latency (+22 days). 
+        </p>
+</div>
+<div class="space-y-2">
+<span class="font-label-ui text-label-ui uppercase tracking-wider font-bold text-on-surface-variant">Recommended Immediate Actions:</span>
+<div class="p-2.5 rounded bg-surface-container flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5">check_box</span>
+<span class="font-body-sm text-body-sm text-on-surface">Activate 20% dual-sourcing quota with <strong>Mersen Rail SAS (SUPP_00104)</strong> for Mireo Plus H grounding contacts to eliminate line-stoppage exposure.</span>
+</div>
+<div class="p-2.5 rounded bg-surface-container flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5">check_box</span>
+<span class="font-body-sm text-body-sm text-on-surface">Require Schunk to maintain an escalated 60-day European buffer warehouse in Wettenberg under Siemens Mobility consignment terms.</span>
+</div>
+</div>
+<div class="flex items-center justify-end gap-space-sm pt-2">
+<button class="px-space-md py-2 bg-surface-container text-on-surface font-label-ui text-label-ui uppercase rounded hover:bg-surface-container-high transition-colors" id="cancelModalBtn">
+          Dismiss
+        </button>
+<button class="px-space-md py-2 bg-primary hover:bg-primary-container text-on-primary font-label-ui text-label-ui uppercase tracking-wider font-bold rounded shadow-sm transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">task_alt</span>
+<span>Draft Procurement Mitigation Memo</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+    // Micro-Interactions for Copilot Modal and Drawers
+    (function() {
+      const copilotBtn = document.getElementById('copilotOpenBtn');
+      const quickAnalyzeBtn = document.getElementById('quickAnalyzeBtn');
+      const launchDrawerBtn = document.getElementById('launchDrawerBtn');
+      const modal = document.getElementById('copilotModal');
+      const closeModal = document.getElementById('closeModalBtn');
+      const cancelModal = document.getElementById('cancelModalBtn');
+
+      function openModal() {
+        if(modal) modal.classList.remove('hidden');
+      }
+
+      function hideModal() {
+        if(modal) modal.classList.add('hidden');
+      }
+
+      if (copilotBtn) copilotBtn.addEventListener('click', openModal);
+      if (quickAnalyzeBtn) quickAnalyzeBtn.addEventListener('click', openModal);
+      if (launchDrawerBtn) launchDrawerBtn.addEventListener('click', openModal);
+      if (closeModal) closeModal.addEventListener('click', hideModal);
+      if (cancelModal) cancelModal.addEventListener('click', hideModal);
+
+      // Close modal on escape
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+          hideModal();
+        }
+      });
+    })();
+  </script>
+</div></main><footer class="w-full bg-surface-container-low py-space-sm"><div class="w-full px-gutter flex flex-col md:flex-row items-center justify-between gap-space-xs text-on-surface-variant font-label-data-sm text-label-data-sm"><div><span>DB v4.8.2</span><span class="mx-space-xs text-outline">|</span><span>IRIS Rev 04 Compliance Verified</span><span class="mx-space-xs text-outline">|</span><span class="text-primary font-medium">Latency: 18ms</span><span class="mx-space-xs text-outline">|</span><span>Siemens AG</span></div><div class="flex items-center gap-space-md"><span>Rolling Stock Global Procurement Group</span><span class="text-tertiary">Classification: Strict Internal</span></div></div></footer></div></body></html>
