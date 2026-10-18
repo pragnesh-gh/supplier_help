@@ -1,0 +1,87 @@
+/* Gretel: quiet conversation, inspectable evidence, and a persistent composer.
+   Layout inspiration: LangChain Agent Chat UI / Open Canvas; existing app tokens. */
+#chat-drawer { width: min(560px, calc(100vw - 32px)); top: 76px; bottom: 16px; right: 16px; border-color: var(--outline-variant); background: var(--surface); box-shadow: 0 16px 64px #1d2a2a26; }
+#chat-drawer.chat-expanded { width: min(860px, calc(100vw - 32px)); }
+.chat-head { padding: 16px 20px; background: var(--surface); flex-shrink: 0; }
+.chat-head h2 { font-size: 18px; letter-spacing: -.02em; }
+.chat-head small { font-size: 12px; }
+.chat-head-actions { display: flex; gap: 4px; align-items: center; }
+.chat-head-actions > button { font-size: 12px; }
+.chat-messages { padding: 24px; gap: 26px; min-height: 80px; scroll-behavior: auto; }
+.chat-message { font-size: 14px; line-height: 1.75; white-space: normal; min-width: 0; }
+.message-copy { white-space: pre-wrap; }
+.chat-message.assistant { width: 100%; padding: 0; }
+.chat-message.user { padding: 10px 15px; font-size: 13px; max-width: 88%; border: 1px solid var(--outline-variant); }
+.chat-message.user .message-label { display: none; }
+.chat-message .message-label { font-size: 10px; letter-spacing: .08em; margin-bottom: 8px; color: var(--primary); }
+.chat-empty { margin: auto 0; padding: 12px 4px 30px; }
+.chat-empty h2 { font-size: 25px; line-height: 1.25; letter-spacing: -.035em; max-width: 340px; }
+.chat-empty p { color: var(--on-surface-variant); font-size: 14px; line-height: 1.7; }
+.chat-suggestions { flex-direction: column; gap: 8px; margin-top: 24px; }
+.chat-suggestions button { padding: 11px 14px; text-align: left; justify-content: flex-start; background: var(--surface); border-color: var(--outline-variant); }
+.chat-composer { padding: 12px 16px 14px; background: var(--surface); flex-shrink: 0; max-height: 48%; overflow-y: auto; }
+.chat-composer #assistant-form { margin: 8px 0; border: 1px solid var(--outline); border-radius: 12px; padding: 6px; background: var(--surface-low); }
+.chat-composer #assistant-form:focus-within { outline: 2px solid var(--primary-container); border-color: var(--primary); }
+.chat-composer #assistant-form textarea { border: 0; box-shadow: none; background: transparent; outline: 0; resize: vertical; min-height: 62px; max-height: 120px; padding: 9px; font-size: 14px; }
+.chat-composer #assistant-form button { border-radius: 8px; width: 36px; min-width: 36px; height: 36px; }
+.chat-mode { gap: 4px; margin: 10px 0 0; }
+.chat-mode button { font-size: 12px; border: 0; min-height: 30px; background: transparent; color: var(--on-surface-variant); padding: 5px 9px; border-radius: 6px; }
+.chat-mode button[aria-pressed="true"] { background: var(--primary-container); color: var(--primary); }
+.chat-mode > span { margin-left: auto; font-size: 11px; color: var(--on-surface-variant); }
+.chat-context { font-size: 10px; line-height: 1.6; }
+.identity-form > summary { font-size: 12px; color: var(--on-surface-variant); }
+.identity-form .identity-fields { width: 100%; }
+.chat-sources { margin-top: 12px; font-size: 12px; }
+.chat-sources > summary, .chat-exact-values > summary { cursor: pointer; color: var(--on-surface-variant); padding: 6px 0; font-size: 12px; }
+.chat-sources .citation-chip { max-width: 100%; height: auto; text-align: left; line-height: 1.4; padding: 5px 8px; font-weight: 400; }
+.inline-citation { display: inline-flex; vertical-align: baseline; padding: 0 4px; margin: 0 2px; border: 0; border-radius: 4px; min-height: 0; font: 10px/1.6 var(--mono); color: var(--primary); background: var(--primary-container); text-decoration: none; cursor: pointer; }
+.chat-result-card { border: 1px solid var(--outline-variant); border-radius: 10px; margin-top: 18px; padding: 16px; background: var(--surface); overflow: hidden; }
+.chat-result-title .eyebrow { font-size: 9px; }
+.chat-result-title h3 { font-size: 14px; margin: 4px 0 12px; line-height: 1.4; }
+.chat-bar-row { display: grid; grid-template-columns: minmax(90px, 1fr) minmax(55px, 1.3fr) minmax(35px, auto); gap: 12px; align-items: center; padding: 7px 0; font-size: 11px; }
+.chat-bar-row strong { font: 12px var(--mono); text-align: right; }
+.chat-bar-row > button { min-height: 0; padding: 0; border: 0; background: transparent; text-align: left; justify-content: flex-start; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; color: var(--primary); }
+.chat-bar-track { height: 10px; background: var(--surface-container); border-radius: 3px; overflow: hidden; }
+.chat-bar-track i { display: block; background: var(--primary); height: 100%; border-radius: 3px; }
+.chat-bar-row:hover, .chat-bar-row:focus { background: var(--surface-low); }
+.chat-radar { display: block; width: 100%; max-height: 340px; overflow: visible; }
+.chat-radar text { font: 11px system-ui; fill: var(--on-surface-variant); }
+.radar-grid { stroke: var(--outline-variant); fill: none; stroke-width: 1; }
+.series-0 { --series-color: var(--primary); }
+.series-1 { --series-color: var(--risk-medium); }
+.series-2 { --series-color: var(--risk-high); }
+.series-3 { --series-color: var(--on-surface-variant); }
+.series-4 { --series-color: var(--risk-critical); }
+.radar-shape { fill: var(--series-color); fill-opacity: .09; stroke: var(--series-color); stroke-width: 2; }
+.radar-dot { fill: var(--series-color); stroke: var(--surface); stroke-width: 1.5; }
+.radar-dot:hover, .radar-dot:focus { r: 6; stroke: var(--on-surface); stroke-width: 2; outline: none; }
+.chat-radar .radar-focus-value { display: none; font-size: 11px; fill: var(--on-surface); }
+.radar-dot:hover + .radar-focus-value, .radar-dot:focus + .radar-focus-value { display: block; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 11px; }
+.chart-legend span { display: inline-flex; gap: 5px; align-items: center; }
+.chart-legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--series-color); }
+.chart-note { color: var(--on-surface-variant); font-size: 11px; line-height: 1.5; margin: 10px 0 4px; }
+.chat-table-scroll { overflow-x: auto; max-width: 100%; }
+.chat-table-scroll table { font-size: 11px; white-space: normal; }
+.chat-table-scroll th, .chat-table-scroll td { padding: 8px; min-width: 65px; }
+.research-progress { padding: 14px; margin-top: 16px; background: var(--surface-low); border: 1px solid var(--outline-variant); }
+.research-progress > p { color: var(--on-surface-variant); font-size: 11px; }
+.research-progress > details { border-top: 1px solid var(--outline-variant); padding-top: 8px; margin-top: 8px; }
+.research-progress summary { cursor: pointer; font-size: 12px; }
+.research-plan ul { list-style: none; padding: 0; }
+.research-plan li { padding: 6px 0; }
+.research-completion h3 { margin: 3px 0 8px; font-size: 16px; }
+.research-completion { margin: 18px 0; }
+.research-completion .research-finding-brief { padding-left: 16px; font-size: 12px; line-height: 1.65; }
+.research-completion .research-finding-brief li { margin: 10px 0; }
+.research-events { max-height: 190px; padding: 0 0 0 12px; margin-top: 10px; border-left: 2px solid var(--outline); }
+.research-events p { font-size: 11px; margin: 0; padding: 6px 0; border: 0; }
+.research-events small { color: var(--on-surface-variant); }
+.activity-count { color: var(--on-surface-variant); font-size: 10px; margin-left: 6px; }
+.activity-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--primary); margin-right: 6px; animation: chat-pulse 1.5s ease-in-out infinite; }
+.activity-dot.done { animation: none; }
+.chat-thinking { color: var(--on-surface-variant); font-size: 12px; }
+@keyframes chat-pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .activity-dot { animation: none; } }
+@media (max-width: 600px) { #chat-drawer, #chat-drawer.chat-expanded { top: 8px; right: 8px; bottom: 8px; left: 8px; width: auto; } .chat-head { padding: 12px 14px; } .chat-head-actions #chat-expand { display: none; } .chat-messages { padding: 18px 16px; } .chat-mode > span { display: none; } .chat-composer { padding: 10px 12px; } .chat-result-card { padding: 12px; } }
+@media print { #chat-drawer { display: none !important; } }

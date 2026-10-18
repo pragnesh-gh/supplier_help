@@ -4,7 +4,7 @@ A presentation-only pass over the unified web app. It borrows tokens and compone
 
 ## Files
 
-- `web/ui.css` is loaded after `styles.css` and `approval.css`. It holds the tokens (primary `#00646e`, outline `#cbd5e1` / `#e2e8f0`, risk semantics, 4/6/10px radii) and the component rules. Layout grids stay in `styles.css`.
+- `web/ui.css` is loaded after `styles.css` and `approval.css`. It holds the tokens (Figma palette: primary `#1f5f5b`, outline `#c9d4d1` / `#dfe6e4`, soft risk pills, 4/6/10px radii; the legacy `styles.css` names `--accent`, `--bg`, `--line`, … are aliased to these roles) and the component rules. Layout grids stay in `styles.css`.
 - `web/icons.js` provides `icon(name, size)`, which returns a decorative `<span class="msi" aria-hidden="true">`. The span is coloured by `currentColor` through a CSS mask. Unknown names render nothing. `arrow_back` is the `arrow_forward` file mirrored with CSS.
 - `web/vendor/material-symbols/` contains the 17 official Material Symbols SVGs (Apache 2.0, pinned upstream commit; see its README and manifest). They are served locally, with no font, CDN or network dependency.
 
@@ -34,7 +34,16 @@ These are unchanged: the compact overview (fits 1440×790 with three recent card
 
 - At widths up to 1050px the header utility actions (Data & assumptions, Guided journey, Reset) are still hidden. This predates the sweep.
 - On mobile the primary nav scrolls horizontally, and the Discovery table scrolls sideways instead of reflowing into cards.
-- `star` is the outline glyph only. The favorited state uses an amber tint, `aria-pressed` and a tooltip. A filled `star` (FILL 1) asset would make the on state clearer.
+- Favourites use the Material `bookmark` / `bookmark_filled` (FILL 1) glyphs everywhere; the on state is the filled glyph on an accent-tinted container plus `aria-pressed` and a tooltip. The `star` assets remain in vendor but are unused.
 - `approval.js` markup was out of scope, so the Approvals page was polished through CSS only. For example, "Back to comparison" has no icon.
 
 Parent verification: all 33 Python tests and both JavaScript tests pass. Independent Standards and Spec reviews found no unresolved issues. Selected favorites now use the filled Google star asset as well as aria-pressed and amber styling.
+
+
+## Gretel visual answers and train selection (2026-10-18)
+
+Approved blue selection uses #2267e8 with a lighter hover tint. Both bogies use shallow horizontal frames, recessed supports, axles and layered steel wheels; no train branding was added.
+
+Gretel now uses an expandable transcript, compact research controls, source-linked findings and bar/radar cards with exact values. The existing theme is unchanged. See [visual research](research/gretel-chat-ui.md) for primary-source references and contact sheet. Research coverage counts are explicitly not risk scores. Unknown numeric risks remain unknown.
+
+Verification: 39 Python and 14 Node tests passed; syntax and whitespace checks passed. Browser checks on isolated localhost8881 covered radar6 with all36 citations saved, first5 chart/all6 table disclosure, source-cell inspection from bar labels, saved research source links, evidence coverage chart, reload persistence and mobile drawer bounds. Final Opus review found no blockers. No paid live research was performed; the research UI check used the labelled historical fixture.

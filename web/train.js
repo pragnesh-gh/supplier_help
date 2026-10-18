@@ -13,12 +13,18 @@ import {
   BufferGeometry,
   Float32BufferAttribute,
   DoubleSide,
+  Color,
   Raycaster,
   Vector2,
   Vector3,
 } from "./vendor/three.module.min.js";
 
 export function mountTrain(container, options) {
+  // Stretch the carbody and fittings, but keep circular wheel geometry round.
+  const lengthScale = 1.45;
+  const selectionColor = "#2267e8";
+  const defaultYaw = -0.24, defaultPitch = 0.20;
+  const viewTarget = new Vector3(-0.25, 1.75, 0);
   // No idle rotation or inertia: reduced-motion users receive the same stable view.
   let counts = options.counts || {},
     selected = options.selected,
@@ -30,7 +36,7 @@ export function mountTrain(container, options) {
   root.className = "ts-scene";
   container.replaceChildren();
   root.innerHTML = `<style>
-.ts-scene{position:relative;width:100%;height:100%;min-height:0;flex:1 1 auto;overflow:hidden;background:radial-gradient(ellipse at 50% 65%,#edf2f3 0%,#f8fafb 65%,#fff 100%);isolation:isolate}.ts-scene canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}.ts-scene canvas:active{cursor:grabbing}.ts-scene .ts-tip{position:absolute;z-index:3;pointer-events:none;max-width:270px;padding:9px 12px;border:1px solid #dce2e6;border-radius:6px;background:#fff;color:#1e2a33;box-shadow:0 3px 14px #142d3620;font:12px/1.5 'Segoe UI',sans-serif}.ts-scene .ts-hint{position:absolute;bottom:12px;left:16px;color:#687983;font:12px 'Segoe UI',sans-serif;pointer-events:none}.train-scene .ts-scene .ts-fallback{width:100%;height:100%;display:none!important}.train-scene .ts-scene.ts-failed .ts-fallback{display:block!important}.ts-scene.ts-failed canvas{display:none}.ts-scene .ts-fallback [data-region]{cursor:pointer;stroke:#60727b;stroke-width:1.2;transition:fill .12s}.ts-scene .ts-fallback [data-region].ts-active{stroke:#bd8a24;stroke-width:4}.ts-scene .ts-fallback [data-region].ts-hover{stroke:#bd8a24;stroke-width:3}.ts-scene .ts-fallback [data-region]:focus{outline:none;stroke:#2563eb;stroke-width:3}@media(prefers-reduced-motion:reduce){.ts-scene .ts-fallback [data-region]{transition:none}}@media print{.ts-scene canvas,.ts-scene .ts-hint,.ts-scene .ts-tip{display:none!important}.train-scene .ts-scene .ts-fallback{display:block!important}}
+.ts-scene{position:relative;width:100%;height:100%;min-height:0;flex:1 1 auto;overflow:hidden;background:radial-gradient(ellipse at 50% 65%,#edf2f3 0%,#f8fafb 65%,#fff 100%);isolation:isolate}.ts-scene canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}.ts-scene canvas:active{cursor:grabbing}.ts-scene .ts-tip{position:absolute;z-index:3;pointer-events:none;max-width:270px;padding:9px 12px;border:1px solid #dce2e6;border-radius:6px;background:#fff;color:#1e2a33;box-shadow:0 3px 14px #142d3620;font:12px/1.5 'Segoe UI',sans-serif}.ts-scene .ts-hint{position:absolute;bottom:12px;left:16px;color:#687983;font:12px 'Segoe UI',sans-serif;pointer-events:none}.train-scene .ts-scene .ts-fallback{width:100%;height:100%;display:none!important}.train-scene .ts-scene.ts-failed .ts-fallback{display:block!important}.ts-scene.ts-failed canvas{display:none}.ts-scene .ts-fallback [data-region]{cursor:pointer;stroke:#60727b;stroke-width:1.2;transition:fill .12s}.ts-scene .ts-fallback [data-region].ts-active{stroke:#2267e8;stroke-width:4}.ts-scene .ts-fallback [data-region].ts-hover{stroke:#2267e8;stroke-width:3}.ts-scene .ts-fallback [data-region]:focus{outline:none;stroke:#2563eb;stroke-width:3}@media(prefers-reduced-motion:reduce){.ts-scene .ts-fallback [data-region]{transition:none}}@media print{.ts-scene canvas,.ts-scene .ts-hint,.ts-scene .ts-tip{display:none!important}.train-scene .ts-scene .ts-fallback{display:block!important}}
 </style><div class="ts-tip" hidden></div><span class="ts-hint">Drag to rotate · select a system to explore</span>`;
   container.append(root);
   const tip = root.querySelector(".ts-tip"),
@@ -97,15 +103,30 @@ export function mountTrain(container, options) {
     "M130 234H233V252H130Z M640 234H743V252H640Z M146 250a16 16 0 1 0 32 0a16 16 0 1 0 -32 0 M194 250a16 16 0 1 0 32 0a16 16 0 1 0 -32 0 M650 250a16 16 0 1 0 32 0a16 16 0 1 0 -32 0 M698 250a16 16 0 1 0 32 0a16 16 0 1 0 -32 0",
     "#344957",
   );
+  // Keep the printable / no-WebGL elevation grounded on the same sleeper track.
+  const track = document.createElementNS(svgNS, "g");
+  for (let x = 50; x <= 850; x += 28) {
+    const sleeper = document.createElementNS(svgNS, "rect");
+    for (const [key, value] of Object.entries({ x, y: 267, width: 12, height: 12, fill: "#a7afb2" }))
+      sleeper.setAttribute(key, value);
+    track.append(sleeper);
+  }
+  const rail = document.createElementNS(svgNS, "path");
+  rail.setAttribute("d", "M45 267H865 M45 274H865");
+  rail.setAttribute("stroke", "#7a8d97");
+  rail.setAttribute("stroke-width", "3");
+  track.append(rail);
+  svg.insertBefore(track, svg.firstChild);
   root.prepend(svg);
+  let fitView = () => {};
   let renderer,
     scene,
     camera,
     assembly,
     resizeObserver,
     frame = 0,
-    yaw = -0.36,
-    pitch = 0.27,
+    yaw = defaultYaw,
+    pitch = defaultPitch,
     distance = 19,
     drag = null;
   const canvasEvents = new AbortController();
@@ -128,15 +149,14 @@ export function mountTrain(container, options) {
   }
   function paint() {
     for (const m of meshes) {
+      const active = m.userData.regionId && m.userData.regionId === selected;
+      const over = m.userData.regionId && m.userData.regionId === hovered;
       m.material.color.set(m.userData.base);
-      m.material.emissive.set(
-        m.userData.regionId === selected
-          ? "#96651a"
-          : m.userData.regionId === hovered
-            ? "#bb851e"
-            : "#000000",
-      );
-      m.material.emissiveIntensity = 0.19;
+      if (active) m.material.color.set(selectionColor);
+      else if (over) m.material.color.lerp(new Color(selectionColor),0.55);
+      m.material.emissive.set(active ? (selectionColor) : "#000000");
+      m.material.emissiveIntensity = active ? 0.16 : 0;
+
     }
     svg.querySelectorAll("[data-region]").forEach((p) => {
       p.classList.toggle("ts-active", p.dataset.region === selected);
@@ -195,11 +215,11 @@ export function mountTrain(container, options) {
   function cameraView() {
     if (!renderer) return;
     camera.position.set(
-      Math.sin(yaw) * distance,
-      1.15 + Math.sin(pitch) * distance,
+      viewTarget.x + Math.sin(yaw) * distance,
+      viewTarget.y + Math.sin(pitch) * distance,
       Math.cos(yaw) * distance,
     );
-    camera.lookAt(0, 1.15, 0);
+    camera.lookAt(viewTarget);
     camera.updateMatrixWorld();
     requestRender();
   }
@@ -209,6 +229,7 @@ export function mountTrain(container, options) {
       alpha: true,
       powerPreference: "low-power",
     });
+    renderer.shadowMap.enabled = true;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0xffffff, 0);
     renderer.domElement.setAttribute("aria-hidden", "true");
@@ -220,6 +241,11 @@ export function mountTrain(container, options) {
     scene.add(new HemisphereLight(0xffffff, 0x83939c, 2.5));
     const light = new DirectionalLight(0xffffff, 3);
     light.position.set(-6, 12, 9);
+    light.castShadow = true;
+    light.shadow.mapSize.set(2048, 2048);
+    Object.assign(light.shadow.camera, { left: -13, right: 13, top: 8, bottom: -8 });
+    light.shadow.bias = -0.001;
+    disposables.push(light.shadow);
     scene.add(light);
     function detail(id, geo, x, y, z, color = "#e6e9eb", opacity = 1) {
       const mat = new MeshStandardMaterial({
@@ -229,8 +255,11 @@ export function mountTrain(container, options) {
         transparent: opacity < 1,
         opacity,
       });
+      if (!(geo instanceof CylinderGeometry)) geo.scale(lengthScale, 1, 1);
       const mesh = new Mesh(geo, mat);
-      mesh.position.set(x, y, z);
+      mesh.castShadow = id !== null;
+      mesh.receiveShadow = true;
+      mesh.position.set(x * lengthScale, y, z);
       mesh.userData = { regionId: id, base: color };
       assembly.add(mesh);
       meshes.push(mesh);
@@ -244,7 +273,8 @@ export function mountTrain(container, options) {
       const geo = new BoxGeometry(w, h, d),
         mat = new MeshBasicMaterial({ visible: false });
       const m = new Mesh(geo, mat);
-      m.position.set(x, y, z);
+      geo.scale(lengthScale, 1, 1);
+      m.position.set(x * lengthScale, y, z);
       m.userData.regionId = id;
       assembly.add(m);
       proxies.push(m);
@@ -379,33 +409,44 @@ export function mountTrain(container, options) {
     proxy("traction", -1.8, 0.8, 0, 2.3, 0.5, 1.9);
     box("braking", 1, 0.81, 0, 1.5, 0.37, 1.4, "#82929d");
     proxy("braking", 1, 0.8, 0, 1.6, 0.5, 1.9);
+    // Shallow bogie: horizontal side frames, recessed suspension, steel wheel faces.
     for (const x of [-4.1, 3.6]) {
-      box("bogie_structure", x, 0.64, 0, 1.7, 0.24, 1.65, "#405564");
+      box("bogie_structure", x, 0.91, 0, 1.72, 0.12, 1.45, "#35434c");
+      for (const z of [-0.65, 0.65]) {
+        box("bogie_structure", x, 0.65, z, 1.52, 0.10, 0.15, "#394952");
+        for (const dx of [-0.32, 0.32])
+          box("bogie_structure", x + dx, 0.80, z * 0.68, 0.20, 0.16, 0.25, "#26333b");
+      }
       proxy("bogie_structure", x, 0.55, 0, 1.9, 0.7, 2.05);
-      for (const dx of [-0.52, 0.52])
+      for (const dx of [-0.52, 0.52]) {
+        const axle = detail("bogie_structure", new CylinderGeometry(0.065,0.065,1.8,16), x+dx,0.43,0,"#596670");
+        axle.rotation.x = Math.PI / 2;
         for (const z of [-0.89, 0.89]) {
-          const wheel = detail(
-            "bogie_structure",
-            new CylinderGeometry(0.34, 0.34, 0.19, 24),
-            x + dx,
-            0.43,
-            z,
-            "#283d4b",
-          );
-          wheel.rotation.x = Math.PI / 2;
-          const disc = detail(
-            "braking",
-            new CylinderGeometry(0.19, 0.19, 0.205, 24),
-            x + dx,
-            0.43,
-            z,
-            "#98a7b0",
-          );
-          disc.rotation.x = Math.PI / 2;
+          const sign = Math.sign(z);
+          for (const [radius, depth, offset, color, id] of [
+            [0.34,0.19,0,"#28323a","bogie_structure"],
+            [0.30,0.018,0.10,"#7c8990","bogie_structure"],
+            [0.245,0.022,0.114,"#3c4851","bogie_structure"],
+            [0.09,0.038,0.134,"#86939a","braking"]
+          ]) {
+            const wheel=detail(id,new CylinderGeometry(radius,radius,depth,40),x+dx,0.43,z+sign*offset,color);
+            wheel.rotation.x=Math.PI/2;
+            wheel.material.metalness=0.55;
+          }
+          for(let j=0;j<6;j++) {
+            const a=j*Math.PI/3;
+            const bolt=detail("bogie_structure",new CylinderGeometry(0.018,0.018,0.018,8),x+dx+Math.cos(a)*0.17/lengthScale,0.43+Math.sin(a)*0.17,z+sign*0.132,"#1d282e");
+            bolt.rotation.x=Math.PI/2;
+          }
         }
+      }
     }
     for (const z of [-0.9, 0.9])
       box(null, 0, 0.07, z, 13.3, 0.04, 0.055, "#c2cdd3");
+    // Sleeper tops meet the rails; the wheel treads meet the rail heads.
+    for (let x = -6.4; x <= 6.5; x += 0.43)
+      box(null, x, -0.005, 0, 0.13, 0.09, 2.65, "#a7afb2");
+    box(null, 0, -0.15, 0, 13.7, 0.16, 3.35, "#e4e9e9");
     const raycaster = new Raycaster(),
       pointer = new Vector2();
     function hit(e) {
@@ -443,7 +484,7 @@ export function mountTrain(container, options) {
         if (drag.moved >= 4) {
           yaw = Math.max(-0.61, Math.min(0.61, drag.yaw + dx * 0.004));
           pitch = Math.max(0.14, Math.min(0.524, drag.pitch + dy * 0.003));
-          cameraView();
+          resize();
           setHover(null);
         }
       } else {
@@ -487,17 +528,18 @@ export function mountTrain(container, options) {
         cameraView();
         let extentX = 0,
           extentY = 0;
-        for (const x of [-6.3, 6.3])
-          for (const y of [0, 3.9])
-            for (const z of [-1.5, 1.5]) {
+        for (const x of [-6.9 * lengthScale, 6.9 * lengthScale])
+          for (const y of [-0.23, 3.75])
+            for (const z of [-1.7, 1.7]) {
               const point = new Vector3(x, y, z).project(camera);
               extentX = Math.max(extentX, Math.abs(point.x));
               extentY = Math.max(extentY, Math.abs(point.y));
             }
-        distance *= Math.max(extentX / 0.93, extentY / 0.78);
+        distance *= Math.max(extentX / 0.92, extentY / 0.84);
       }
       cameraView();
     }
+    fitView = resize;
     resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(root);
     resize();
@@ -528,9 +570,9 @@ export function mountTrain(container, options) {
       setHover(id);
     },
     resetView() {
-      yaw = -0.36;
-      pitch = 0.27;
-      if (camera) cameraView();
+      yaw = defaultYaw;
+      pitch = defaultPitch;
+      if (camera) fitView();
       setHover(null);
     },
     destroy() {

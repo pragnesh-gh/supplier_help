@@ -116,6 +116,81 @@ class AppTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             workspace.put({'compare': list(self.assistant.rows)[:21]})
 
+    def test_radar_values_citations_and_null_survive_workspace(self):
+        self.assistant.rows['SUPP_00012']['risk_financial'] = None
+        result = self.assistant.answer({'message': 'Show a risk profile radar for SUPP_00012 SUPP_00450', 'mode': 'deep'})
+        chart = result['chart']
+        self.assertEqual(chart['type'], 'radar')
+        self.assertEqual(len(chart['axes']), 6)
+        by_citation = {c['id']: c for c in result['citations']}
+        for series in chart['series']:
+            expected = self.assistant.rows[series['id']]
+            for axis, value, reference in zip(chart['axes'], series['values'], series['citation_ids']):
+                self.assertEqual(value, expected[axis['key']])
+                self.assertEqual(by_citation[reference]['value'], value)
+                self.assertEqual(by_citation[reference]['sha256'], self.data['manifest']['augmentation']['sha256'])
+            available = [(value, reference) for value, reference in zip(series['values'], series['citation_ids']) if value is not None]
+            for value, reference in [min(available, key=lambda pair: pair[0]), max(available, key=lambda pair: pair[0])]:
+                self.assertIn(f'{value:.1f} [{reference}]', result['answer'])
+        self.assertIsNone(chart['series'][0]['values'][0])
+        self.assertIn('Unknown', result['answer'])
+        self.assertIn('rounded to 1 decimal', result['answer'])
+        workspace = Workspace(self.temp.name, self.assistant.rows)
+        workspace.put({'chat': [{'role': 'assistant', **result}]})
+        self.assertEqual(Workspace(self.temp.name, self.assistant.rows).get()['chat'][0]['chart'], chart)
+
+    def test_radar_summary_handles_all_unknown_and_keeps_exact_chart_values(self):
+        row = self.assistant.rows['SUPP_00012']
+        for axis in self.data['manifest']['axes']:
+            row[axis['field']] = None
+        result = self.assistant.answer({'message': 'Radar SUPP_00012'})
+        self.assertIn('All six derived axes are Unknown', result['answer'])
+        self.assertEqual(result['chart']['series'][0]['values'], [None] * 6)
+        row['risk_financial'] = 42.333333333333336
+        result = self.assistant.answer({'message': 'Radar SUPP_00012'})
+        self.assertIn('42.3 [D1]', result['answer'])
+        self.assertNotIn('42.333333333333336', result['answer'])
+        self.assertEqual(result['chart']['series'][0]['values'][0], 42.333333333333336)
+        self.assertEqual(result['citations'][0]['value'], 42.333333333333336)
+
+    def test_research_chart_counts_evidence_without_numeric_risk(self):
+        run = {'status': 'completed', 'sources': [{'id': 'S1', 'title': 'Source'}],
+               'findings': [{'id': 'F1', 'category': 'financial', 'source_ids': ['S1']},
+                            {'id': 'F2', 'category': 'financial', 'source_ids': ['S1']}]}
+        self.service.store.get = lambda run_id: run
+        result = self.assistant.answer({'message': 'Show a radar chart', 'run_id': 'example'})
+        self.assertEqual(result['chart']['type'], 'bar')
+        self.assertEqual(result['chart']['points'][0]['value'], 2)
+        self.assertEqual(result['chart']['points'][1]['value'], 0)
+        self.assertIn('risk scores are in the report', result['answer'])
+        self.assertEqual(result['citations'][0]['kind'], 'dossier')
+        self.assertEqual(result['citations'][0]['finding_ids'], ['F1', 'F2'])
+        self.assertEqual(result['citations'][0]['source_ids'], ['S1'])
+        run['status'] = 'running'
+        with self.assertRaisesRegex(ValueError, 'complete'):
+            self.assistant.answer({'message': 'Show a chart', 'run_id': 'example'})
+
+    def test_bar_inline_citations_follow_ranked_cells(self):
+        result = self.assistant.answer({'message': 'Rank lowest financial SUPP_00012 SUPP_00450'})
+        for point, citation in zip(result['chart']['points'], result['citations']):
+            self.assertEqual(point['label'], citation['supplier_id'])
+            self.assertEqual(point['value'], citation['value'])
+            self.assertEqual(point['citation_ids'], [citation['id']])
+            self.assertIn(f"{point['value']} [{citation['id']}]", result['answer'])
+
+    def test_research_coverage_routing_requires_evidence_or_chart_request(self):
+        calls = []
+        self.service.chat = lambda run_id, message: calls.append(message) or {'answer': 'Dossier response', 'source_ids': []}
+        self.service.store.get = lambda run_id: {'status': 'completed', 'sources': [], 'findings': []}
+        for question in ['Does insurance coverage include flooding?', 'Show geographic presence', 'What does its chart of accounts include?']:
+            result = self.assistant.answer({'message': question, 'run_id': 'example'})
+            self.assertEqual(result['answer'], 'Dossier response')
+            self.assertNotIn('chart', result)
+        self.assertEqual(len(calls), 3)
+        result = self.assistant.answer({'message': 'Show evidence coverage chart', 'run_id': 'example'})
+        self.assertEqual(result['chart']['metric'], 'retained_observations')
+        self.assertEqual(len(calls), 3)
+
     def test_recents_preserve_mru_order_and_validate_identity(self):
         workspace = Workspace(self.temp.name, self.assistant.rows)
         self.assertEqual(workspace.get()['recents'], [])

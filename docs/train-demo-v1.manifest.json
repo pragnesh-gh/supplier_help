@@ -362,6 +362,6 @@
     "three_revision": "170",
     "vendor_path": "prototype/v2/vendor/three.module.min.js",
     "vendor_sha256": "ce1fa418de16a19495a9f72495580e3015d7745c296d3ce0485897f902ddedfb",
-    "renderer_sha256": "a6872e2dc23e91a6151d5a033f5ab6343087297f01ba7471cc4832221f554bbb"
+    "renderer_sha256": "bd94966c254f32a61a38225d9f568895df719082a8074c08ff9dd832dbfe5225"
   }
 }

@@ -1,3 +1,5 @@
+> This is the standalone research CLI imported from the research-agent branch. The unified web app continues to use `research_agent/core.py`; this CLI is not yet wired into its Reports page. Run the existing standalone web UI with `python -m research_agent`.
+
 # Research agent (first draft)
 
 A bounded "deep research" agent for the Siemens supplier-risk challenge. A buyer names a real company; the agent confirms the legal entity, plans its research, searches trusted public sources first, fills gaps from the open web (clearly marked as unverified), digs deeper on red flags, and returns a short risk report with source links.
@@ -68,9 +70,9 @@ How the budget is split, and why:
 pip install --break-system-packages -r research_agent/requirements.txt
 cp research_agent/.env.example research_agent/.env      # add ANTHROPIC_API_KEY, TAVILY_API_KEY
 
-python -m research_agent --check                         # validates config and keys; no paid calls
-python -m research_agent --fixture                       # offline demo on invented data
-python -m research_agent "Knorr-Bremse" --country DE --website knorr-bremse.com
+python -m research_agent.cli --check                         # validates config and keys; no paid calls
+python -m research_agent.cli --fixture                       # offline demo on invented data
+python -m research_agent.cli "Knorr-Bremse" --country DE --website knorr-bremse.com
 ```
 
 Output goes to `research_agent/output/<slug>-<date>/report.md` and `result.json`. The folder is git-ignored. Progress lines print to stderr.

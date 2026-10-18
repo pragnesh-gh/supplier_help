@@ -1,8 +1,11 @@
-import { api, safeURL } from "./api.js";
+import { api } from "./api.js";
 import { icon } from "./icons.js";
-import { citeChip, createCitationPanel, findCitation } from "./citations.js";
+import { renderAnswer, renderSources, renderCharts } from "./chat-results.js";
+import { createCitationPanel, findCitation } from "./citations.js";
 import { researchCard, offerCard } from "./research-card.js";
-
+// The assistant's display name lives here only. Gretel follows the trail of
+// breadcrumbs, a fit for tracing supply chains.
+export const ASSISTANT_NAME = "Gretel";
 export function createChat({
   esc,
   selected,
@@ -20,52 +23,76 @@ export function createChat({
     messages: getMessages(),
     open: false,
     busy: false,
-    run: null, // the most recent run (kept for app callers)
-    runs: {}, // run id -> latest run object
-    pinned: null, // run id the follow-up questions are about
+    mode: "auto",
+    run: null,
     clarify: false,
     config: null,
-    pending: {}, // run id -> card action in progress ("favorite", "shortlist", "compare")
-    notes: {}, // run id -> { text, href, link, error } shown under the card's actions
+    expanded: false,
+    activeRunId: null,
+    details: new Map(),
+    runs: {}, // run id -> latest run object
+    pinned: null, // run id the follow-up questions are about
+    pending: {}, // run id -> card action in progress
+    notes: {}, // run id -> feedback shown under the card actions
   };
   const drawer = document.querySelector("#chat-drawer"),
     launch = document.querySelector("#chat-launch");
+  launch.innerHTML = `${icon("chat")}<span>Ask ${ASSISTANT_NAME}</span>`;
+  launch.setAttribute("aria-label", `Open ${ASSISTANT_NAME}, the sourcing assistant`);
+  drawer.setAttribute("aria-label", `${ASSISTANT_NAME} · sourcing assistant`);
   const panel = createCitationPanel({ esc });
-  const timers = {};
-  let generation = 0,
+  let pollTimer,
+    generation = 0,
     forceScroll = false;
-
-  function citation(c, index, m) {
-    if (c.kind === "web" && c.n !== undefined) return citeChip(c, esc, c.run_id || "");
-    const label =
-      c.kind === "dataset"
-        ? `${c.supplier_id || "CSV"} · ${c.column || c.title || "source cells"}`
-        : c.title || "Public source";
-    return c.url
-      ? `<a class="citation-chip" href="${esc(safeURL(c.url))}" target="_blank" rel="noopener noreferrer" title="${esc(label + " · " + c.url)}"><b>${index + 1}</b><span class="chip-label">${esc(label)}</span></a>`
-      : `<button class="citation-chip" data-citation="${esc(c.supplier_id || "")}" data-column="${esc(c.column || "")}" title="${esc(label + " = " + (c.value ?? c.title ?? "source cell"))}">${icon("description")}<b>${index + 1}</b><span class="chip-label">${esc(label)}</span></button>`;
-  }
-  function chart(c) {
-    if (!c?.points?.length) return "";
-    const points = c.points.filter((p) => Number.isFinite(p.value));
-    const max = Math.max(1, ...points.map((p) => Math.abs(p.value)));
-    return `<div class="chat-chart"><strong>${esc(c.label || c.metric)}</strong><p class="small muted">${esc(c.metric || "")} · catalogue snapshot</p>${points.map((p) => `<div class="chart-point"><button data-chart-label="${esc(p.label)}" title="Inspect ${esc(p.label)}">${esc(p.label)}</button><div class="chart-bar"><i style="width:${(Math.max(0, p.value) / max) * 100}%"></i></div><strong>${esc(p.value)}</strong></div>`).join("")}<details><summary>View exact values</summary><table><thead><tr><th>Supplier</th><th>${esc(c.metric || "Value")}</th></tr></thead><tbody>${points.map((p) => `<tr><td>${esc(p.label)}</td><td>${esc(p.value)}</td></tr>`).join("")}</tbody></table></details></div>`;
-  }
-  // Reports made before the current research pipeline keep their simple summary block.
-  function legacyRun(r) {
-    const done = r.status === "completed";
-    return `<section class="research-progress"><div class="row spread"><strong>${esc(r.company)}</strong><span class="small muted">${esc(r.status)}</span></div>${done ? `<p>${esc(r.summary || "Report ready.")}</p><div class="actions"><button data-research-report="${esc(r.id)}">${icon("description", "sm")}Open report</button><button data-research-save="${esc(r.id)}">Save to my suppliers</button></div>` : ""}${r.status === "failed" ? `<p role="alert">${esc(r.error || "Research could not complete.")}</p>` : ""}</section>`;
+  function progress(r) {
+    if (!r) return "";
+    const events = r.events || [];
+    const completed = r.status === "completed";
+    const terminal = completed || r.status === "failed";
+    const covered = new Set((r.findings || []).map((f) => f.category)).size;
+    const sourceIds = new Set((r.sources || []).map(source => source.id));
+    const findingBrief = (r.findings || []).slice(0, 2).map(finding => {
+      const refs = (finding.source_ids || []).filter(id => sourceIds.has(id));
+      const text = [finding.detail || finding.title || "", refs.map(id => `[${id}]`).join(" ")].filter(Boolean).join(" ");
+      return `<li>${renderAnswer(text, r.sources || [])}</li>`;
+    }).join("");
+    const completion = completed
+      ? `<div class="research-completion"><div class="eyebrow">Research brief</div><h3>What we found</h3><p>${esc(r.summary || "Research dossier ready for review.")}</p>${findingBrief ? `<ul class="research-finding-brief">${findingBrief}</ul>` : ""}<p class="small muted">${(r.sources || []).length} sources &middot; ${(r.findings || []).length} observations &middot; ${covered}/${(r.plan || []).length || 6} categories with observations</p><div class="actions"><button data-chat-prompt="Show evidence coverage chart">Show evidence chart</button><button data-chat-report="${esc(r.id)}">${icon("description", "sm")}Read report</button><button data-chat-add="${esc(r.id)}">Add as unscored supplier</button></div><p class="small muted">Coverage remains partial; completion is not supplier approval.</p></div>`
+      : "";
+    return `<section class="research-progress"><div class="row spread"><strong>${esc(r.company)} · ${esc(r.status)}</strong><span>${r.mode === "deep" ? "Deep" : "Basic"}</span></div><p>${r.demo ? "Saved historical example · no live retrieval" : "Live public research · server events"}</p>${completion}<details class="research-plan" data-detail-key="plan-${esc(r.id)}"><summary>Research plan &middot; ${(r.plan || []).length} workstreams</summary><ul>${(
+      r.plan || []
+    )
+      .map((p) => {
+        const searched = events.some(
+          (e) => e.stage === "search" && e.message.startsWith(p.category + ":"),
+        );
+        const failed = events.some(
+          (e) =>
+            e.stage === "search_error" &&
+            e.message.startsWith(p.category + ":"),
+        );
+        const savedEvidence =
+          r.demo && (r.findings || []).some((f) => f.category === p.category);
+        const label = failed
+          ? "Search failed"
+          : searched
+            ? "Retrieved - review remains partial"
+            : savedEvidence
+              ? "Saved observations"
+              : r.status === "completed"
+                ? "No live category retrieval"
+                : "Pending retrieval";
+        return `<li>${failed ? "!" : searched || savedEvidence ? "&#10003;" : "&#9675;"} <strong>${esc(p.category.replaceAll("_", " "))}</strong><span class="small muted"> - ${label}</span><details data-detail-key="questions-${esc(r.id)}-${esc(p.category)}"><summary>Research questions</summary>${(p.questions || []).map((q) => `<p>${esc(q)}</p>`).join("")}</details></li>`;
+      })
+      .join(
+        "",
+      )}</ul></details><details data-detail-key="activity-${esc(r.id)}" ${completed ? "" : "open"}><summary><span class="activity-dot ${terminal ? "done" : ""}"></span>${r.status === "failed" ? "Research stopped" : completed ? "Research activity" : "Working - " + esc(events.at(-1)?.stage?.replaceAll("_", " ") || "queued")} <span class="activity-count">${events.length} events</span></summary><div class="research-events">${events.map((e) => `<p><small>${esc(e.at)}</small><br><strong>${esc(e.stage.replaceAll("_", " "))}</strong> · ${esc(e.message)}</p>`).join("") || "<p>Queued on server. Waiting for first event.</p>"}</div></details>${r.status === "failed" ? `<p role="alert">${esc(r.error || "Research failed. No fallback evidence generated.")}</p>` : ""}</section>`;
   }
   function runBlock(id) {
     const r = state.runs[id];
-    if (!r) return `<button data-resume-run="${esc(id)}">${icon("history", "sm")}Show research result</button>`;
-    if (r.schema_version !== "research-run-v2") return legacyRun(r);
+    if (!r) return `<button data-resume-run="${esc(id)}">${icon("history", "sm")}Open research activity</button>`;
+    if (r.schema_version !== "research-run-v2") return progress(r); // runs made before the current pipeline keep the activity view
     return researchCard(r, { esc, isFavorite, inCompare, inShortlist, pinned: state.pinned === id, pending: state.pending[id] || null, note: state.notes[id] || null });
-  }
-  function messageHTML(m, index) {
-    const user = m.role === "user";
-    const body = m.run_id && !user && /^Researching /.test(m.answer || "") ? "" : esc(m.answer || m.content || "");
-    return `<article class="chat-message ${user ? "user" : "assistant"}${m.run_id ? " has-card" : ""}"><span class="message-label">${user ? "YOU" : "SOURCING ASSISTANT"}</span>${body}${(m.citations || []).length ? `<div class="source-chip-list">${m.citations.map((c, i) => citation(c, i, m)).join("")}</div>` : ""}${chart(m.chart)}${m.kind === "offer" ? offerCard(m, esc, index) : ""}${m.run_id ? runBlock(m.run_id) : ""}</article>`;
   }
   function pinnedBar() {
     const r = state.runs[state.pinned];
@@ -75,63 +102,115 @@ export function createChat({
   }
   function render() {
     if (!state.open) return;
+    drawer.querySelectorAll("details[data-detail-key]").forEach(el => state.details.set(el.dataset.detailKey, el.open));
     const identityForm = drawer.querySelector("#identity-form"),
-      identityValues = identityForm ? Object.fromEntries(new FormData(identityForm)) : {},
+      identityValues = identityForm
+        ? Object.fromEntries(new FormData(identityForm))
+        : {},
       identityOpen = drawer.querySelector(".identity-form")?.open;
+    const activeField = document.activeElement;
+    const activeName = identityForm?.contains(activeField) ? activeField.name : null;
+    const activePosition = activeName ? activeField.selectionStart : null;
     const oldList = drawer.querySelector(".chat-messages"),
       oldScroll = oldList?.scrollTop || 0,
-      stick = !oldList || oldList.scrollHeight - oldList.clientHeight - oldScroll < 65;
+      stick =
+        !oldList ||
+        oldList.scrollHeight - oldList.clientHeight - oldScroll < 65;
     const input = drawer.querySelector("textarea"),
       value = input?.value || "",
       focused = document.activeElement === input,
       pos = input?.selectionStart;
     drawer.hidden = false;
+    drawer.classList.toggle("chat-expanded", state.expanded);
     launch.setAttribute("aria-expanded", "true");
     launch.hidden = true;
-    const offline = state.config?.offline_fixture;
-    const unavailable = state.config && !state.config.live_available && !offline;
-    drawer.innerHTML = `<div class="chat-head"><div><h2>${icon("chat")}Sourcing assistant</h2><small>Catalogue questions and company research</small></div><button id="chat-close" class="icon-button quiet" aria-label="Close sourcing assistant">${icon("close")}</button></div><div class="chat-messages" aria-live="polite" aria-relevant="additions text">${state.messages.length ? state.messages.map(messageHTML).join("") : `<div class="chat-empty">${icon("chat", "lg")}<div class="eyebrow" style="margin-top:8px">Catalogue data and public research</div><h2 style="margin-top:10px">What would you like to understand?</h2><p style="margin-top:10px">Compare catalogue values, explain a risk profile, or research a real company from public sources.</p><div class="chat-suggestions"><button data-chat-prompt="Compare financial scores for SUPP_00012, SUPP_00450 and SUPP_00731">Compare three suppliers</button><button data-chat-prompt="Why is SUPP_00012 high risk?">Explain a risk profile</button><button data-offline-example>Offline research example</button></div></div>`}${state.busy ? '<p role="status" class="muted">Working on it…</p>' : ""}</div><div class="chat-composer">${pinnedBar()}<details ${state.clarify || identityOpen ? "open" : ""} class="identity-form"><summary>${icon("expand_more", "sm")}Company details for research</summary><form id="identity-form"><div class="identity-fields"><input name="company" aria-label="Company legal name" placeholder="Company legal name" required maxlength="200"><input name="country" aria-label="Country" placeholder="Country (optional)" maxlength="200"><input name="website" aria-label="Official website" placeholder="Official website (optional)"><input name="scope" aria-label="What you are buying" placeholder="What you are buying (optional)" maxlength="1000"><button class="primary" ${state.busy ? "disabled" : ""}>${icon("search", "sm")}Research this company</button></div></form><button type="button" class="small quiet" data-offline-example>Open the offline example (fictional company)</button></details><form id="assistant-form"><textarea id="assistant-input" aria-label="Message sourcing assistant" placeholder="Ask about suppliers, or name a company to research…" maxlength="4000" required>${esc(value)}</textarea><div class="composer-buttons"><button type="button" id="deep-research" ${state.busy ? "disabled" : ""} title="Research the company named in your message">${icon("search", "sm")}Deep research</button><button class="primary" ${state.busy ? "disabled" : ""} aria-label="Send message" title="Send (Enter)">${icon("arrow_forward")}</button></div></form><div class="chat-context">${offline ? "Offline mode: research runs on an invented example company. " : unavailable ? "Live research is not set up on this server; the offline example still works. " : ""}${selected().filter((id) => id.startsWith("SUPP_")).length ? `${selected().filter((id) => id.startsWith("SUPP_")).length} selected catalogue suppliers included as context. ` : ""}Catalogue scores and public research scores are kept apart.</div></div>`;
-    for (const [name, v] of Object.entries(identityValues)) {
+    drawer.innerHTML = `<div class="chat-head"><div><h2>${icon("chat")}${ASSISTANT_NAME}</h2><small>Your sourcing workspace</small></div><div class="chat-head-actions"><button id="chat-expand" class="quiet" aria-label="${state.expanded ? 'Reduce' : 'Expand'} conversation" aria-pressed="${state.expanded}">${state.expanded ? 'Compact' : 'Expand'}</button><button id="chat-close" class="icon-button quiet" aria-label="Close ${ASSISTANT_NAME}">${icon("close")}</button></div></div><div class="chat-messages" aria-live="polite" aria-relevant="additions text">${state.messages.length ? state.messages.map((m, mi) => `<article class="chat-message ${m.role === "user" ? "user" : "assistant"}${m.run_id ? " has-card" : ""}"><span class="message-label">${m.role === "user" ? "YOU" : ASSISTANT_NAME.toUpperCase()}</span>${m.role === "user" ? `<div class="message-copy">${esc(m.answer || m.content || "")}</div>` : `${m.run_id && /^Researching /.test(m.answer || "") ? "" : `<div class="message-copy">${renderAnswer(m.answer || m.content || "", m.citations)}</div>`}${renderCharts(m, "chart-" + mi)}${renderSources(m.citations, "sources-" + mi)}`}${m.kind === "offer" ? offerCard(m, esc, mi) : ""}${m.run_id ? runBlock(m.run_id) : ""}</article>`).join("") : `<div class="chat-empty">${icon("chat", "lg")}<div class="eyebrow" style="margin-top:8px">Grounded in your sourcing context</div><h2 style="margin-top:10px">What would you like to understand?</h2><p style="margin-top:10px">Compare supplied values, inspect risk profiles, or investigate an identified company with public sources.</p><div class="chat-suggestions"><button data-chat-prompt="Compare financial scores for SUPP_00012, SUPP_00450 and SUPP_00731">Compare three suppliers</button><button data-chat-prompt="Why is SUPP_00012 high risk?">Explain a risk profile</button></div></div>`}${state.busy ? '<p role="status" class="chat-thinking"><span class="activity-dot"></span>Working on your question...</p>' : ""}</div><div class="chat-composer">${pinnedBar()}<details ${state.clarify || identityOpen ? "open" : ""} class="identity-form"><summary>${icon("expand_more", "sm")}Company identity & research scope</summary><p class="small muted">For public research, identify a real company. Catalog context remains separate.</p><form id="identity-form"><div class="identity-fields"><input name="company" aria-label="Company legal name" placeholder="Company legal name" required maxlength="200"><input name="country" aria-label="Country hint" placeholder="Country (optional)" maxlength="200"><input name="website" aria-label="Official website hint" placeholder="Official website (optional)" type="url"><input name="scope" aria-label="Procurement scope" placeholder="Component / procurement scope" maxlength="1000"><button class="primary" ${state.busy ? "disabled" : ""}>${icon("search", "sm")}Research this company</button></div></form><button id="saved-example" type="button" class="small">Open the offline example (fictional company) - no live search</button></details><div class="chat-mode" role="group" aria-label="Research depth"><button type="button" data-chat-mode="auto" aria-pressed="${state.mode === "auto"}">Auto</button><button type="button" data-chat-mode="deep" aria-pressed="${state.mode === "deep"}">${icon("search", "sm")}Deep research</button><span>${state.mode === "deep" ? "Data + public sources" : "Routes your question"}</span></div><form id="assistant-form"><textarea id="assistant-input" aria-label="Message ${ASSISTANT_NAME}" placeholder="Ask about suppliers or research a company…" maxlength="4000" required>${esc(value)}</textarea><button class="primary" ${state.busy ? "disabled" : ""} aria-label="Send message" title="Send (Enter)">${icon("arrow_forward")}</button></form><div class="chat-context">${state.config?.live_available === false ? "Live research is unavailable. Configure the server keys or open the offline example. " : ""}${selected().length ? `${selected().length} selected catalog records included as context.` : "Ask by supplier ID, or identify a real company for research."} Scores describe supplied data. Public evidence does not grant approval.</div></div>`;
+    drawer.querySelectorAll("details[data-detail-key]").forEach(el => { if (state.details.has(el.dataset.detailKey)) el.open = state.details.get(el.dataset.detailKey); });
+    for (const [name, value] of Object.entries(identityValues)) {
       const field = drawer.querySelector(`[name="${name}"]`);
-      if (field) field.value = v;
+      if (field) field.value = value;
     }
     if (focused) {
       drawer.querySelector("textarea").focus();
       drawer.querySelector("textarea").setSelectionRange(pos, pos);
     }
+    if (activeName) {
+      const field = [...drawer.querySelectorAll("#identity-form [name]")].find(el => el.name === activeName);
+      field?.focus();
+      if (field && activePosition !== null && ["text", "search", "url", "tel", "password"].includes(field.type)) field.setSelectionRange(activePosition, activePosition);
+    }
     const list = drawer.querySelector(".chat-messages");
     list.scrollTop = forceScroll || stick ? list.scrollHeight : oldScroll;
     forceScroll = false;
   }
+  // Genie: the drawer stretches up out of the launcher (bottom-right) and tapers back into it on close.
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const funnel = (x) => `polygon(0% 0%, 100% 0%, 100% 100%, ${x}% 100%, ${x * 0.55}% 70%, ${x * 0.15}% 35%)`;
+  let motion = null;
+  function genie(opening) {
+    motion?.cancel();
+    if (!drawer.animate) return (motion = null);
+    const frames = reduceMotion.matches
+      ? [{ opacity: 0 }, { opacity: 1 }]
+      : [
+          { transform: "scale(.16,.07)", clipPath: funnel(80), opacity: 0.5, offset: 0 },
+          { transform: "scale(.5,.75) skewX(-7deg)", clipPath: funnel(62), opacity: 1, offset: 0.4 },
+          { transform: "scale(.92,1) skewX(-2deg)", clipPath: funnel(20), opacity: 1, offset: 0.75 },
+          { transform: "none", clipPath: funnel(0), opacity: 1, offset: 1 },
+        ];
+    motion = drawer.animate(frames, {
+      duration: reduceMotion.matches ? 150 : opening ? 480 : 400,
+      easing: "cubic-bezier(.3,0,.2,1)",
+      direction: opening ? "normal" : "reverse",
+    });
+    return motion;
+  }
   function open() {
     state.open = true;
+    drawer.inert = false;
     render();
-    drawer.querySelector("textarea").focus();
+    genie(true);
+    drawer.querySelector("textarea").focus({ preventScroll: true });
   }
   function close() {
     panel.close();
     state.open = false;
-    drawer.hidden = true;
-    launch.hidden = false;
     launch.setAttribute("aria-expanded", "false");
-    launch.focus();
+    const finish = () => {
+      if (state.open) return;
+      drawer.hidden = true;
+      drawer.inert = false;
+      launch.hidden = false;
+      launch.animate?.([{ opacity: 0, transform: "scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: "cubic-bezier(.2,0,0,1)" });
+      launch.focus();
+    };
+    const out = drawer.hidden ? null : genie(false);
+    if (!out) return finish();
+    drawer.inert = true;
+    out.finished.then(finish, () => {});
   }
   async function poll(id, token = generation) {
-    if (token !== generation || !id) return;
-    clearTimeout(timers[id]);
+    if (token !== generation) return;
+    state.activeRunId = id;
+    clearTimeout(pollTimer);
     try {
       const run = await api("/api/research/" + encodeURIComponent(id));
-      if (token !== generation) return;
-      delete run.report_html; // fetched again by the report view; keep chat state small
+      if (token !== generation || state.activeRunId !== id) return;
+      delete run.report_html; // the report view fetches it; keep chat state small
       state.runs[id] = run;
       state.run = run;
       onReport(run);
       render();
-      if (["queued", "researching"].includes(run.status)) timers[id] = setTimeout(() => poll(id, token), 1500);
+      if (["queued", "researching"].includes(run.status))
+        pollTimer = setTimeout(() => poll(id, token), 1800);
       else onSave();
     } catch (error) {
-      if (token !== generation) return;
-      state.messages.push({ role: "assistant", answer: "Could not load the research result: " + error.message });
+      if (token !== generation || state.activeRunId !== id) return;
+      state.messages.push({
+        role: "assistant",
+        answer: "Research activity unavailable: " + error.message,
+      });
+      state.busy = false;
       render();
       onSave();
     }
@@ -155,9 +234,9 @@ export function createChat({
     try {
       const response = await api("/api/assistant", {
         message,
-        mode: identity.mode || "deep",
+        mode: state.mode,
         selected_ids:
-          runId && !/SUPP_\d{5}|catalog|dataset|compare/i.test(message)
+          runId && !/SUPP_\d{5}|supplied|csv|catalog|dataset|compare/i.test(message)
             ? []
             : selected().filter((id) => id.startsWith("SUPP_")),
         ...identity,
@@ -171,6 +250,7 @@ export function createChat({
         answer: response.answer || response.question || "",
         citations: response.citations || [],
         chart: response.chart,
+        charts: response.charts,
         run_id: response.run_id,
         ...(response.kind === "offer"
           ? { offer: response.offer, company: response.company, country: response.country, website: response.website }
@@ -185,32 +265,11 @@ export function createChat({
       if (token !== generation) return;
       state.messages.push({ role: "assistant", answer: error.message });
     } finally {
-      if (token === generation) {
-        state.busy = false;
-        render();
-        onSave();
-      }
-    }
-  }
-  function lastCompany() {
-    for (const m of [...state.messages].reverse()) {
-      if (m.run_id && state.runs[m.run_id]) return state.runs[m.run_id].requested_company || state.runs[m.run_id].company;
-      if (m.kind === "offer" && m.company) return m.company;
-    }
-    return "";
-  }
-  function startFromInput() {
-    const form = drawer.querySelector("#identity-form");
-    const identity = form ? Object.fromEntries(new FormData(form)) : {};
-    const typed = drawer.querySelector("textarea").value.trim();
-    const company = identity.company?.trim() || typed || lastCompany();
-    if (!company) {
-      state.clarify = true;
+      if (token !== generation) return;
+      state.busy = false;
       render();
-      drawer.querySelector('[name="company"]')?.focus();
-      return;
+      onSave();
     }
-    send(typed || "Research " + company, { ...identity, company: identity.company?.trim() || company, trigger: "button", mode: "deep" });
   }
   async function runExample() {
     const token = generation;
@@ -248,17 +307,6 @@ export function createChat({
     };
     document.body.append(frame);
   }
-  launch.addEventListener("click", open);
-  drawer.addEventListener("submit", (e) => {
-    if (e.target.id === "identity-form") {
-      e.preventDefault();
-      const identity = Object.fromEntries(new FormData(e.target));
-      send("Research " + identity.company, { ...identity, trigger: "form" });
-    } else if (e.target.id === "assistant-form") {
-      e.preventDefault();
-      send(drawer.querySelector("textarea").value);
-    }
-  });
   function findMessageCitation(button) {
     const runId = button.dataset.citeRun;
     const n = button.dataset.citeN;
@@ -273,13 +321,35 @@ export function createChat({
     for (const menu of drawer.querySelectorAll(".dl-menu[open]"))
       if (!menu.contains(e.target) || e.target.closest(".dl-options a, .dl-options button")) menu.open = false;
   });
+  launch.addEventListener("click", open);
+  drawer.addEventListener("submit", (e) => {
+    if (e.target.id === "identity-form") {
+      e.preventDefault();
+      const identity = Object.fromEntries(new FormData(e.target));
+      send("Research " + identity.company, { ...identity, trigger: "form" });
+    } else if (e.target.id === "assistant-form") {
+      e.preventDefault();
+      send(drawer.querySelector("textarea").value);
+    }
+  });
+  drawer.addEventListener("change", (e) => {
+    if (e.target.id === "chat-mode") state.mode = e.target.value;
+  });
   drawer.addEventListener("click", async (e) => {
     const b = e.target.closest("button");
     if (!b) return;
     if (b.id === "chat-close") close();
-    if (b.id === "deep-research") startFromInput();
-    if (b.hasAttribute("data-offline-example")) runExample();
+    if (b.id === "chat-expand") { state.expanded = !state.expanded; render(); drawer.querySelector("#chat-expand").focus(); }
+    if (b.dataset.chatMode) { state.mode = b.dataset.chatMode; render(); drawer.querySelector(`[data-chat-mode="${state.mode}"]`).focus(); }
+    if (b.id === "saved-example") runExample();
     if (b.dataset.chatPrompt) send(b.dataset.chatPrompt);
+    if (b.dataset.dossier) {
+      const token = generation;
+      try {
+        const run = state.run?.id === b.dataset.dossier ? state.run : await api("/api/research/" + encodeURIComponent(b.dataset.dossier));
+        if (token === generation) onReport(run, true);
+      } catch (error) { if (token === generation) { state.messages.push({role:"assistant", answer:error.message}); render(); } }
+    }
     if (b.dataset.citation) onCell(b.dataset.citation, b.dataset.column);
     if (b.dataset.chartLabel) {
       const id = b.dataset.chartLabel.match(/SUPP_\d+/)?.[0];
@@ -295,6 +365,7 @@ export function createChat({
       }
     }
     if (b.dataset.resumeRun) poll(b.dataset.resumeRun);
+    if (b.dataset.chatReport) onReport(state.runs[b.dataset.chatReport] || state.run, true);
     if (b.dataset.offerStart !== undefined) {
       const m = state.messages[Number(b.dataset.offerIndex)];
       if (m) m.offer_state = "started";
@@ -419,9 +490,10 @@ export function createChat({
     .catch(() => {});
   function reset() {
     generation++;
-    Object.values(timers).forEach(clearTimeout);
-    panel.close();
+    clearTimeout(pollTimer);
     state.run = null;
+    state.activeRunId = null;
+    panel.close();
     state.runs = {};
     state.pinned = null;
     state.pending = {};
@@ -429,6 +501,7 @@ export function createChat({
     state.messages = [];
     state.busy = false;
     state.clarify = false;
+    state.details.clear();
     render();
     onSave();
   }

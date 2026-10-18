@@ -31,7 +31,7 @@ window.TrainScene = (() => {
     function requestRender(){if(renderer&&!disposed&&!frame)frame=requestAnimationFrame(()=>{frame=0;renderer.render(scene,camera);});}
     function fallback(){root.classList.add('ts-failed');tip.hidden=true;hint.textContent='Illustrative side elevation · select a system';if(frame)cancelAnimationFrame(frame);frame=0;}
     function cameraView(){camera.position.set(Math.sin(yaw)*distance,1.15+Math.sin(pitch)*distance,Math.cos(yaw)*distance);camera.lookAt(0,1.15,0);camera.updateMatrixWorld();requestRender();}
-    try {
+    if(options.flat)fallback();else try {
       renderer=new WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setClearColor(0xffffff,0);renderer.domElement.setAttribute('aria-hidden','true');root.prepend(renderer.domElement);
       scene=new Scene();camera=new PerspectiveCamera(28,1,.1,100);assembly=new Group();scene.add(assembly);scene.add(new HemisphereLight(0xffffff,0x83939c,2.5));const light=new DirectionalLight(0xffffff,3);light.position.set(-6,12,9);scene.add(light);
       function detail(id,geo,x,y,z,color='#e6e9eb',opacity=1){const mat=new MeshStandardMaterial({color,roughness:.57,metalness:.16,transparent:opacity<1,opacity});const mesh=new Mesh(geo,mat);mesh.position.set(x,y,z);mesh.userData={regionId:id,base:color};assembly.add(mesh);meshes.push(mesh);disposables.push(geo,mat);return mesh;}

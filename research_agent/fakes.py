@@ -1,6 +1,6 @@
 """Offline fakes for Tavily and the LLM, driven by a JSON fixture.
 
-Used by the tests and by ``python -m research_agent --fixture`` to produce the
+Used by the tests and by ``python -m research_agent.cli --fixture`` to produce the
 example report without network access or API keys. Nothing here is real research.
 """
 

@@ -6,26 +6,25 @@
   /><title>Train Sourcing</title
   ><link
     rel="icon"
-    href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230f6e74%27/%3E%3C/svg%3E"
+    href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%231f5f5b%27/%3E%3C/svg%3E"
   /><link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="approval.css" />
   <link rel="stylesheet" href="ui.css" />
+  <link rel="stylesheet" href="chat.css" />
   <body>
     <header>
-      <div class="brand"><span aria-hidden="true"><i class="msi msi-train"></i></span>Train Sourcing</div>
+      <a class="brand" href="#/overview" aria-label="Train Sourcing — Overview"><span aria-hidden="true"><i class="msi msi-train"></i></span>Train Sourcing</a>
       <nav id="nav" aria-label="Primary">
-        <a href="#/overview">Overview</a><a href="#/discover">Discovery</a
-        ><a href="#/portfolio">My suppliers</a><a href="#/reports">Reports</a>
-        <a href="#/approvals">Approvals</a>
+        <a href="#/overview"><i class="msi msi-layout-dashboard" aria-hidden="true"></i><span>Overview</span></a
+        ><a href="#/discover"><i class="msi msi-compass" aria-hidden="true"></i><span>Discovery</span></a
+        ><a href="#/portfolio"><i class="msi msi-factory" aria-hidden="true"></i><span>My suppliers</span></a
+        ><a href="#/reports"><i class="msi msi-file-text" aria-hidden="true"></i><span>Reports</span></a
+        ><a href="#/approvals"><i class="msi msi-clipboard-check" aria-hidden="true"></i><span>Approvals</span></a>
       </nav>
-      <div class="header-meta" id="header-count"></div>
-      <div class="row header-actions">
-        <button class="quiet" data-action="provenance">
-          <i class="msi msi-info" aria-hidden="true"></i>Data & assumptions</button
-        ><button class="quiet" data-action="tour">Guided journey</button
-        ><button class="quiet" data-action="reset">
-          <i class="msi msi-restart_alt" aria-hidden="true"></i>Reset</button>
-      </div>
+      <a class="cart-link" href="#/shortlist" aria-label="Shortlist"
+        ><i class="msi msi-list-checks" aria-hidden="true"></i><span class="cart-label">Shortlist</span
+        ><span id="shortlist-count" class="cart-count" hidden></span
+      ></a>
     </header>
     <main id="app"></main>
     <div id="tour-root"></div>
@@ -42,13 +41,14 @@
     <div id="print-root"></div>
     <button
       id="chat-launch"
-      aria-label="Open sourcing assistant"
+      aria-label="Open Gretel, the sourcing assistant"
       aria-expanded="false"
       aria-controls="chat-drawer"
     >
-      <i class="msi msi-chat" aria-hidden="true"></i>Ask Sourcing
+      <i class="msi msi-chat" aria-hidden="true"></i><span>Ask Gretel</span>
     </button>
-    <aside id="chat-drawer" aria-label="Sourcing assistant" hidden></aside>
+    <aside id="chat-drawer" aria-label="Gretel · sourcing assistant" hidden></aside>
     <script type="module" src="app.js"></script>
+    <script type="module" src="list-motion.js"></script>
   </body>
 </html>
