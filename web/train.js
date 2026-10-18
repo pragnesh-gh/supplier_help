@@ -19,6 +19,10 @@ import {
 } from "./vendor/three.module.min.js";
 
 export function mountTrain(container, options) {
+  // Stretch the carbody and fittings, but keep circular wheel geometry round.
+  const lengthScale = 1.45;
+  const defaultYaw = -0.24, defaultPitch = 0.20;
+  const viewTarget = new Vector3(-0.25, 1.75, 0);
   // No idle rotation or inertia: reduced-motion users receive the same stable view.
   let counts = options.counts || {},
     selected = options.selected,
@@ -97,15 +101,30 @@ export function mountTrain(container, options) {
     "M130 234H233V252H130Z M640 234H743V252H640Z M146 250a16 16 0 1 0 32 0a16 16 0 1 0 -32 0 M194 250a16 16 0 1 0 32 0a16 16 0 1 0 -32 0 M650 250a16 16 0 1 0 32 0a16 16 0 1 0 -32 0 M698 250a16 16 0 1 0 32 0a16 16 0 1 0 -32 0",
     "#344957",
   );
+  // Keep the printable / no-WebGL elevation grounded on the same sleeper track.
+  const track = document.createElementNS(svgNS, "g");
+  for (let x = 50; x <= 850; x += 28) {
+    const sleeper = document.createElementNS(svgNS, "rect");
+    for (const [key, value] of Object.entries({ x, y: 267, width: 12, height: 12, fill: "#a7afb2" }))
+      sleeper.setAttribute(key, value);
+    track.append(sleeper);
+  }
+  const rail = document.createElementNS(svgNS, "path");
+  rail.setAttribute("d", "M45 267H865 M45 274H865");
+  rail.setAttribute("stroke", "#7a8d97");
+  rail.setAttribute("stroke-width", "3");
+  track.append(rail);
+  svg.insertBefore(track, svg.firstChild);
   root.prepend(svg);
+  let fitView = () => {};
   let renderer,
     scene,
     camera,
     assembly,
     resizeObserver,
     frame = 0,
-    yaw = -0.36,
-    pitch = 0.27,
+    yaw = defaultYaw,
+    pitch = defaultPitch,
     distance = 19,
     drag = null;
   const canvasEvents = new AbortController();
@@ -195,11 +214,11 @@ export function mountTrain(container, options) {
   function cameraView() {
     if (!renderer) return;
     camera.position.set(
-      Math.sin(yaw) * distance,
-      1.15 + Math.sin(pitch) * distance,
+      viewTarget.x + Math.sin(yaw) * distance,
+      viewTarget.y + Math.sin(pitch) * distance,
       Math.cos(yaw) * distance,
     );
-    camera.lookAt(0, 1.15, 0);
+    camera.lookAt(viewTarget);
     camera.updateMatrixWorld();
     requestRender();
   }
@@ -209,6 +228,7 @@ export function mountTrain(container, options) {
       alpha: true,
       powerPreference: "low-power",
     });
+    renderer.shadowMap.enabled = true;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0xffffff, 0);
     renderer.domElement.setAttribute("aria-hidden", "true");
@@ -220,6 +240,11 @@ export function mountTrain(container, options) {
     scene.add(new HemisphereLight(0xffffff, 0x83939c, 2.5));
     const light = new DirectionalLight(0xffffff, 3);
     light.position.set(-6, 12, 9);
+    light.castShadow = true;
+    light.shadow.mapSize.set(2048, 2048);
+    Object.assign(light.shadow.camera, { left: -13, right: 13, top: 8, bottom: -8 });
+    light.shadow.bias = -0.001;
+    disposables.push(light.shadow);
     scene.add(light);
     function detail(id, geo, x, y, z, color = "#e6e9eb", opacity = 1) {
       const mat = new MeshStandardMaterial({
@@ -229,8 +254,11 @@ export function mountTrain(container, options) {
         transparent: opacity < 1,
         opacity,
       });
+      if (!(geo instanceof CylinderGeometry)) geo.scale(lengthScale, 1, 1);
       const mesh = new Mesh(geo, mat);
-      mesh.position.set(x, y, z);
+      mesh.castShadow = id !== null;
+      mesh.receiveShadow = true;
+      mesh.position.set(x * lengthScale, y, z);
       mesh.userData = { regionId: id, base: color };
       assembly.add(mesh);
       meshes.push(mesh);
@@ -244,7 +272,8 @@ export function mountTrain(container, options) {
       const geo = new BoxGeometry(w, h, d),
         mat = new MeshBasicMaterial({ visible: false });
       const m = new Mesh(geo, mat);
-      m.position.set(x, y, z);
+      geo.scale(lengthScale, 1, 1);
+      m.position.set(x * lengthScale, y, z);
       m.userData.regionId = id;
       assembly.add(m);
       proxies.push(m);
@@ -406,6 +435,13 @@ export function mountTrain(container, options) {
     }
     for (const z of [-0.9, 0.9])
       box(null, 0, 0.07, z, 13.3, 0.04, 0.055, "#c2cdd3");
+    // Sleeper tops meet the rails; the wheel treads meet the rail heads.
+    for (let x = -6.4; x <= 6.5; x += 0.43)
+      box(null, x, -0.005, 0, 0.13, 0.09, 2.65, "#a7afb2");
+    box(null, 0, -0.15, 0, 13.7, 0.16, 3.35, "#e4e9e9");
+    // Visible bolster connections between both bogies and the continuous floor.
+    for (const x of [-4.1, 3.6])
+      box("bogie_structure", x, 0.89, 0, 0.7, 0.30, 1.35, "#405564");
     const raycaster = new Raycaster(),
       pointer = new Vector2();
     function hit(e) {
@@ -443,7 +479,7 @@ export function mountTrain(container, options) {
         if (drag.moved >= 4) {
           yaw = Math.max(-0.61, Math.min(0.61, drag.yaw + dx * 0.004));
           pitch = Math.max(0.14, Math.min(0.524, drag.pitch + dy * 0.003));
-          cameraView();
+          resize();
           setHover(null);
         }
       } else {
@@ -487,17 +523,18 @@ export function mountTrain(container, options) {
         cameraView();
         let extentX = 0,
           extentY = 0;
-        for (const x of [-6.3, 6.3])
-          for (const y of [0, 3.9])
-            for (const z of [-1.5, 1.5]) {
+        for (const x of [-6.9 * lengthScale, 6.9 * lengthScale])
+          for (const y of [-0.23, 3.75])
+            for (const z of [-1.7, 1.7]) {
               const point = new Vector3(x, y, z).project(camera);
               extentX = Math.max(extentX, Math.abs(point.x));
               extentY = Math.max(extentY, Math.abs(point.y));
             }
-        distance *= Math.max(extentX / 0.93, extentY / 0.78);
+        distance *= Math.max(extentX / 0.92, extentY / 0.84);
       }
       cameraView();
     }
+    fitView = resize;
     resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(root);
     resize();
@@ -528,9 +565,9 @@ export function mountTrain(container, options) {
       setHover(id);
     },
     resetView() {
-      yaw = -0.36;
-      pitch = 0.27;
-      if (camera) cameraView();
+      yaw = defaultYaw;
+      pitch = defaultPitch;
+      if (camera) fitView();
       setHover(null);
     },
     destroy() {
