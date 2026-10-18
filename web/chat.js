@@ -166,10 +166,12 @@ export function createChat({
     return motion;
   }
   function open() {
+    const wasOpen = state.open;
     state.open = true;
     drawer.inert = false;
     render();
-    genie(true);
+    // Sending a message also calls open(); only animate a closed-to-open transition.
+    if (!wasOpen) genie(true);
     drawer.querySelector("textarea").focus({ preventScroll: true });
   }
   function close() {
