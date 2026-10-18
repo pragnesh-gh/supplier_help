@@ -52,6 +52,9 @@ These are read-only setup checks, not an implemented LLM backend. They never pri
 ## Read next
 
 - [Reviewed research and design brief](docs/research/review-and-decisions.md)
+- [UX strategy and product requirements](docs/research/ux-strategy-and-requirements.md)
+- [End-to-end UX research plan](docs/research/ux-research-plan.md)
+- [Prototype UX audit and recommended test direction](docs/research/prototype-ux-audit.md)
 - [Buyer roles, demographics and existing tools](docs/research/buyers-and-workflows.md)
 - [Model, speech and agent research (with current scope update)](docs/research/models-speech-and-agents.md)
 - [End-to-end build plan, deliverables and two-minute demo script](docs/delivery-plan.md)

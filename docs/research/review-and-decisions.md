@@ -39,3 +39,9 @@ The initial identity-only company example was too shallow to evaluate the challe
 ## Latest scope decision
 
 The user subsequently deferred OpenAI Decisions. Current implementation planning is rules plus Nemotron, optional editable speech transcription, and Jev via OpenRouter only if text-triage evaluation justifies it. No image workflow is required. Current Jev 1.14 also supports images, so modality alone is not a valid product distinction. See the dated update in `models-speech-and-agents.md`. Shared gateway access uses an OpenRouter-issued key; the existing local `.env` is preserved.
+
+## UI/UX research expansion
+
+The main branch now includes an end-to-end [UX strategy and requirements](ux-strategy-and-requirements.md), a [moderated research plan](ux-research-plan.md), and an expert [prototype UX audit](prototype-ux-audit.md). The audit reviewed all three layouts on desktop and at 390px width. It recommends testing a hybrid—A-style discovery, C-style comparison, and B-style orientation—rather than choosing a layout from internal preference.
+
+This does not close buyer validation. Layout choice, default metrics, mobile scope, voice value, export requirements, and actual system integration remain research questions with pre-committed test criteria.
