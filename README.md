@@ -16,6 +16,8 @@ The landing radar defaults to the lowest supplied-total-risk supplier in the sel
 
 Credentials stay on the server. Without an OpenRouter key, catalogue/data answers and the explicit historical example still work; live web research clearly reports that configuration is needed. Live requests incur provider usage. The app is loopback-only, with durable local workspace and dossier storage. It is a single-user local deliverable, not an authenticated hosted service.
 
+The UI uses a compact Material-style presentation layer based on the supplied design references. Google Material Symbols are vendored locally with their license and pinned source manifest in `web/vendor/material-symbols/`; no runtime font or icon CDN is required.
+
 [Local app guide and code map](docs/local-app.md) ? [Implementation contract](docs/web-app-implementation.md) ? [Two-minute demo journey](docs/local-demo-script.md)
 
 ## Research engine
