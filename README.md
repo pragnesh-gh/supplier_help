@@ -4,9 +4,7 @@
 
 **Start here, reviewers:** a complete narrated walkthrough in 1080p, with background music and captions. No installation or API keys are needed to watch. If your browser downloads the MP4, open it in your video player. [View the GitHub release](https://github.com/pragnesh-gh/supplier_help/releases/tag/demo-knorr-2026-10-18).
 
-### [Watch the human-led walkthrough](https://cap.so/s/2dbjdb7ns5eqg63)
-
-Prefer a personal walkthrough? This human-presented version offers a companion to the concise narrated demo above, giving reviewers another way to explore the solution.
+> **Prefer a human-led walkthrough?** [Watch the companion demo](https://cap.so/s/2dbjdb7ns5eqg63).
 
 ## Judge's checklist
 
