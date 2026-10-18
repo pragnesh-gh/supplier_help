@@ -696,8 +696,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                       : route.startsWith("supplier/")
                         ? detail(decodeURIComponent(route.slice(9)))
                         : overview();
-      $("#header-count").textContent =
-        fmt(catalog().length) + " records · demo assignments";
       const cartCount = document.querySelector("#shortlist-count");
       if (cartCount) {
         cartCount.textContent = String(state.cart.length);

@@ -262,27 +262,6 @@ header { gap: 12px; padding-inline: 24px; }
   font-weight: 600;
 }
 #nav a:focus-visible { outline-offset: 0; }
-.header-meta {
-  margin-left: auto;
-  max-width: 9.5em;
-  font-size: 11px;
-  line-height: 1.25;
-  text-align: right;
-  color: var(--on-surface-variant);
-  opacity: 0.8;
-  white-space: normal;
-}
-/* Header utility actions */
-.header-actions { gap: 2px; flex: none; }
-.header-actions button {
-  gap: 6px;
-  padding: 6px 10px;
-  color: var(--on-surface-variant);
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-.header-actions button:hover:not(:disabled) { color: var(--primary); }
 /* Shortlist cart (badge text is set by approval/shortlist code) */
 .cart-link {
   position: relative;
@@ -290,6 +269,7 @@ header { gap: 12px; padding-inline: 24px; }
   align-items: center;
   gap: 6px;
   flex: none;
+  margin-left: auto;
   min-height: 34px;
   padding: 6px 12px;
   border: 1px solid var(--outline);
@@ -319,25 +299,6 @@ header { gap: 12px; padding-inline: 24px; }
   font-variant-numeric: tabular-nums;
 }
 .cart-count[hidden] { display: none; }
-@media (max-width: 1400px) {
-  /* Utility actions become icon buttons; the label stays for screen readers + tooltip. */
-  .header-actions button { padding: 6px; min-width: 34px; }
-  .header-actions .hdr-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-}
-@media (max-width: 1200px) {
-  .header-meta { display: none; }
-  .header-actions { margin-left: auto; }
-}
-@media (max-width: 1050px) {
-  .cart-link { margin-left: auto; }
-}
 @media (max-width: 650px) {
   header { padding-inline: 12px; }
   .overview .train-card .card-head h2 .msi { display: none; }
