@@ -4,6 +4,20 @@
 
 **Start here, reviewers:** a complete narrated walkthrough in 1080p, with background music and captions. No installation or API keys are needed to watch. If your browser downloads the MP4, open it in your video player. [View the GitHub release](https://github.com/pragnesh-gh/supplier_help/releases/tag/demo-knorr-2026-10-18).
 
+## Judge's checklist
+
+Mapped to the [Siemens challenge brief](docs/siemens-challenge-brief.md). The timestamps below point to evidence in the demo.
+
+- [x] **UI — explore, filter, rank and compare suppliers.** Browse the 10,000-row catalogue by train system and component, compare up to 20 suppliers side by side (16 shown in the demo), inspect risk profiles and build a five-candidate shortlist. **See 0:42–1:06 and 1:16–1:37.**
+- [x] **Chatbot — answer questions grounded in the supplied data.** Ask Gretel a plain-language financial-risk question, inspect the generated chart, and follow its citations to the exact dataset values behind the answer. **See 1:06–1:16.**
+- [x] **AI research agent — investigate a real company and return sourced evidence.** Give the agent Knorr-Bremse AG; follow its research progress, review the six-area risk report and source links, then save the company as a candidate. The pipeline plans searches, gathers public-source evidence and follows up on potential red flags. **See 0:08–0:42; recorded research waiting time is shortened.**
+
+**Creativity — start with the train, finish with a decision.** An interactive 3D train turns a large supplier catalogue into a component-led exploration: select Bogies and watch the assembly unfold. Gretel turns questions into charts with inspectable evidence, while the shortlist carries research gaps and trade-offs into an exportable approval request. The creative thread is one connected buyer journey, from *which part?* to *why these suppliers?*
+
+**Submission deliverables:** source code and challenge data are in this repository; the two-minute demo is linked above. The app is runnable locally using the instructions below. **A deployed live-app URL and jury login are not yet provided**, so that challenge deliverable remains outstanding.
+
+### Demo chapters
+
 | Time | What the demo shows |
 | --- | --- |
 | 0:00 | Select Bogies in the train overview |
