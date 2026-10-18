@@ -1,0 +1,91 @@
+# Research agent settings. Environment variables override the model IDs:
+#   RESEARCH_GATHERER_MODEL, RESEARCH_VERIFIER_MODEL
+
+models:
+  # Small, cheap model: plans queries, resolves identity candidates, extracts candidate facts.
+  gatherer: claude-haiku-5-5
+  # Strong model: checks every candidate fact against its source, picks follow-ups, writes the summary.
+  verifier: claude-opus-5-5
+  max_output_tokens: 4096
+
+budget:
+  wall_clock_seconds: 120        # whole run; on timeout partial results are returned
+  max_searches: 12               # 1 identity + 8 umbrella searches + 2 follow-ups (+1 spare)
+  max_extracts: 12               # full-page extracts via Tavily /extract
+  extracts_reserved_for_followups: 4
+  max_followups: 2               # narrowly scoped red-flag follow-ups
+  pages_per_followup: 2
+  max_results_per_search: 8
+  max_pages_per_umbrella: 3
+  llm_timeout_seconds: 60
+  search_timeout_seconds: 30
+  parallel_workers: 6
+
+recency:
+  default_years: 3               # normal look-back for news and company sources
+  legal_years: 10                # sanctions, insolvency and court matters look further back
+
+tavily:
+  base_url: https://api.tavily.com
+  search_depth: advanced         # 2 credits per search; "basic" costs 1
+  extract_depth: basic
+
+# Six risk umbrellas. Each has one or more searches; tiers are searched in the
+# order listed (official first, then news). "{company}" is replaced with the
+# confirmed legal name. The gatherer model may rephrase "query" but can never
+# change tiers, topic or look-back.
+umbrellas:
+  financial:
+    label: Financial
+    searches:
+      - tiers: [official, company_own]
+        topic: general
+        lookback: default
+        query: "{company} annual report results credit rating"
+      - tiers: [major_news]
+        topic: news
+        lookback: default
+        query: "{company} profit warning OR credit rating OR losses OR results"
+  legal:
+    label: Legal & Compliance
+    searches:
+      - tiers: [official]
+        topic: general
+        lookback: legal
+        query: "{company} sanctions OR insolvency OR fine OR court"
+      - tiers: [major_news]
+        topic: news
+        lookback: legal
+        query: "{company} fine OR lawsuit OR investigation OR corruption OR insolvency"
+  country:
+    label: Country & Location
+    searches:
+      - tiers: [country_data]
+        topic: general
+        lookback: default
+        query: "{country} country risk corruption index"
+  people:
+    label: People & Safety
+    searches:
+      - tiers: [major_news, rail_trade]
+        topic: general
+        lookback: default
+        query: "{company} strike OR accident OR injury OR labour dispute OR human rights"
+  operations:
+    label: Operations & Quality
+    searches:
+      - tiers: [rail_trade, major_news, company_own]
+        topic: general
+        lookback: default
+        query: "{company} recall OR defect OR delivery delay OR cyber attack OR plant OR IRIS certification"
+  reputation:
+    label: Reputation
+    searches:
+      - tiers: [major_news]
+        topic: news
+        lookback: default
+        query: "{company} scandal OR controversy OR governance OR allegations"
+
+identity:
+  tiers: [official, major_news, rail_trade]
+  max_candidates_shown: 5

@@ -1,0 +1,77 @@
+# Flag rulebook. Code (not the language model) decides every colour from this file.
+#
+# The verifier model only labels each verified fact with:
+#   event_type  - one of the names below
+#   severity    - high | medium | low
+# Then these rules decide the colour:
+#   red     = serious red flag
+#   amber   = watch item
+#   green   = strength / positive signal
+#   neutral = recorded, not flagged
+#
+# Rules applied in order:
+#   1. Start with the event type's "colour".
+#   2. If severity is "low" and the colour is red, it becomes amber.
+#   3. If the event happened more than "stale_after_years" ago (default: recency.default_years
+#      in settings.yaml), the colour steps down once: red -> amber, amber -> neutral,
+#      green -> neutral. "stale_after_years: never" means it never goes stale.
+#   4. A fact with colour red and "knockout: true" sets the knock-out verdict.
+#
+# "area" says which of the six risk areas the fact counts towards. "from_search" means
+# the area of the search that found it.
+
+event_types:
+  sanctions_listing:        {colour: red,     area: legal,      knockout: true, stale_after_years: never}
+  insolvency_filing:        {colour: red,     area: financial,  knockout: true, stale_after_years: 10}
+  fraud_or_corruption_case: {colour: red,     area: legal,      stale_after_years: 10}
+  regulatory_fine:          {colour: red,     area: legal,      stale_after_years: 5}
+  major_lawsuit:            {colour: amber,   area: legal,      stale_after_years: 5}
+  forced_labour_or_human_rights_case: {colour: red, area: people, stale_after_years: 5}
+  safety_accident:          {colour: red,     area: people}
+  strike_or_labour_dispute: {colour: amber,   area: people}
+  product_recall:           {colour: amber,   area: operations}
+  cyber_incident:           {colour: amber,   area: operations}
+  plant_disruption:         {colour: amber,   area: operations}
+  delivery_failure:         {colour: amber,   area: operations}
+  credit_downgrade:         {colour: amber,   area: financial}
+  profit_warning:           {colour: amber,   area: financial}
+  leadership_scandal:       {colour: amber,   area: reputation}
+  country_risk_elevated:    {colour: amber,   area: country}
+  iris_certified:           {colour: green,   area: operations}
+  iso_certified:            {colour: green,   area: operations}
+  credit_upgrade_or_strong_results: {colour: green, area: financial}
+  award_or_major_contract:  {colour: green,   area: reputation}
+  company_disclosed_risk:   {colour: neutral, area: from_search}
+  other_neutral:            {colour: neutral, area: from_search}
+
+# Overall verdict: first matching line wins.
+verdict:
+  knockout: "Knock-out risk found — do not proceed without escalation"
+  red: "Red flags — review before shortlisting"
+  amber: "Watch items only"
+  none: "No red flags found in the sources checked"
+  no_evidence: "Not enough evidence — no trusted source returned usable results"
+
+# Recommended next steps for the buyer, chosen by area and colour.
+# The report shows at most three, most serious first.
+next_steps:
+  knockout: "Stop and escalate to Compliance before any further engagement with this supplier."
+  legal:
+    red: "Request a written legal statement on the open matter and its outcome; involve Compliance."
+    amber: "Ask the supplier for the status of the pending legal matter."
+  financial:
+    red: "Request current audited accounts and a credit report before awarding work."
+    amber: "Request the latest financial statements or a credit report and review payment terms."
+  people:
+    red: "Request the incident investigation report and corrective actions; involve HSE."
+    amber: "Ask how labour or safety issues affect delivery capacity for your order."
+  operations:
+    red: "Request quality and delivery evidence (8D reports, IRIS / ISO/TS 22163 certificate)."
+    amber: "Ask for corrective-action evidence and current delivery performance for the affected product line."
+  country:
+    red: "Review country exposure with Compliance and consider an alternate source."
+    amber: "Check alternate sourcing options for the affected country."
+  reputation:
+    red: "Brief your category lead on the controversy before shortlisting."
+    amber: "Note the issue in the shortlist memo and monitor."
+  none: "Continue standard supplier qualification; this report is not a qualification."
