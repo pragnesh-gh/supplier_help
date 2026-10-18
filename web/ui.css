@@ -79,6 +79,13 @@
 .msi-check { --msi: url("vendor/material-symbols/check.svg"); }
 .msi-info { --msi: url("vendor/material-symbols/info.svg"); }
 .msi-expand_more { --msi: url("vendor/material-symbols/expand_more.svg"); }
+/* Lucide outline icons for the header (web/vendor/lucide) */
+.msi-layout-dashboard { --msi: url("vendor/lucide/layout-dashboard.svg"); }
+.msi-compass { --msi: url("vendor/lucide/compass.svg"); }
+.msi-factory { --msi: url("vendor/lucide/factory.svg"); }
+.msi-file-text { --msi: url("vendor/lucide/file-text.svg"); }
+.msi-clipboard-check { --msi: url("vendor/lucide/clipboard-check.svg"); }
+.msi-list-checks { --msi: url("vendor/lucide/list-checks.svg"); }
 .msi-dashboard { --msi: url("vendor/material-symbols/dashboard.svg"); }
 .msi-explore { --msi: url("vendor/material-symbols/explore.svg"); }
 .msi-bookmarks { --msi: url("vendor/material-symbols/bookmarks.svg"); }
@@ -255,7 +262,7 @@ header { gap: 12px; padding-inline: 24px; }
   white-space: nowrap;
   transition: background-color 0.12s, color 0.12s;
 }
-#nav a .msi { width: 20px; height: 20px; vertical-align: 0; }
+#nav a .msi { width: 18px; height: 18px; vertical-align: 0; }
 #nav a:hover { background: var(--surface-container); color: var(--on-surface); }
 #nav a.active,
 #nav a[aria-current="page"] {
@@ -282,7 +289,7 @@ header { gap: 12px; padding-inline: 24px; }
   text-decoration: none;
   white-space: nowrap;
 }
-.cart-link .msi { width: 20px; height: 20px; vertical-align: 0; }
+.cart-link .msi { width: 18px; height: 18px; vertical-align: 0; }
 .cart-link:hover { background: var(--primary-container); border-color: var(--primary); }
 .cart-link.active,
 .cart-link[aria-current="page"] { background: var(--primary-container); border-color: var(--primary); }
