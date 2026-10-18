@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       sourceById = new Map(originals.map((r) => [r.supplierID, r]));
     let train = null,
       partsScene = null,
+      partsRegion = null,
       timer = null,
       toastTimer = null,
       runSequence = 0;
@@ -369,7 +370,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     function detail(id) {
       let r = get(id);
-      if (r) touchSupplier(id);
       if (!r) return '<div class="empty">Record unavailable.</div>';
       return `<div class="screen-title"><div><div class="eyebrow">Catalog record · ${esc(id)}</div><h1>${esc(nameOf(r))}</h1><p class="small muted">${esc(regionLabel(regionOf(r)))} · ${r._research ? "Buyer-selected research association" : "Synthetic assignment"} · ${tags(r)}</p></div><div class="row"><a class="button" href="#/discover">Discovery</a><button class="primary" data-action="recommend" data-id="${esc(id)}">Approval request</button></div></div><div class="two"><section class="card padded"><h2>Risk profile · ${esc(id)}</h2><div style="height:290px">${radar(r, regionOf(r))}</div><p class="small muted">Scores and relationship history do not establish qualification.</p></section><section class="card padded"><h2>Identity & relationship</h2><p style="margin:12px 0">${r._research ? "Public research company record. Exact contracting entity, component fit and current qualification require buyer verification." : "Supplier name is anonymized. No real-company identity or country established."}</p><p class="small muted">Favorites are personal session preferences. Previous use is demo history, not qualification. ${isUsed(r) ? "Demo history: prior-program sourcing; date, outcome, applicability and freshness Unknown." : ""}</p><div class="actions" style="margin-top:12px"><button data-action="favorite" data-id="${esc(id)}">${state.favorites.has(id) ? "Remove favorite" : "Add favorite"}</button><button data-action="toggle-compare" data-id="${esc(id)}">${state.compare.includes(id) ? "Remove from" : "Add to"} comparison</button>${r._research ? `<button data-action="saved-report" data-run="${r._report.id}">Linked risk report</button>` : ""}</div>${r._research ? '<div class="notice" style="margin-top:14px">Separate research-only record. All source scores Unknown and excluded from numeric aggregates.</div>' : ""}</section><section class="card padded" style="grid-column:1/-1"><div class="row spread"><h2>Supplied cells & derived mapping</h2><button data-action="source-cells" data-id="${esc(id)}">Inspect all cells</button></div>${radar(r, regionOf(r), true)}<p class="screen-note">Source Total_Risk_Index weights unavailable; derived axes do not reproduce its weighting.</p></section></div>`;
     }
@@ -470,11 +470,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     function render() {
+      const route = location.hash.replace(/^#\//, "") || "overview";
+      const preservedParts =
+        route === "discover" &&
+        partsScene &&
+        partsRegion === state.filters.region
+          ? $("#parts-scene")
+          : null;
       train?.destroy();
       train = null;
-      partsScene?.destroy();
-      partsScene = null;
-      let route = location.hash.replace(/^#\//, "") || "overview";
+      if (!preservedParts) {
+        partsScene?.destroy();
+        partsScene = null;
+        partsRegion = null;
+      }
+      if (route.startsWith("supplier/") && route !== state.route)
+        touchSupplier(decodeURIComponent(route.slice(9)));
       state.route = route;
       $("#app").innerHTML =
         route === "overview"
@@ -518,13 +529,19 @@ document.addEventListener("DOMContentLoaded", async () => {
           onSelect: selectRegion,
         });
       if (route === "discover" && $("#parts-scene")) {
-        const region = regions.find((r) => r.id === state.filters.region);
-        partsScene = mountParts($("#parts-scene"), {
-          region,
-          counts: partCounts(region),
-          selected: state.filters.part,
-          onSelect: selectPart,
-        });
+        if (preservedParts) {
+          $("#parts-scene").replaceWith(preservedParts);
+          partsScene.highlight(state.filters.part);
+        } else {
+          const region = regions.find((r) => r.id === state.filters.region);
+          partsScene = mountParts($("#parts-scene"), {
+            region,
+            counts: partCounts(region),
+            selected: state.filters.part,
+            onSelect: selectPart,
+          });
+          partsRegion = region.id;
+        }
       }
       renderTour();
       persistWorkspace();
@@ -564,7 +581,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         $("#dialog-body .selected")?.scrollIntoView({ block: "center" });
     }
     function toggleCompare(id) {
-      touchSupplier(id);
       if (state.compare.includes(id)) {
         state.compare = state.compare.filter((x) => x !== id);
         state.compareError = "";
@@ -666,11 +682,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!b) return;
       let a = b.dataset.action,
         id = b.dataset.id;
-      if (
-        id &&
-        ["detail", "recommend", "favorite", "compare-focus"].includes(a)
-      )
-        touchSupplier(id);
+      if (id && ["detail", "compare-focus"].includes(a)) touchSupplier(id);
       switch (a) {
         case "supplier-tab":
           state.tab = b.dataset.tab;
@@ -1060,7 +1072,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       state.compare = (w.compare || [])
         .filter((id) => sourceById.has(id))
         .slice(0, 20);
-      if (regions.some((r) => r.id === w.region)) state.region = w.region;
+      if (regions.some((r) => r.id === w.region)) {
+        state.region = w.region;
+        state.filters.region = w.region;
+      }
       for (const draft of w.drafts || []) {
         if (draft.kind === "approval" && draft.memo) state.memo = draft.memo;
         if (draft.kind === "research-record" && draft.record)

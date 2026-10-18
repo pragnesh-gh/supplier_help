@@ -14,3 +14,12 @@ Baseline: 7e83789. Implement directly on main. Review server: port 8880.
 ## Verification
 
 Test recent-ID ordering, persistence and validation, plus every augmented part/system pair. Check browser navigation from system to Discovery to part: bogie frame and suspension each have 334 supplied records; damper, wheel, axle and axle bearing each have 333. Verify combined filters, part reset, comparison preservation, recents after reload, real mesh picking, desktop/mobile layout and fallback behavior. Review, commit and push main.
+
+## Verification outcome
+
+- All 28 backend tests pass, including recent-ID persistence/order/bounds and all 10,000 system/part assignments. Original and augmented CSV files are unchanged.
+- Browser: clicking the actual wheel mesh selects `wheel` and returns 333 rows; frame returns 334. The existing 20-supplier comparison survives part changes. All nine systems render their manifest parts.
+- Recents starts empty, records inspection, and survives reload. Favorites and rejected comparison additions do not promote records. Previously used shows the existing demo tags.
+- Assembly canvas identity is preserved across search and part selection, including after a drag rotation. Changing system destroys the prior canvas. WebGL context loss enables a working labelled fallback.
+- Desktop 1440x790 and mobile 390x844 screenshots checked. Scene height and camera distance corrected to prevent cropping. Part controls and notes use at least 12px text.
+- Opus review: `docs/research/3d-parts-review.md`. Findings addressed: reuse the scene, preserve rotation, strictly record inspected recents, correct fallback instructions, and release GPU contexts/listeners on destruction and loss. An independent spec audit confirmed filtering and persistence behavior; the in-app tour was adjusted only to remove references to the obsolete fixed shortlist. No new video was produced.

@@ -108,6 +108,7 @@ export function mountTrain(container, options) {
     pitch = 0.27,
     distance = 19,
     drag = null;
+  const canvasEvents = new AbortController();
   const meshes = [],
     proxies = [],
     disposables = [];
@@ -159,10 +160,30 @@ export function mountTrain(container, options) {
     if (renderer && !disposed && !frame)
       frame = requestAnimationFrame(() => {
         frame = 0;
-        renderer.render(scene, camera);
+        if (renderer && !disposed) renderer.render(scene, camera);
       });
   }
+  function releaseWebGL(forceContext = false) {
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    drag = null;
+    resizeObserver?.disconnect();
+    resizeObserver = null;
+    canvasEvents.abort();
+    disposables.splice(0).forEach((asset) => asset.dispose());
+    meshes.length = 0;
+    proxies.length = 0;
+    const previous = renderer;
+    renderer = null;
+    if (previous) {
+      previous.dispose();
+      if (forceContext) previous.forceContextLoss();
+      previous.domElement.remove();
+    }
+    scene?.clear();
+  }
   function fallback() {
+    releaseWebGL();
     root.classList.add("ts-failed");
     svg.removeAttribute("aria-hidden");
     svg.removeAttribute("inert");
@@ -172,6 +193,7 @@ export function mountTrain(container, options) {
     frame = 0;
   }
   function cameraView() {
+    if (!renderer) return;
     camera.position.set(
       Math.sin(yaw) * distance,
       1.15 + Math.sin(pitch) * distance,
@@ -373,17 +395,19 @@ export function mountTrain(container, options) {
       );
     }
     const canvas = renderer.domElement;
-    canvas.addEventListener("webglcontextlost", (e) => {
+    const listenCanvas = (type, callback) => canvas.addEventListener(type, callback, { signal: canvasEvents.signal });
+    listenCanvas("webglcontextlost", (e) => {
+      if (disposed) return;
       e.preventDefault();
       fallback();
     });
-    canvas.addEventListener("pointerdown", (e) => {
+    listenCanvas("pointerdown", (e) => {
       if (e.button !== 0) return;
       drag = { x: e.clientX, y: e.clientY, yaw, pitch, moved: 0 };
       canvas.setPointerCapture(e.pointerId);
       tip.hidden = true;
     });
-    canvas.addEventListener("pointermove", (e) => {
+    listenCanvas("pointermove", (e) => {
       if (drag) {
         const dx = e.clientX - drag.x,
           dy = e.clientY - drag.y;
@@ -400,7 +424,7 @@ export function mountTrain(container, options) {
         else setHover(null);
       }
     });
-    canvas.addEventListener("pointerup", (e) => {
+    listenCanvas("pointerup", (e) => {
       if (!drag) return;
       const click =
         drag.moved < 4 &&
@@ -413,14 +437,15 @@ export function mountTrain(container, options) {
         if (id) options.onSelect?.(id);
       }
     });
-    canvas.addEventListener("pointercancel", () => {
+    listenCanvas("pointercancel", () => {
       drag = null;
       setHover(null);
     });
-    canvas.addEventListener("pointerleave", () => {
+    listenCanvas("pointerleave", () => {
       if (!drag) setHover(null);
     });
     function resize() {
+      if (!renderer || disposed) return;
       const w = Math.max(1, root.clientWidth),
         h = Math.max(1, root.clientHeight);
       renderer.setSize(w, h, false);
@@ -484,10 +509,7 @@ export function mountTrain(container, options) {
       disposed = true;
       window.removeEventListener("beforeprint", beforePrint);
       window.removeEventListener("afterprint", afterPrint);
-      if (frame) cancelAnimationFrame(frame);
-      resizeObserver?.disconnect();
-      disposables.forEach((d) => d.dispose());
-      renderer?.dispose();
+      releaseWebGL(true);
       root.remove();
     },
   };

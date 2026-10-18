@@ -2227,3 +2227,22 @@ h1 {
     font-size: 12px;
   }
 }
+#parts-scene {
+  height: 240px;
+  min-height: 240px;
+  max-height: 240px;
+}
+@media (max-height: 720px) and (min-width: 1051px) {
+  #parts-scene {
+    height: 220px;
+    min-height: 220px;
+    max-height: 220px;
+  }
+}
+@media (max-width: 650px) {
+  #parts-scene {
+    height: 220px;
+    min-height: 220px;
+    max-height: 220px;
+  }
+}

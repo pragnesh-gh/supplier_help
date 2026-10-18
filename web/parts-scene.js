@@ -289,7 +289,7 @@ export function mountParts(
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    camera.position.set(0, 2.3, Math.max(7, 6.7 / camera.aspect));
+    camera.position.set(0, 2.3, Math.max(8.2, 7.8 / camera.aspect));
     camera.lookAt(0, 0.15, 0);
     camera.updateProjectionMatrix();
     invalidate();
@@ -364,7 +364,7 @@ export function mountParts(
   highlight(selected);
   resize();
   // No autoplay or inertial animation; reduced-motion users receive the same static view.
-  function disposeWebGL() {
+  function disposeWebGL(releaseContext = false) {
     if (disposed) return;
     disposed = true;
     observer.disconnect();
@@ -377,6 +377,7 @@ export function mountParts(
       o.material?.dispose();
     });
     renderer.dispose();
+    if (releaseContext) renderer.forceContextLoss();
     canvas.remove();
     tip.hidden = true;
   }
@@ -395,7 +396,7 @@ export function mountParts(
       invalidate();
     },
     destroy() {
-      disposeWebGL();
+      disposeWebGL(true);
       if (fallbackController) fallbackController.destroy();
       else {
         root.replaceChildren();
@@ -404,6 +405,8 @@ export function mountParts(
     },
   };
   function fallback() {
+    root.querySelector(".pa-note").textContent =
+      "3D unavailable \u00b7 choose a labelled component";
     const ns = "http://www.w3.org/2000/svg",
       svg = document.createElementNS(ns, "svg");
     svg.setAttribute("viewBox", `0 0 ${Math.max(500, parts.length * 115)} 230`);

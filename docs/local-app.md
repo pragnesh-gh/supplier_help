@@ -1,4 +1,4 @@
-﻿# Supplier app: local run and review
+# Supplier app: local run and review
 
 The active product is the local web app, not a regenerated prototype HTML file. All work is on `main`.
 
@@ -16,7 +16,7 @@ Open **http://127.0.0.1:8878**. No frontend installation or build is needed. The
 
 | Directory | Responsibility |
 | --- | --- |
-| `web/` | App shell, discovery/comparison, compact train diagram, Copilot conversation and report UI |
+| `web/` | App shell, discovery/comparison, 3D train and exploded part assemblies, Copilot conversation and report UI |
 | `supplier_app/` | Local app entry, CSV catalogue, assistant routing, workspace state and HTTP API |
 | `research_agent/` | Existing bounded live research pipeline, evidence validation and durable dossiers; legacy standalone UI retained |
 | `config/` | Research taxonomy, dossier schema and selected model configuration |
@@ -28,7 +28,7 @@ Open **http://127.0.0.1:8878**. No frontend installation or build is needed. The
 ## Journey
 
 1. Select a train system. Counts refer to illustrative component assignments. The risk profile shows a selected supplier against the scored suppliers in that system, not the physical train's risk.
-2. Open Discovery to filter/rank actual source rows. Select up to 20 and open Compare. Selection survives changing filters.
+2. Open Discovery to see the selected system as an exploded assembly. Click a component or its labelled chip to filter by part, then filter/rank the actual source rows. Select up to 20 and open Compare. Selection survives changing filters.
 3. Open the Copilot bubble. Ask the exact financial comparison or a supplied-data question. Inspect the small citation chips and any structured graph.
 4. Ask to research a named company. Auto routes recognized dataset identities to source data; Deep requests more extensive research. Resolve ambiguous identities rather than equating anonymized rows with real companies.
 5. The same conversation shows actual planning/retrieval/follow-up/synthesis events. Close the drawer to continue exploring; reopen it to inspect progress and cited findings.
@@ -44,4 +44,6 @@ The supplied CSV is a single synthetic snapshot. Component assignments and prior
 The user explicitly selected localhost for this pass. There is no public deployment, authentication or jury account, and no claim that a local URL is remotely accessible. The challenge's public live URL and access-sharing requirements remain submission decisions. The runnable app, source data, tests and demo journey are prepared for local review.
 
 
-The final checked instance for this session uses port8879 because the earlier development server remains on8878. To launch an additional instance: `python -m supplier_app --port 8879 --env-file .env`. Use one browser tab for edits; concurrent tab changes are not merged.
+The current 3D review instance uses port 8880: `python -m supplier_app --port 8880 --env-file .env`. Older development instances were stopped. The default command still uses 8878. Use one browser tab for edits; concurrent tab changes are not merged.
+
+Recents lists suppliers actually inspected, most recent first, within the selected system. Previously used retains illustrative history labels. Favorites and lowest-risk ordering are available in Discovery.

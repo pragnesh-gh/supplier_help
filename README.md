@@ -10,7 +10,7 @@ Python 3.12+; no frontend installation or build is required.
 python -m supplier_app --env-file .env
 ```
 
-Open **http://127.0.0.1:8878**. The app combines the complete supplier catalogue, Discovery, max-20 comparison, collections, approval drafts and a floating Sourcing Copilot. Data questions and bounded company research stay in the same conversation. The compact train diagram is interactive; its component assignments remain illustrative.
+Open **http://127.0.0.1:8878**. The app combines the complete supplier catalogue, Discovery, max-20 comparison, collections, approval drafts and a floating Sourcing Copilot. Data questions and bounded company research stay in the same conversation. The compact white-and-red 3D train opens system-specific exploded assemblies in Discovery. Click a part to filter suppliers; system and part assignments remain illustrative. Overview offers Recents and Previously used tabs.
 
 Credentials stay on the server. Without an OpenRouter key, catalogue/data answers and the explicit historical example still work; live web research clearly reports that configuration is needed. Live requests incur provider usage. The app is loopback-only, with durable local workspace and dossier storage. It is a single-user local deliverable, not an authenticated hosted service.
 
