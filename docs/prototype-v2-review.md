@@ -68,3 +68,18 @@ Real DOM entry exposed and fixed a blur-triggered memo rerender that could lose 
 Chromium A4 PDFs were generated for the research report (3 pages), previously-used supplier request (4 pages, including all source cells) and research-added candidate request (3 pages, including linked claims and source URLs). The parent rendered and inspected every page. A fixed print header had overlapped content; it now flows normally. Final output is readable, with no overlapping header or app chrome. PDF artifacts and screenshots are local QA output under ignored output/playwright; the HTML produces fresh PDFs through the browser.
 
 Verdict: the requested compact train-led design and end-to-end deterministic workflow are ready for interaction review. It is not a validated purchasing recommendation. Retain on the throwaway prototype/train-risk-v2 branch; buyer feedback should precede production implementation.
+
+
+## UI-reference integration
+
+Merged origin/main through a468710, including three docs/ui-ux folders and UX research. explore_supplier supplies the card-grid and delivery-sparkline inspiration. compare_vendors/code.html and supplier_profile/code.html are byte-identical supplier-profile exports, despite the folder names.
+
+Adopted selectively: a separate My suppliers route, Favorites / Previously used / Both collections quick filters, search, nine-item pagination, Cards / Trend rows views, and inline trends in the existing comparison matrix. The train overview remains compact. All actions share existing favorite and comparison state, including the 20-record cap.
+
+History is a deterministic synthetic 12-week example only for demo previously-used suppliers. Each chart is labelled illustrative; favorites alone do not create history. Research records and other suppliers show History unavailable. Charts share a 0-100 percent scale, open a larger focusable-point chart and accessible values table, and never enter source data, scoring, ranking or memo evidence. No real company identities or certification claims from the references were copied onto anonymized supplier IDs.
+
+Browser checks passed: used collection count1500, history dialog12rows/no NaN coordinates, cards/rows selection persistence, comparison charts for selected records, exact-ID search, empty search results, mobile cards without horizontal overflow, and compact overview at1440x790. Cards and rows screenshots were inspected. Telemetry remains unimplemented.
+
+### Later telemetry option
+
+A later supplier-monitoring feed could retain dated delivery/quality snapshots and explain changes with event timestamps, provenance and last-successful-refresh state. Research execution could separately expose stage progress, source-fetch outcomes and elapsed time. Neither should be represented by a decorative Live badge: freshness and connection failures must be visible. This proposal needs real ERP/QMS or research-run events before it can power real trends; no such integration is included here.

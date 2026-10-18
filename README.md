@@ -24,7 +24,7 @@ python scripts/augment_dataset.py
 python scripts/build_v2.py
 ```
 
-The output embeds the augmented dataset and the 3D renderer for offline use. It starts with a compact train overview; Discovery, comparison, Deep Research and report previews are separate screens. The guided tour walks through the simulated sourcing journey. Research replay does not call a backend. Speech input remains a later design option; v2 uses text.
+The output embeds the augmented dataset and the 3D renderer for offline use. It starts with a compact train overview; Discovery, comparison, Deep Research and report previews are separate screens. The guided tour walks through the simulated sourcing journey. **My suppliers** adds favorite/previously-used collections with card and trend-row views; click a labelled illustrative sparkline to inspect example values. Comparison includes the same charts. No historical measurements are asserted. Research replay does not call a backend. Speech input remains a later design option; v2 uses text.
 
 The derivative `docs/supplier_risk_dataset_augmented.csv` preserves the original data and adds reproducible demo system/part assignments, relationship tags and six derived risk summaries. The manifest records the allocation, overrides and equal within-axis weights. These summaries do not reconstruct the supplied Total Risk Index. Research-added records have unknown scores and stay separate from the anonymized source rows.
 
