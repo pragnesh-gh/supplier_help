@@ -24,6 +24,10 @@ Required journey: context → candidate exploration → comparison → grounded 
 
 Qualification, source freshness, component suitability and total-risk weights stay unknown. Show data evidence, lower-is-lower risk direction, source-level labels, and the differences between risk scores and operational percentages. Explain high observed categories without inventing causal contributions.
 
+## User clarification after review
+
+The user confirmed “Nemotron, and System One models like Jev or Decisions API.” The family/product ambiguity is resolved. Lightning remains the selected initial model candidate, with live account/provider access and performance to evaluate. The parent also ran `python scripts/check_openrouter.py --catalog` successfully, independently confirming the advertised model ID and capabilities. No key was found in the process or Windows user/system environment; the user has been asked for its local location, not its value.
+
 ## Scope and verdict
 
 Research is sufficient to prototype this direction. User/buyer validation remains pending; no design winner or production readiness is claimed. Keep the throwaway HTML on `prototype/supplier-workbench`; `main` retains setup and research. Production implementation should be designed after the user selects a layout and reviews the workflow.

@@ -1,0 +1,24 @@
+{
+  "mode": "deterministic-prototype",
+  "language_model": {
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning",
+    "base_url": "https://openrouter.ai/api/v1",
+    "credential_env": "OPENROUTER_API_KEY",
+    "enabled": false,
+    "provider_request": {"require_parameters": true, "data_collection": "deny"},
+    "automatic_model_fallback": false
+  },
+  "decision_triage": {
+    "enabled": false,
+    "initial_implementation": "rules",
+    "future_candidates": ["TypeSafe Jev", "OpenAI Decisions API"],
+    "purpose": "Intent routing and evidence relevance/category triage; never final supplier approval"
+  },
+  "speech": {
+    "mode": "simulated-editable-transcript",
+    "audio_capture": false,
+    "spoken_answers": false,
+    "future_candidates": ["self-hosted Whisper", "managed transcription"]
+  }
+}
