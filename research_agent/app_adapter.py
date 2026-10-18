@@ -760,6 +760,22 @@ class ResearchService:
 
     # -- chat over a finished run ------------------------------------------
     def chat(self, run_id: str, message: Any) -> dict[str, Any]:
-        from .run_chat import chat
-
-        return chat(self.store.get(run_id), message)
+        from .run_chat import chat, grounded_chat
+        run = self.store.get(run_id)
+        key = self.env.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+        if run.get("demo") or (not key and self.llm is None):
+            return chat(run, message)
+        try:
+            from .config import load_settings
+            from .llm import AnthropicLLM
+            settings = load_settings().models
+            llm = self.llm or AnthropicLLM(
+                gatherer_model=self.env.get("RESEARCH_GATHERER_MODEL") or settings.gatherer,
+                verifier_model=self.env.get("RESEARCH_VERIFIER_MODEL") or settings.verifier,
+                api_key=key, max_tokens=4096, timeout_s=45,
+                gatherer_effort=settings.gatherer_effort)
+            return grounded_chat(run, message, llm)
+        except Exception:
+            reply = chat(run, message)
+            reply["answer"] = "The live answer model is unavailable; showing a saved-report lookup instead.\n\n" + reply["answer"]
+            return reply

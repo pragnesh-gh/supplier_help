@@ -19,6 +19,9 @@ import {
   Vector3,
 } from "./vendor/three.module.min.js";
 
+// Module lifetime matches a full page load, not an overview render or route visit.
+let entrancePlayed = false;
+
 export function mountTrain(container, options) {
   // Stretch the carbody and fittings, but keep circular wheel geometry round.
   const lengthScale = 1.45;
@@ -239,7 +242,9 @@ export function mountTrain(container, options) {
     if (renderer) fitView();
   }
   function startEntrance() {
-    if (motionPreference.matches) {
+    const alreadyPlayed = entrancePlayed;
+    entrancePlayed = true;
+    if (alreadyPlayed || motionPreference.matches) {
       root.dataset.entrance = "complete";
       return;
     }

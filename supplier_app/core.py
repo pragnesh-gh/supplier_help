@@ -141,6 +141,29 @@ class Assistant:
         def clarify(question):
             return {**result, 'kind': 'clarify', 'answer': question, 'question': question}
         global_data_question = any(term in lower for term in ['how many', 'count', 'total suppliers', 'formula', 'weight', 'trend', 'history'])
+        # Aggregate over actual CSV rows, not the overview's currently selected suppliers.
+        if re.search(r'\b(how many|count|number of)\b', lower):
+            scopes = []
+            for region in self.data['manifest']['regions']:
+                for part in region['parts']:
+                    scopes.append((part['label'], 'train_part_id', part['id']))
+                scopes.append((region['shortLabel'], 'train_region_id', region['id']))
+                scopes.append((region['label'], 'train_region_id', region['id']))
+            matches = [(label, col, ident) for label, col, ident in scopes
+                       if re.search(r'(?<!\w)' + re.escape(label.casefold()) + r'(?!\w)', lower)]
+            if matches:
+                label, col, ident = max(matches, key=lambda item: len(item[0]))
+                scoped = [r for r in self.rows.values() if r[col] == ident]
+                if re.search(r'\b(favorite|favourites?|previous|used|high|low|critical|medium|financial|legal)\b', lower):
+                    return clarify('I can count this system or part. For additional risk or relationship filters, use Discovery to make the exact filter explicit.')
+                count = len(scoped)
+                citation = {'id': 'D1', 'kind': 'dataset', 'title': f'CSV count: {label}',
+                            'column': col, 'value': count, 'filter': {col: ident},
+                            'source': 'docs/supplier_risk_dataset_augmented.csv',
+                            'sha256': self.data['manifest']['augmentation']['sha256']}
+                return {**result, 'answer': f'There are {count:,} supplier records under {label} in the supplied catalogue. [D1]\nSystem and part assignments are illustrative; these are anonymised supplier records, not verified real-company identities.',
+                        'citations': [citation], 'chart': {'type': 'bar', 'label': f'Suppliers under {label}', 'metric': 'Supplier count',
+                        'points': [{'label': label, 'value': count, 'citation_ids': ['D1']}]}}
         company = values.get('company') or ''
         if not isinstance(company, str) or len(company) > 200:
             raise ValueError('Invalid company')
@@ -148,9 +171,17 @@ class Assistant:
         if trigger is not None and trigger not in {'button', 'offer', 'form'}:
             raise ValueError('Invalid research trigger')
         detected = None if requested_ids else company_detect.detect(message, self.names, self.data['columns'])
+        open_run = None
+        catalog_question = bool(re.search(r'\b(csv|catalogue|catalog|dataset|selected suppliers|these suppliers|how many (?:suppliers|companies)|total suppliers)\b', lower))
+        if values.get('run_id') and not mentioned_ids and not catalog_question and not (rows and re.search(r'\bcompare\b', lower)):
+            try:
+                open_run = self.service.store.get(values['run_id'])
+            except KeyError:
+                pass
+        same_company = bool(open_run and detected and any(detected['company'].casefold() == (n or '').casefold() for n in (open_run.get('company'), open_run.get('requested_company'))))
         # Research starts from the identity form, a clicked offer, an explicit request ("research X"),
         # or a company named while the chat is in Deep research mode. Otherwise a name gets a one-click offer.
-        research = bool(company) or trigger is not None or company_detect.starts_with_request(message) or (company_detect.explicit_request(message) and bool(detected)) or (mode == 'deep' and bool(detected) and not rows)
+        research = bool(company) or trigger is not None or company_detect.starts_with_request(message) or (company_detect.explicit_request(message) and bool(detected) and not same_company) or (mode == 'deep' and bool(detected) and not mentioned_ids and not same_company)
         if research:
             if not company and detected:
                 company = detected['company']
@@ -158,25 +189,18 @@ class Assistant:
                 return clarify('Which company should I research? Give its name, and if you know them, its country and website.')
             if company.casefold() in self.names:
                 return clarify('That is an anonymised catalogue name, not a real company. Give the real company name to research it.')
-            scope = values.get('scope', '')
+            scope = values.get('scope') or message
             if not isinstance(scope, str):
                 raise ValueError('Invalid scope')
             context = [{'supplier_id': r['supplierID'], 'name': r['Supplier Name'], 'source': self.data['source'], 'sha256': self.data['sha256'], 'values': {k: r[k] for k in ['Total_Risk_Index', 'train_part_id']}} for r in rows]
             run_id = self.service.start({'company': company, 'country': values.get('country', ''), 'website': values.get('website', ''), 'scope': scope[:1600], 'mode': 'basic' if mode == 'basic' else 'deep', 'demo': values.get('example', False), 'dataset_context': context, **({'parent_run_id': values['parent_run_id']} if values.get('parent_run_id') else {})})
             return {**result, 'kind': 'research', 'answer': f'Researching {company}.', 'company': company, 'run_id': run_id}
-        open_run = None
-        if values.get('run_id') and not rows:
-            try:
-                open_run = self.service.store.get(values['run_id'])
-            except KeyError:
-                open_run = None
         if open_run:
             chart_request = (re.search(r'\b(show|draw|plot|display|visualize|visualise|give|create|make)\b', lower)
                              and re.search(r'\b(graph|chart|radar)\b', lower))
             if chart_request or re.search(r'\bevidence\s+coverage\b', lower):
                 return self.evidence_chart(values['run_id'])
-        same_company = bool(open_run and detected and any(detected['company'].casefold() in (n or '').casefold() or (n or '').casefold() in detected['company'].casefold() for n in (open_run.get('company'), open_run.get('requested_company'))))
-        if detected and not rows and not global_data_question and not same_company:
+        if detected and not mentioned_ids and not global_data_question and not same_company:
             config = self.service.config()
             name = detected['company']
             lead = f'“{name}” is not in the supplier catalogue. It looks like a real company.' if detected['confident'] else f'Did you mean the company “{name}”? It is not in the supplier catalogue.'

@@ -673,8 +673,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         partsRegion === state.filters.region
           ? $("#parts-scene")
           : null;
-      train?.destroy();
-      train = null;
+      const preservedTrain = route === "overview" && train ? $("#train-scene") : null;
+      if (!preservedTrain) {
+        train?.destroy();
+        train = null;
+      }
       if (!preservedParts) {
         partsScene?.destroy();
         partsScene = null;
@@ -728,7 +731,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (on) a.setAttribute("aria-current", "page");
           else a.removeAttribute("aria-current");
         });
-      if (route === "overview")
+      if (preservedTrain) {
+        $("#train-scene").replaceWith(preservedTrain);
+        train.update({ counts: counts(), selected: state.region });
+      } else if (route === "overview")
         train = mountTrain($("#train-scene"), {
           regions,
           counts: counts(),
