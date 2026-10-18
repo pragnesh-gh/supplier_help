@@ -309,6 +309,11 @@ class ResearchService:
             raise ValueError("The saved example is Siemens AG only. Use live research for another company.")
         if not demo and not self.client.key:
             raise ValueError("Live research is unavailable: configure OPENROUTER_API_KEY on the local server.")
+        dataset_context = values.get('dataset_context', [])
+        if not isinstance(dataset_context, list) or len(dataset_context) > 20 or any(not isinstance(item, dict) for item in dataset_context):
+            raise ValueError('dataset_context must be a bounded array of objects')
+        if len(json.dumps(dataset_context, allow_nan=False)) > 12000:
+            raise ValueError('dataset_context is too large')
         with self.lock:
             active = sum(r["status"] in {"queued", "researching"} for r in self.store.runs())
             if active >= 4:
@@ -319,6 +324,8 @@ class ResearchService:
                    "events": [], "plan": research_plan(), "sources": [], "findings": [], "categories": [],
                    "gaps": [], "actions": [], "summary": "", "entity": {"requested_name": company, "verification": "unverified"},
                    "limitations": [], "legacy_scores": None, "usage": []}
+            # Supplied snapshot context is retained separately; never sent as public-source facts.
+            run["dataset_context"] = dataset_context
             run["research_notes"] = []
             run["coverage"] = {"state": "pending", "failed_search_categories": []}
             self.store.put(run)

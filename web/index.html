@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Train Sourcing</title
+  ><link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230f6e74%27/%3E%3C/svg%3E"
+  /><link rel="stylesheet" href="styles.css" />
+  <body>
+    <header>
+      <div class="brand"><span aria-hidden="true">≋</span>Train Sourcing</div>
+      <nav id="nav">
+        <a href="#/overview">Overview</a><a href="#/discover">Discovery</a
+        ><a href="#/portfolio">My suppliers</a><a href="#/reports">Reports</a>
+      </nav>
+      <div class="header-meta" id="header-count"></div>
+      <div class="row header-actions">
+        <button class="quiet" data-action="provenance">
+          Data & assumptions</button
+        ><button class="quiet" data-action="tour">Guided journey</button
+        ><button class="quiet" data-action="reset">Reset</button>
+      </div>
+    </header>
+    <main id="app"></main>
+    <div id="tour-root"></div>
+    <div id="toast-root" aria-live="polite"></div>
+    <dialog id="dialog">
+      <div class="card-head">
+        <h2 id="dialog-title"></h2>
+        <button data-action="close-dialog">Close ×</button>
+      </div>
+      <div id="dialog-body" class="dialog-body"></div>
+    </dialog>
+    <div id="print-root"></div>
+    <button
+      id="chat-launch"
+      aria-label="Open sourcing assistant"
+      aria-expanded="false"
+      aria-controls="chat-drawer"
+    >
+      ? Ask Sourcing
+    </button>
+    <aside id="chat-drawer" aria-label="Sourcing assistant" hidden></aside>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

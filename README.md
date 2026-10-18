@@ -1,39 +1,43 @@
 # Supplier Help · Siemens Supplier Risk Intelligence
 
-Supplier research and review tools for the Siemens challenge. The main branch contains the local live research agent, both deterministic prototypes, and all design references. It supports investigation and drafting; supplier qualification remains a separate buyer process.
+Supplier research and review tools for the Siemens challenge. The main branch contains the unified local web app, research engine, historical prototypes, and design references. It supports investigation and drafting; supplier qualification remains a separate buyer process.
 
-## Research agent
+## Run the app
 
-Run from the repository root with Python 3.12+ (no dependency installation):
+Python 3.12+; no frontend installation or build is required.
 
 ```powershell
-python -m research_agent --env-file .env
+python -m supplier_app --env-file .env
 ```
 
-Open **http://127.0.0.1:8877**. The optional `--env-file` reuses the existing server-side OpenRouter configuration without copying its credential into this checkout. Alternatively, set `OPENROUTER_API_KEY` in the process environment or this worktree's ignored `.env`. Never paste the key into chat or browser code.
+Open **http://127.0.0.1:8878**. The app combines the complete supplier catalogue, Discovery, max-20 comparison, collections, approval drafts and a floating Sourcing Copilot. Data questions and bounded company research stay in the same conversation. The compact train diagram is interactive; its component assignments remain illustrative.
 
-Use **Basic** for a bounded first pass over all six categories, or **Deep** for the same coverage plus targeted follow-ups. Enter a legal company name, country/domain when known, and the component or sourcing question. Live research uses the configured Nemotron model and OpenRouter web search, which incur provider charges. The UI shows the actual plan, progress, sources, findings, unknowns and actions. The explicit Siemens historical example works without credentials and is labelled separately from live research.
+Credentials stay on the server. Without an OpenRouter key, catalogue/data answers and the explicit historical example still work; live web research clearly reports that configuration is needed. Live requests incur provider usage. The app is loopback-only, with durable local workspace and dossier storage. It is a single-user local deliverable, not an authenticated hosted service.
 
-Research and saved supplier records persist in ignored `.local/research-agent/`. Save a completed investigation to the research list and manage its diligence actions there. Markdown/JSON exports and the printable report use the same dossier. Research-derived suppliers remain separate from anonymized CSV rows and retain unknown numeric scores.
+[Local app guide and code map](docs/local-app.md) ? [Implementation contract](docs/web-app-implementation.md) ? [Two-minute demo journey](docs/local-demo-script.md)
 
-- [Research questions and evidence method](docs/research/deep-research-method.md)
-- [Observed synthetic-score patterns and limits](docs/research/score-patterns.md)
-- [Running, architecture, and limitations](docs/research-agent.md)
+## Research engine
 
-The earlier prototype below remains offline and simulated. Its scope statements apply to that prototype, not the new research-agent route.
+`research_agent/` contains bounded retrieval, source-linked observations, follow-ups and saved dossiers. The unified app uses this engine. Its old standalone UI can still be run with `python -m research_agent --env-file .env` at port8877, but use8878 for the combined product. The servers use separate default data directories so they cannot overwrite each other's active runs.
+
+- [Research method](docs/research/deep-research-method.md)
+- [Score patterns and limits](docs/research/score-patterns.md)
+- [Research engine verification](docs/research-agent.md)
+
+Research-derived suppliers remain separate from anonymized CSV rows, with unknown numeric scores. Retrieved excerpts and linked source claims do not constitute supplier qualification.
 
 ## Inputs
 
 - `docs/supplier_risk_dataset.csv`: original challenge data, 10,000 anonymized suppliers.
 - `docs/risk_criteria_description.md`: original score definitions. All risk scores run from 0 (no risk) to 100 (maximum risk), including positively named scores.
 
-## Original prototype scope
+## Historical prototype scope
 
 Explore and filter actual data, compare at most 20 suppliers, inspect evidence, try scripted grounded questions and simulated dictation, review a separately labelled company-research fixture, and export a shortlist memo. No live LLM, web crawling, microphone recording, login, or procurement-system integration is claimed.
 
 All development now happens on `main`. Both prototype versions are preserved as separate files under `prototype/`; no branch switching is needed. No UI choice has been validated by a buyer yet.
 
-## Open the prototype
+## Historical HTML prototypes
 
 ### New train overview (v2)
 

@@ -1,0 +1,45 @@
+﻿# Supplier app: local run and review
+
+The active product is the local web app, not a regenerated prototype HTML file. All work is on `main`.
+
+## Start
+
+From the repository root, with Python 3.12 or newer:
+
+```powershell
+python -m supplier_app --env-file .env
+```
+
+Open **http://127.0.0.1:8878**. No frontend installation or build is needed. The app serves only `web/` and explicit API routes, not the repository or environment files. The OpenRouter credential is read server-side. Without a configured key, supplied-data questions and the explicitly labelled historical example remain available; live web research reports its unavailable state.
+
+## Code map
+
+| Directory | Responsibility |
+| --- | --- |
+| `web/` | App shell, discovery/comparison, compact train diagram, Copilot conversation and report UI |
+| `supplier_app/` | Local app entry, CSV catalogue, assistant routing, workspace state and HTTP API |
+| `research_agent/` | Existing bounded live research pipeline, evidence validation and durable dossiers; legacy standalone UI retained |
+| `config/` | Research taxonomy, dossier schema and selected model configuration |
+| `docs/` | Source CSV/dictionary, augmented demo assignments, design references and evidence |
+| `tests/` | Backend contracts, grounding, persistence and HTTP boundaries |
+| `prototype/` | Earlier self-contained HTML designs retained as historical references |
+| `.local/` | Ignored local workspace, saved runs and supplier records |
+
+## Journey
+
+1. Select a train system. Counts refer to illustrative component assignments. The risk profile shows a selected supplier against the scored suppliers in that system, not the physical train's risk.
+2. Open Discovery to filter/rank actual source rows. Select up to 20 and open Compare. Selection survives changing filters.
+3. Open the Copilot bubble. Ask the exact financial comparison or a supplied-data question. Inspect the small citation chips and any structured graph.
+4. Ask to research a named company. Auto routes recognized dataset identities to source data; Deep requests more extensive research. Resolve ambiguous identities rather than equating anonymized rows with real companies.
+5. The same conversation shows actual planning/retrieval/follow-up/synthesis events. Close the drawer to continue exploring; reopen it to inspect progress and cited findings.
+6. View/export a research report and add the researched company to the research list. Its numerical CSV scores remain unknown.
+7. Prepare an approval request with rationale, alternatives, evidence gaps, reviewer and next action. Print/Save as PDF is a review handoff, not an approval.
+
+## What is and is not measured
+
+The supplied CSV is a single synthetic snapshot. Component assignments and prior-use tags are demo metadata. Example trend lines are explicitly illustrative and never used as evidence. Real telemetry is not implemented. Actual research progress is workflow status, not supplier telemetry. The live pipeline uses retrieved excerpts and source links; it does not claim exhaustive web coverage or independent full-page audits.
+
+## Local-only delivery
+
+The user explicitly selected localhost for this pass. There is no public deployment, authentication or jury account, and no claim that a local URL is remotely accessible. The challenge's public live URL and access-sharing requirements remain submission decisions. The runnable app, source data, tests and demo journey are prepared for local review.
+
