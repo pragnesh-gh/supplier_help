@@ -16,6 +16,8 @@ This localhost version ends at a saved request. Requester and reviewer are named
 
 ## Supplier ring
 
+Historical design, superseded by [the radar and motion update](overview-motion-update.md). The active landing page now uses the radar; shortlist approval behavior above remains current.
+
 The landing page groups the selected system/part's suppliers by the dataset's supplied risk level, with critical near the center and low risk outside. Counts cover the full selected scope; a clearly labelled deterministic sample of clickable dots keeps the view readable. Position within a band does not add another risk ranking. Purchase-order volume controls dot size where available, and favorites are outlined. Unscored companies are counted separately.
 
 System and part assignments remain synthetic demo metadata. The ring does not invent history or telemetry. Supplier risk profiles remain available in detail and comparison views.

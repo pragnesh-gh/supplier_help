@@ -3,7 +3,7 @@ import { mountTrain } from "./train.js";
 import { mountParts } from "./parts-scene.js";
 import { createChat } from "./chat.js";
 import { createApproval } from "./approval.js";
-import { renderSupplierRing, riskLevel } from "./supplier-ring.js";
+import { riskLevel } from "./supplier-ring.js";
 ("use strict");
 document.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -153,10 +153,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       return `${state.favorites.has(r.supplierID) ? '<span class="tag">Favorite</span>' : ""}${isUsed(r) ? '<span class="tag">Previously used · demo</span>' : ""}${r._research ? '<span class="tag demo">Research-only · unscored</span>' : ""}`;
     }
     function supplierCard(r) {
-      return `<article class="supplier ${state.focus === r.supplierID ? "focused" : ""}" data-focus="${esc(r.supplierID)}" tabindex="0"><div class="row spread"><strong class="small">${esc(r.supplierID)}</strong><button class="quiet" data-action="favorite" data-id="${esc(r.supplierID)}" aria-label="Toggle favorite ${esc(r.supplierID)}">${state.favorites.has(r.supplierID) ? "★" : "☆"}</button></div><div class="name">${esc(nameOf(r))}</div><div class="meta"><span>Total ${fmt(r.Total_Risk_Index)}</span><span class="risk ${esc(r.Total_Risk_Index_Level)}">${esc(r.Total_Risk_Index_Level || "Unknown")}</span></div><div class="row" style="margin-top:7px"><button data-action="detail" data-id="${r.supplierID}">Inspect</button><button data-action="recommend" data-id="${r.supplierID}">Add to shortlist</button></div>${isUsed(r) ? '<div class="small muted">Previously used · demo history</div>' : ""}</article>`;
+      return `<article class="supplier ${state.route !== "overview" && state.focus === r.supplierID ? "focused" : ""}" data-focus="${esc(r.supplierID)}" tabindex="0"><div class="row spread"><strong class="small">${esc(r.supplierID)}</strong><button class="quiet" data-action="favorite" data-id="${esc(r.supplierID)}" aria-label="Toggle favorite ${esc(r.supplierID)}">${state.favorites.has(r.supplierID) ? "★" : "☆"}</button></div><div class="name">${esc(nameOf(r))}</div><div class="meta"><span>Total ${fmt(r.Total_Risk_Index)}</span><span class="risk ${esc(r.Total_Risk_Index_Level)}">${esc(r.Total_Risk_Index_Level || "Unknown")}</span></div><div class="row" style="margin-top:7px"><button data-action="detail" data-id="${r.supplierID}">Inspect</button><button data-action="recommend" data-id="${r.supplierID}">Add to shortlist</button></div>${isUsed(r) ? '<div class="small muted">Used before · demo history</div>' : ""}</article>`;
     }
     const approval = createApproval({get, esc, fmt, render, navigate, save: () => persistWorkspace(), print: printDoc, comparison: () => state.compare,
       scope: () => regionLabel(state.region) + (state.filters.part ? " / " + partLabel(state.filters.part) : "")});
+    function overviewBest() {
+      const part = state.filters.region === state.region ? state.filters.part : "";
+      return originals
+        .filter((r) => regionOf(r) === state.region && (!part || r.train_part_id === part)
+          && Number.isFinite(r.Total_Risk_Index))
+        .sort((a, b) => a.Total_Risk_Index - b.Total_Risk_Index
+          || a.supplierID.localeCompare(b.supplierID))[0];
+    }
     function overview() {
       let c = counts()[state.region],
         all = catalog().filter((r) => regionOf(r) === state.region),
@@ -169,12 +177,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 .map(get)
                 .filter((r) => r && regionOf(r) === state.region)
         ).slice(0, 3);
-      let focus = get(state.focus);
-      if (!focus || regionOf(focus) !== state.region) {
-        focus = rs[0] || all[0];
-        state.focus = focus?.supplierID;
-      }
-      return `<div class="overview"><div class="left"><section class="card train-card"><div class="card-head"><div class="row"><h2>Explore the train</h2><span class="tag demo">Illustrative assembly</span></div><button class="quiet small" data-action="reset-view">↺ Reset view</button></div><div id="train-scene" class="train-scene"></div><div class="regions">${regions.map((r) => `<button title="${esc(r.label)} · ${counts()[r.id].total} assigned records" data-action="region" data-region="${r.id}" aria-pressed="${state.region === r.id}" class="${state.region === r.id ? "selected" : ""}"><strong>${esc(r.shortLabel || r.label)}</strong><span class="count">${fmt(counts()[r.id].total)}</span></button>`).join("")}</div></section><section class="card supplier-strip"><div class="card-head"><div class="supplier-tabs" role="group" aria-label="Supplier collection"><button data-action="supplier-tab" data-tab="recents" aria-pressed="${state.tab === "recents"}">Recents</button><button data-action="supplier-tab" data-tab="used" aria-pressed="${state.tab === "used"}">Previously used</button></div><span class="small muted">${state.tab === "recents" ? "Recently viewed in this system" : "Illustrative previous-use relationships"}</span></div><div class="suppliers">${rs.length ? rs.map(supplierCard).join("") : `<div class="empty recent-empty">${state.tab === "recents" ? "Inspect a supplier in Discovery to see it here." : "No previously used demonstration suppliers in this system."} <button data-action="discover-region" class="link">Explore Discovery</button></div>`}</div></section></div><div class="right"><section class="card summary"><div><div class="eyebrow">Selected system · demo assignment</div><h1>${esc(regionLabel(state.region))}</h1><div><strong class="stat">${fmt(c.total)}</strong><span class="muted small"> records · ${fmt(c.scored)} scored · ${c.researchOnly} research-only</span></div><p class="small muted">${all.filter((r) => r.Total_Risk_Index_Level === "Critical").length} Critical · supplied total-risk level</p></div><button class="primary" data-action="discover-region">Discover →</button></section>${renderSupplierRing({rows: all.filter(r => !state.filters.part || state.filters.region !== state.region || r.train_part_id === state.filters.part), regionLabel:regionLabel(state.region), partLabel:state.filters.part && state.filters.region === state.region ? partLabel(state.filters.part) : "", favorites:state.favorites})}</div></div>`;
+      const focus = overviewBest(),
+        scopePart = state.filters.region === state.region ? state.filters.part : "";
+      return `<div class="overview"><div class="left"><section class="card train-card"><div class="card-head"><div class="row"><h2>Explore the train</h2><span class="tag demo">Illustrative assembly</span></div><button class="quiet small" data-action="reset-view">↺ Reset view</button></div><div id="train-scene" class="train-scene"></div><div class="regions">${regions.map((r) => `<button title="${esc(r.label)} · ${counts()[r.id].total} assigned records" data-action="region" data-region="${r.id}" aria-pressed="${state.region === r.id}" class="${state.region === r.id ? "selected" : ""}"><strong>${esc(r.shortLabel || r.label)}</strong><span class="count">${fmt(counts()[r.id].total)}</span></button>`).join("")}</div></section><section class="card supplier-strip"><div class="card-head"><div class="supplier-tabs" role="group" aria-label="Supplier collection"><button data-action="supplier-tab" data-tab="recents" aria-pressed="${state.tab === "recents"}">Recently viewed</button><button data-action="supplier-tab" data-tab="used" aria-pressed="${state.tab === "used"}">Used before</button></div><span class="small muted">${state.tab === "recents" ? "Your browsing history in this system" : "Prior sourcing relationships - demo history"}</span></div><div class="suppliers">${rs.length ? rs.map(supplierCard).join("") : `<div class="empty recent-empty">${state.tab === "recents" ? "Inspect a supplier in Discovery to see it here." : "No previously used demonstration suppliers in this system."} <button data-action="discover-region" class="link">Explore Discovery</button></div>`}</div></section></div><div class="right"><section class="card summary"><div><div class="eyebrow">Selected system · demo assignment</div><h1>${esc(regionLabel(state.region))}</h1><div><strong class="stat">${fmt(c.total)}</strong><span class="muted small"> records · ${fmt(c.scored)} scored · ${c.researchOnly} research-only</span></div><p class="small muted">${all.filter((r) => r.Total_Risk_Index_Level === "Critical").length} Critical · supplied total-risk level</p></div><button class="primary" data-action="discover-region">Discover →</button></section><section class="card radar-card"><div class="card-head"><div><h2>Risk profile</h2><span class="small muted">Lowest supplied total risk${scopePart ? " - " + esc(partLabel(scopePart)) : " - " + esc(regionLabel(state.region))}</span></div><button class="quiet small" data-action="radar-table">${state.tableRadar ? "Chart" : "View as table"}</button></div>${focus ? `<div class="radar-selection" style="padding:0 14px"><button class="link" data-action="detail" data-id="${esc(focus.supplierID)}">${esc(focus.supplierID)}</button> <span class="small muted">${esc(nameOf(focus))} &middot; Total ${fmt(focus.Total_Risk_Index)} / 100</span></div>` : ""}<div class="radar-body">${radar(focus, state.region, state.tableRadar)}</div><div class="radar-note"><div class="legend"><span><i></i>Lowest-total-risk supplier</span><span><i class="band"></i>System P25&ndash;P75</span><span>-- Median</span></div>Higher = more risk. Lowest total risk is a starting point, not qualification. System and part assignments are illustrative. <button class="link small" data-action="mapping">Weights & mapping</button></div></section></div></div>`;
     }
     function filtered() {
       let f = state.filters;
@@ -684,10 +689,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           : `<aside class="tour"><div class="row spread"><span class="eyebrow">Guided journey · ${t + 1} / ${tourSteps.length}</span><button class="quiet small" data-action="end-tour">Close</button></div><h2>${tourSteps[t][0]}</h2><p>${tourSteps[t][1]}</p><div class="row spread"><button data-action="tour-do">${tourSteps[t][2]}</button><button class="primary" data-action="tour-next">${t === tourSteps.length - 1 ? "Finish" : "Next →"}</button></div></aside>`;
     }
     document.addEventListener("click", (e) => {
-      const ringSupplier = e.target.closest("[data-ring-supplier]");
-      if (ringSupplier) { touchSupplier(ringSupplier.dataset.ringSupplier); navigate("supplier/" + encodeURIComponent(ringSupplier.dataset.ringSupplier)); return; }
-      const ringRisk = e.target.closest("[data-ring-risk]");
-      if (ringRisk) { const part=state.filters.region === state.region ? state.filters.part : ""; state.filters={q:"",region:state.region,part,risk:ringRisk.dataset.ringRisk,delivery:"",favorite:false,used:false,sort:"total"};state.page=1;navigate("discover");return;}
       let b = e.target.closest("[data-action]");
       if (!b) return;
       let a = b.dataset.action,
@@ -744,7 +745,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         case "mapping":
           dialog(
             "Six derived axes · equal weights",
-            radar(get(state.focus) || get("SUPP_00012"), state.region, true) +
+            radar(state.route === "overview" ? overviewBest() : get(state.focus), state.region, true) +
               '<p class="screen-note">0 = no risk, 100 = maximum risk. Financial (derived) is distinct from supplied Financial_Health_Score. Source total unchanged.</p>',
           );
           break;
@@ -867,7 +868,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.addEventListener("click", (e) => {
       if (e.target.closest("button,a,input,select")) return;
       let c = e.target.closest("[data-focus]");
-      if (c && state.focus !== c.dataset.focus) {
+      if (c && state.route === "overview") {
+        navigate("supplier/" + encodeURIComponent(c.dataset.focus));
+      } else if (c && state.focus !== c.dataset.focus) {
         state.focus = c.dataset.focus;
         touchSupplier(c.dataset.focus);
         render();
@@ -876,6 +879,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.addEventListener("keydown", (e) => {
       let c = e.target.closest("[data-focus]");
       if (c && e.key === "Enter") {
+        if (e.target.closest("button,a,input,select")) return;
+        if (state.route === "overview") {
+          navigate("supplier/" + encodeURIComponent(c.dataset.focus));
+          return;
+        }
         state.focus = c.dataset.focus;
         touchSupplier(c.dataset.focus);
         render();
@@ -1168,9 +1176,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
     }
     function whyHigh() {
+      const id = state.route === "overview" ? overviewBest()?.supplierID : state.focus;
       chat.send(
-        state.focus
-          ? "Explain the supplied risk profile of " + state.focus
+        id
+          ? "Explain the supplied risk profile of " + id
           : "Help me inspect a supplied risk profile",
       );
     }

@@ -310,17 +310,6 @@ export function mountTrain(container, options) {
         box("doors", x, 1.55, z * 1.04, 0.58, 0.19, 0.025, "#cf263b");
         proxy("doors", x, 2, z * 1.09, 0.69, 1.7, 0.15);
       }
-      const cab = box(
-        "control_cab",
-        4.6,
-        2.37,
-        z * 0.82,
-        1.26,
-        0.49,
-        0.055,
-        glass,
-      );
-      cab.rotation.z = -0.49;
       proxy("control_cab", 4.7, 2.18, z * 0.8, 1.7, 1.04, 0.35);
       const stripe = box(
         "carbody",
@@ -334,6 +323,45 @@ export function mountTrain(container, options) {
       );
       stripe.rotation.y = z > 0 ? 0.4 : -0.4;
       box("control_cab", 5.55, 1.39, z * 0.42, 0.3, 0.1, 0.09, "#fff4d5");
+    }
+    // Glazing follows the actual shell triangles rather than a rotated box.
+    // Two panes wrap the upper nose, with a narrow white centre mullion.
+    function clipAtX(polygon, boundary, keepAfter) {
+      const result = [];
+      for (let i = 0; i < polygon.length; i++) {
+        const from = polygon[i], to = polygon[(i + 1) % polygon.length];
+        const fromInside = keepAfter ? from.x >= boundary : from.x <= boundary;
+        const toInside = keepAfter ? to.x >= boundary : to.x <= boundary;
+        if (fromInside) result.push(from);
+        if (fromInside !== toInside)
+          result.push(from.clone().lerp(to, (boundary - from.x) / (to.x - from.x)));
+      }
+      return result;
+    }
+    for (const firstAngle of [1, 7]) {
+      const glazing = [];
+      for (let k = 3; k < 5; k++)
+        for (let j = firstAngle; j < firstAngle + 4; j++) {
+          const a = k * n + j, b = a + 1, c = a + n, d = c + 1;
+          for (const triangle of [[a, b, c], [b, d, c]]) {
+            const polygon = clipAtX(clipAtX(triangle.map(index => new Vector3().fromArray(vertices, index * 3)), 4.34, true), 5.18, false);
+            // Clip the shell facets themselves, keeping the pane exactly flush.
+            // A tiny outward offset prevents z-fighting with the white shell.
+            for (const point of polygon) {
+              const t = (point.x - rings[k][0]) / (rings[k + 1][0] - rings[k][0]);
+              const centreY = ((rings[k][2] + rings[k][3]) * (1 - t) + (rings[k + 1][2] + rings[k + 1][3]) * t) / 2;
+              point.add(new Vector3(0, point.y - centreY, point.z).normalize().multiplyScalar(0.008));
+            }
+            for (let i = 1; i < polygon.length - 1; i++)
+              glazing.push(...polygon[0].toArray(), ...polygon[i].toArray(), ...polygon[i + 1].toArray());
+          }
+        }
+      const geometry = new BufferGeometry();
+      geometry.setAttribute("position", new Float32BufferAttribute(glazing, 3));
+      geometry.computeVertexNormals();
+      const pane = detail("control_cab", geometry, 0, 0, 0, glass);
+      pane.material.side = DoubleSide;
+      pane.material.roughness = 0.24;
     }
     box("hvac", 0.5, 3.09, 0, 2, 0.22, 1.2, "#a1afb7");
     proxy("hvac", 0.5, 3.1, 0, 2.2, 0.35, 1.45);

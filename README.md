@@ -10,9 +10,9 @@ Python 3.12+; no frontend installation or build is required.
 python -m supplier_app --env-file .env
 ```
 
-Open **http://127.0.0.1:8878**. The app combines the complete supplier catalogue, Discovery, max-20 comparison, collections, approval drafts and a floating Sourcing Copilot. Data questions and bounded company research stay in the same conversation. The compact white-and-red 3D train opens system-specific exploded assemblies in Discovery. Click a part to filter suppliers; system and part assignments remain illustrative. Overview offers Recents and Previously used tabs.
+Open **http://127.0.0.1:8878**. The app combines the complete supplier catalogue, Discovery, max-20 comparison, collections, approval drafts and a floating Sourcing Copilot. Data questions and bounded company research stay in the same conversation. The compact white-and-red 3D train opens system-specific exploded assemblies in Discovery. Click a part to filter suppliers; system and part assignments remain illustrative. Overview offers Recently viewed and Used before tabs. Discovery opens with a brief assembled-to-exploded turn; reduced motion skips it.
 
-The landing supplier ring shows full risk-group counts and a labelled sample of clickable suppliers. From Compare, build a shortlist of 3–5 candidates and save a request for approval to negotiate, including trade-offs, negotiation questions and frozen source evidence. Saved requests live under Approvals and can be printed. See [the shortlist workflow](docs/shortlist-approval.md).
+The landing radar defaults to the lowest supplied-total-risk supplier in the selected system or part. Cab glazing follows the train nose surface. From Compare, build a shortlist of 3–5 candidates and save a request for approval to negotiate, including trade-offs, negotiation questions and frozen source evidence. Saved requests live under Approvals and can be printed. See [the shortlist workflow](docs/shortlist-approval.md).
 
 Credentials stay on the server. Without an OpenRouter key, catalogue/data answers and the explicit historical example still work; live web research clearly reports that configuration is needed. Live requests incur provider usage. The app is loopback-only, with durable local workspace and dossier storage. It is a single-user local deliverable, not an authenticated hosted service.
 

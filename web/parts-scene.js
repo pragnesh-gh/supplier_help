@@ -253,18 +253,75 @@ export function mountParts(
       }
       if (i < parts.length - 1) line([x + 0.57, 0, 0], [x + 0.98, 0, 0]);
     });
+  // Move intact component groups from an illustrative assembled arrangement.
+  // The mesh geometry is never scaled: wheels, springs and housings keep their shape.
+  const assembledOffsets = new Map();
+  const bogieOffsets = {
+    bogie_frame: [0, -0.52, 0],
+    axle: [0, 0.12, 0],
+    wheel: [0, 0.12, 0],
+    axle_bearing: [0, 0.12, 0],
+    suspension: [0, -0.06, 0],
+    damper: [0, -0.16, 0],
+  };
+  [...groups.entries()].forEach(([id, group], i) => {
+    const center = new THREE.Box3().setFromObject(group).getCenter(new THREE.Vector3());
+    // Other systems start as a compact, layered assembly, then separate laterally.
+    const offset = region?.id === "bogie_structure"
+      ? new THREE.Vector3(...(bogieOffsets[id] || [0, 0, 0]))
+      : new THREE.Vector3(-center.x, 0, (i - (groups.size - 1) / 2) * 0.34);
+    assembledOffsets.set(group, offset);
+  });
+  const guides = assembly.children.filter((child) => child.isLine);
+  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let entering = !motionPreference.matches,
+    entranceStart = null;
+  root.dataset.entrance = entering ? "assembling" : "complete";
+  const ease = (t) => t * t * (3 - 2 * t);
+  function placeComponents(progress) {
+    for (const [group, offset] of assembledOffsets)
+      group.position.copy(offset).multiplyScalar(1 - progress);
+    for (const guide of guides) guide.material.opacity = 0.42 * progress;
+  }
+  placeComponents(entering ? 0 : 1);
   let yaw = -0.52,
     pitch = 0.32,
     disposed = false,
     frame = 0,
     drag,
     fallbackController = null;
-  function render() {
+  function render(time) {
     frame = 0;
     if (disposed) return;
+    if (entering) {
+      entranceStart ??= time;
+      const elapsed = time - entranceStart;
+      const turn = ease(Math.min(1, elapsed / 1550));
+      const split = ease(THREE.MathUtils.clamp((elapsed - 350) / 1200, 0, 1));
+      yaw = -0.52 - 0.65 * (1 - turn);
+      placeComponents(split);
+      root.dataset.entrance = split ? "splitting" : "assembling";
+      if (elapsed >= 1550) finishEntrance();
+    }
     assembly.rotation.set(pitch, yaw, 0);
     renderer.render(scene, camera);
+    if (entering) invalidate();
   }
+  function finishEntrance() {
+    if (!entering) return;
+    entering = false;
+    yaw = -0.52;
+    placeComponents(1);
+    root.dataset.entrance = "complete";
+    // Keep picking accurate if an interaction interrupts between animation frames.
+    assembly.rotation.set(pitch, yaw, 0);
+    assembly.updateMatrixWorld(true);
+    invalidate();
+  }
+  function motionChanged(event) {
+    if (event.matches) finishEntrance();
+  }
+  motionPreference.addEventListener("change", motionChanged);
   function invalidate() {
     if (!frame) frame = requestAnimationFrame(render);
   }
@@ -273,6 +330,7 @@ export function mountParts(
       fallbackController.highlight(id);
       return;
     }
+    if (id !== selected) finishEntrance();
     selected = id;
     for (const m of meshes) {
       const active = m.userData.partID === id;
@@ -309,6 +367,7 @@ export function mountParts(
   }
   function down(e) {
     if (e.button !== 0) return;
+    finishEntrance();
     drag = { x: e.clientX, y: e.clientY, yaw, pitch, moved: false };
     canvas.setPointerCapture(e.pointerId);
     tip.hidden = true;
@@ -363,12 +422,15 @@ export function mountParts(
     canvas.addEventListener(name, fn);
   highlight(selected);
   resize();
-  // No autoplay or inertial animation; reduced-motion users receive the same static view.
+  // Entrance runs once per mounted system. Filtering preserves this instance.
   function disposeWebGL(releaseContext = false) {
     if (disposed) return;
     disposed = true;
     observer.disconnect();
+    entering = false;
+    motionPreference.removeEventListener("change", motionChanged);
     cancelAnimationFrame(frame);
+    delete root.dataset.entrance;
     for (const [name, fn] of Object.entries(handlers))
       canvas.removeEventListener(name, fn);
     canvas.removeEventListener("webglcontextlost", contextLost);
@@ -391,6 +453,7 @@ export function mountParts(
     highlight,
     resetView() {
       if (fallbackController) return;
+      finishEntrance();
       yaw = -0.52;
       pitch = 0.32;
       invalidate();

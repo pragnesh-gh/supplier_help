@@ -27,7 +27,7 @@ Open **http://127.0.0.1:8878**. No frontend installation or build is needed. The
 
 ## Journey
 
-1. Select a train system. The supplier ring groups its suppliers by supplied risk level, with full counts and a labelled sample of clickable suppliers. Counts refer to illustrative component assignments, not the physical train's risk.
+1. Select a train system. The radar shows the supplier with the lowest supplied Total Risk Index in the selected system or part, against its system distribution. Counts refer to illustrative component assignments, not the physical train's risk.
 2. Open Discovery to see the selected system as an exploded assembly. Click a component or its labelled chip to filter by part, then filter/rank the actual source rows. Select up to 20 and open Compare. Selection survives changing filters.
 3. Open the Copilot bubble. Ask the exact financial comparison or a supplied-data question. Inspect the small citation chips and any structured graph.
 4. Ask to research a named company. Auto routes recognized dataset identities to source data; Deep requests more extensive research. Resolve ambiguous identities rather than equating anonymized rows with real companies.
@@ -46,4 +46,4 @@ The user explicitly selected localhost for this pass. There is no public deploym
 
 The current 3D review instance uses port 8880: `python -m supplier_app --port 8880 --env-file .env`. Older development instances were stopped. The default command still uses 8878. Use one browser tab for edits; concurrent tab changes are not merged.
 
-Recents lists suppliers actually inspected, most recent first, within the selected system. Previously used retains illustrative history labels. Favorites and lowest-risk ordering are available in Discovery.
+Recently viewed lists suppliers actually inspected, most recent first, within the selected system. Used before retains illustrative prior-sourcing history labels. Favorites and lowest-risk ordering are available in Discovery.
