@@ -8,7 +8,7 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 from supplier_app.core import Assistant, Workspace, catalog
 from supplier_app.server import make_handler
-from research_agent.core import ResearchService, Store, OpenRouter
+from research_agent.app_adapter import ResearchService, Store
 
 
 class AppTests(unittest.TestCase):
@@ -18,7 +18,7 @@ class AppTests(unittest.TestCase):
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.service = ResearchService(Store(self.temp.name), OpenRouter({}))
+        self.service = ResearchService(Store(self.temp.name), {})
         self.assistant = Assistant(self.service, self.data)
 
     def tearDown(self):
@@ -162,7 +162,7 @@ class AppTests(unittest.TestCase):
         self.assertEqual(result['chart']['type'], 'bar')
         self.assertEqual(result['chart']['points'][0]['value'], 2)
         self.assertEqual(result['chart']['points'][1]['value'], 0)
-        self.assertIn('remain unknown', result['answer'])
+        self.assertIn('risk scores are in the report', result['answer'])
         self.assertEqual(result['citations'][0]['kind'], 'dossier')
         self.assertEqual(result['citations'][0]['finding_ids'], ['F1', 'F2'])
         self.assertEqual(result['citations'][0]['source_ids'], ['S1'])
@@ -238,3 +238,19 @@ class AppTests(unittest.TestCase):
             conn.close()
         finally:
             server.shutdown(); server.server_close(); thread.join()
+
+
+def test_read_environment_defaults_to_root_then_research_agent_env(tmp_path, monkeypatch):
+    from supplier_app import env as env_mod
+
+    root, ra = tmp_path / '.env', tmp_path / 'research_agent.env'
+    root.write_text('A=root\nB=\n')
+    ra.write_text('A=ra\nB=ra\nexport C="ra"\n')
+    monkeypatch.setattr(env_mod, 'DEFAULT_ENV_FILES', (root, ra))
+    for k in ('A', 'B', 'C'):
+        monkeypatch.delenv(k, raising=False)
+    values = env_mod.read_environment()
+    assert (values['A'], values['B'], values['C']) == ('root', 'ra', 'ra')
+    monkeypatch.setenv('A', 'os')
+    assert env_mod.read_environment()['A'] == 'os'
+    assert 'B' not in env_mod.read_environment(str(root)) or env_mod.read_environment(str(root))['B'] == ''

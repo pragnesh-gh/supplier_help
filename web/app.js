@@ -1038,7 +1038,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           provenance();
           break;
         case "saved-report":
-          showRisk(state.reports[b.dataset.run] || state.added[0]?._report);
+          showRisk(state.reports[b.dataset.run] || { id: b.dataset.run });
           break;
         case "print-memo":
           state.memo.preview = memoDocument(state.memo);
@@ -1321,27 +1321,66 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (get(id)) cells(id, column);
         },
         onReport: (run, show) => {
-          state.reports[run.id] = run;
+          if (run && run.status) state.reports[run.id] = run;
           if (show) showRisk(run);
+          else if (state.route === "reports") render();
         },
-        onAdded: (record) => {
-          const row = {
-            supplierID: "research:" + record.id,
-            "Supplier Name": record.company,
-            train_region_id: state.region,
-            _research: true,
-            _report: state.reports[record.run_id],
-            _record: record,
-          };
-          if (!get(row.supplierID)) state.added.push(row);
+        onAdded: (record, quiet) => {
+          addResearchRow(record);
           persistWorkspace();
           render();
-          toast("Research supplier added · scores remain Unknown");
+          if (!quiet) toast("Saved to My suppliers");
+        },
+        isFavorite: (runId) => {
+          const row = researchRowForRun(runId);
+          return !!row && state.favorites.has(row.supplierID);
+        },
+        inCompare: (runId) => {
+          const row = researchRowForRun(runId);
+          return !!row && state.compare.includes(row.supplierID);
+        },
+        inShortlist: (runId) => {
+          const row = researchRowForRun(runId);
+          return !!row && !!approval.snapshot()?.candidates?.some((c) => c.supplier_id === row.supplierID);
+        },
+        // Returns the confirmation shown inside the card (toasts can sit under the chat panel).
+        onAction: async (kind, run, record) => {
+          const id = "research:" + record.id;
+          let note = null;
+          if (kind === "favorite") {
+            if (state.favorites.has(id)) {
+              state.favorites.delete(id);
+              note = { text: "Removed from favorites." };
+            } else {
+              state.favorites.add(id);
+              note = { text: "★ Added to favorites.", href: "#/portfolio", link: "View in My suppliers" };
+            }
+          } else if (kind === "compare") {
+            if (!state.compare.includes(id)) toggleCompare(id);
+            note = state.compare.includes(id)
+              ? { text: `✓ In comparison (${state.compare.length}/20).`, href: "#/compare", link: "Open Compare" }
+              : { text: state.compareError || "Could not add to the comparison.", error: true };
+          } else if (kind === "shortlist") {
+            approval.start([id]);
+            const inList = approval.snapshot()?.candidates?.some((c) => c.supplier_id === id);
+            note = inList
+              ? { text: "✓ In the shortlist draft.", href: "#/approvals", link: "Open shortlist" }
+              : { text: "The shortlist already has five candidates. Remove one first.", href: "#/approvals", link: "Open shortlist", error: true };
+          } else if (kind === "save") note = { text: "Saved to My suppliers.", href: "#/portfolio", link: "View" };
+          if (note && !note.error) toast(note.text.replace(/^[★✓] /, ""));
+          persistWorkspace();
+          render();
+          return note;
         },
       });
       try {
         const data = await api("/api/research");
         for (const run of data.runs || []) state.reports[run.id] = run;
+        const saved = await api("/api/suppliers");
+        for (const record of saved.suppliers || []) {
+          const row = get("research:" + record.id);
+          if (row) row._record = { ...row._record, ...record };
+        }
       } catch {}
       if (state.memo) {
         const candidate = get(state.memo.candidate);
@@ -1358,6 +1397,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       const active = [...chat.state.messages].reverse().find((m) => m.run_id);
       if (active) chat.poll(active.run_id);
+    }
+    function addResearchRow(record) {
+      const id = "research:" + record.id;
+      const existing = get(id);
+      if (existing) {
+        existing._record = record;
+        existing._report = state.reports[record.run_id] || existing._report;
+        return existing;
+      }
+      const row = {
+        supplierID: id,
+        "Supplier Name": record.company,
+        train_region_id: state.region,
+        _research: true,
+        _report: state.reports[record.run_id],
+        _record: record,
+      };
+      state.added.push(row);
+      return row;
+    }
+    function researchRowForRun(runId) {
+      return state.added.find((r) => r._record?.run_id === runId) || null;
     }
     function openChat() {
       chat?.open();
@@ -1388,20 +1449,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
     }
     function reports() {
-      const dossiers = Object.values(state.reports);
+      const dossiers = Object.values(state.reports)
+        .filter((r) => r.status !== "needs_clarification")
+        .sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
       return `<div class="screen-title"><div><div class="eyebrow">Evidence & decisions</div><h1 class="title-with-icon">${icon("summarize")}Reports and approval requests</h1><p class="small muted">Saved on this local server. Browser printing creates a review copy.</p></div><button id="open-assistant-page" class="primary">${icon("chat", "sm")}Research a company</button></div><div class="two reports-page"><section class="card"><div class="card-head"><h2>${icon("description")}Research dossiers</h2>${dossiers.length ? `<span class="count-pill">${dossiers.length}</span>` : ""}</div>${
         dossiers.length
           ? `<ul class="m-list">${dossiers
               .map(
                 (r) =>
-                  `<li class="m-list-item"><span class="m-list-lead">${icon(r.demo ? "history" : "search")}</span><div class="m-list-body"><strong>${esc(r.company)}</strong><p>${esc(r.status)} · ${r.demo ? "saved historical example" : "public research"} · ${esc(r.mode)}</p><p class="small muted">${esc(r.summary || "Research is in progress.")}</p></div><button class="tonal" data-live-report="${esc(r.id)}">${icon("description", "sm")}Open dossier</button></li>`,
+                  `<li class="m-list-item"><span class="m-list-lead">${icon(r.demo ? "history" : "search")}</span><div class="m-list-body"><strong>${esc(r.company)}</strong><p>${reportLine(r)}</p><p class="small muted">${esc(r.summary || "Research is in progress.")}</p></div><button class="tonal" data-live-report="${esc(r.id)}">${icon("description", "sm")}Open dossier</button></li>`,
               )
               .join("")}</ul>`
           : `<div class="empty m-empty">${icon("description", "lg")}<span>No research runs yet. Start by asking ${ASSISTANT_NAME}, the sourcing assistant.</span></div>`
       }</section><section class="card"><div class="card-head"><h2>${icon("approval")}Shortlist approval requests</h2></div><div class="m-section"><div class="m-tonal">${icon("fact_check")}<p>Prepare 3 to 5 candidates for approval to negotiate. Submitted requests retain frozen evidence.</p></div><a class="button tonal" href="#/approvals">${icon("fact_check", "sm")}Open shortlist approvals</a></div><div class="m-section"><h3>${icon("history", "sm")}Legacy single-supplier assessment</h3>${state.memo ? `<div class="m-list-item"><span class="m-list-lead">${icon("description")}</span><div class="m-list-body"><strong>${esc(state.memo.id)} · ${esc(state.memo.candidate)} · rev ${state.memo.rev}</strong><p>Draft / not approved</p></div><a class="button" href="#/memo">Continue draft${icon("arrow_forward", "sm")}</a></div>` : '<p class="muted">No legacy assessment draft.</p>'}<p class="small muted">Previously used suppliers follow the same review workflow.</p></div></section></div>`;
     }
+    function reportLine(r) {
+      const sc = r.scores || r.score || null;
+      const date = String(r.completed_at || r.created_at || "").slice(0, 10);
+      const kind = r.demo ? "offline example" : "public research";
+      const status = r.status === "completed" ? "" : r.status === "failed" ? "could not complete · " : "in progress · ";
+      const score = sc && typeof sc.total === "number" ? `<span class="risk ${esc(sc.level)}">${esc(sc.level)}</span> <strong>${sc.total}/100</strong> · ` : "";
+      return `${score}${status}${kind} · ${esc(date)}`;
+    }
     function riskDocument(r) {
-      return `<article class="document"><div class="doc-header">SUPPLIER RESEARCH · ${esc(r.id)}</div><h1>${esc(r.company)}</h1><div class="doc-status">${esc(r.status)} · ${r.demo ? "SAVED HISTORICAL EXAMPLE" : "PUBLIC RESEARCH"} · NO APPROVAL GRANTED</div><h2>Identity & scope</h2><p>Country hint: ${esc(r.country || "Unknown")} · website hint: ${esc(r.website || "Unknown")}</p><p>${esc(r.scope || "Procurement scope unspecified")}</p><p>Entity verification: ${esc(r.entity?.verification || "Unverified")}</p>${r.dataset_context ? `<h3>Separate supplied-data context</h3><pre>${esc(JSON.stringify(r.dataset_context, null, 2))}</pre><p>Supplied records do not establish the real company’s identity or numerical risk.</p>` : ""}<h2>Summary</h2><p>${esc(r.summary || r.error || "Not completed")}</p><h2>Research plan</h2>${(r.plan || []).map((p) => `<details><summary>${esc(p.category)}</summary>${p.questions.map((q) => `<p>${esc(q)}</p>`).join("")}</details>`).join("")}<h2>${r.demo ? "Saved historical observations" : "Source-bound observations"}</h2><div class="research-findings">${(r.findings || []).map((f) => `<article><h3>${esc(f.id)} · ${esc(f.title)}</h3><p>${esc(f.category)} · ${esc(f.severity)} · confidence ${esc(f.confidence)}</p><p>${esc(f.detail)}</p>${(f.evidence || []).map((e) => `${r.demo ? "<div><p><strong>Saved historical paraphrase (not a verified source quotation)</strong></p><p>" : "<blockquote>"}${esc(e.quote)}<p class="small">${esc(e.source_id)} · ${esc(e.locator || "")}</p>${r.demo ? "</p></div>" : "</blockquote>"}`).join("")}</article>`).join("") || "<p>No retained source-bound observations.</p>"}</div><h2>Gaps and limits</h2>${[...(r.gaps || []), ...(r.limitations || [])].map((v) => `<p>• ${esc(v)}</p>`).join("")}<h2>Buyer actions</h2>${(r.actions || []).map((a) => `<p>☐ ${esc(a.action)} · ${esc(a.owner || "Unassigned")} · ${esc(a.status)}</p>`).join("")}<h2>Source register</h2>${(r.sources || []).map((s, i) => `<section class="source"><a class="citation-chip" href="${esc(safeURL(s.url))}" target="_blank" rel="noopener noreferrer"><b>${i + 1}</b>${esc(s.title || s.id)}</a><p class="small">${esc(s.id)} · ${esc(s.url)}</p><details><summary>Retrieved excerpt</summary><p>${esc(s.excerpt || "No excerpt available")}</p></details></section>`).join("")}<h2>Actual activity</h2>${(r.events || []).map((e) => `<p class="small">${esc(e.at)} · ${esc(e.stage)} · ${esc(e.message)}</p>`).join("")}</article>`;
+      return `<article class="document"><div class="doc-header">SUPPLIER RESEARCH · ${esc(r.id)}</div><h1>${esc(r.company)}</h1><div class="doc-status">${esc(r.status)} · ${r.demo ? "OFFLINE EXAMPLE · FICTIONAL COMPANY" : "PUBLIC RESEARCH"} · NO APPROVAL GRANTED</div><h2>Identity & scope</h2><p>Country hint: ${esc(r.country || "Unknown")} · website hint: ${esc(r.website || "Unknown")}</p><p>${esc(r.scope || "Procurement scope unspecified")}</p><p>Entity verification: ${esc(r.entity?.verification || "Unverified")}</p>${r.dataset_context ? `<h3>Separate supplied-data context</h3><pre>${esc(JSON.stringify(r.dataset_context, null, 2))}</pre><p>Supplied records do not establish the real company’s identity or numerical risk.</p>` : ""}<h2>Summary</h2><p>${esc(r.summary || r.error || "Not completed")}</p><h2>Research plan</h2>${(r.plan || []).map((p) => `<details><summary>${esc(p.category)}</summary>${p.questions.map((q) => `<p>${esc(q)}</p>`).join("")}</details>`).join("")}<h2>${r.demo ? "Saved historical observations" : "Source-bound observations"}</h2><div class="research-findings">${(r.findings || []).map((f) => `<article><h3>${esc(f.id)} · ${esc(f.title)}</h3><p>${esc(f.category)} · ${esc(f.severity)} · confidence ${esc(f.confidence)}</p><p>${esc(f.detail)}</p>${(f.evidence || []).map((e) => `${r.demo ? "<div><p><strong>Saved historical paraphrase (not a verified source quotation)</strong></p><p>" : "<blockquote>"}${esc(e.quote)}<p class="small">${esc(e.source_id)} · ${esc(e.locator || "")}</p>${r.demo ? "</p></div>" : "</blockquote>"}`).join("")}</article>`).join("") || "<p>No retained source-bound observations.</p>"}</div><h2>Gaps and limits</h2>${[...(r.gaps || []), ...(r.limitations || [])].map((v) => `<p>• ${esc(v)}</p>`).join("")}<h2>Buyer actions</h2>${(r.actions || []).map((a) => `<p>☐ ${esc(a.action)} · ${esc(a.owner || "Unassigned")} · ${esc(a.status)}</p>`).join("")}<h2>Source register</h2>${(r.sources || []).map((s, i) => `<section class="source"><a class="citation-chip" href="${esc(safeURL(s.url))}" target="_blank" rel="noopener noreferrer"><b>${i + 1}</b>${esc(s.title || s.id)}</a><p class="small">${esc(s.id)} · ${esc(s.url)}</p><details><summary>Retrieved excerpt</summary><p>${esc(s.excerpt || "No excerpt available")}</p></details></section>`).join("")}<h2>Actual activity</h2>${(r.events || []).map((e) => `<p class="small">${esc(e.at)} · ${esc(e.stage)} · ${esc(e.message)}</p>`).join("")}</article>`;
     }
     async function showRisk(run) {
       const token = appGeneration;
@@ -1409,14 +1480,38 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         const r = await api("/api/research/" + encodeURIComponent(run.id));
         if (token !== appGeneration) return;
+        delete r.report_html;
         state.reports[r.id] = r;
+        const id = encodeURIComponent(r.id);
+        if (r.schema_version === "research-run-v2" && r.report?.html) {
+          dialog(
+            "Research report · " + r.company,
+            `<div class="actions report-actions"><a class="button primary" href="/api/research/${id}/report.html" target="_blank" rel="noopener">${icon("description", "sm")}Open printable report</a><button data-live-scoring="${esc(r.id)}">How was this scored?</button><a class="button" href="/api/research/${id}/export?format=html">${icon("download", "sm")}HTML</a><a class="button" href="/api/research/${id}/export?format=markdown">${icon("download", "sm")}Markdown</a>${r.status === "completed" ? `<button data-add-live="${esc(r.id)}">Save to my suppliers</button>` : ""}</div><iframe class="report-frame" src="/api/research/${id}/report.html" sandbox="" title="Research report for ${esc(r.company)}"></iframe>`,
+          );
+          return;
+        }
         dialog(
-          "Research dossier · " + r.company,
-          `<div class="actions"><button id="print-live-risk" class="primary">Print / Save as PDF</button><a class="button" href="/api/research/${encodeURIComponent(r.id)}/export?format=markdown" target="_blank" rel="noopener">${icon("download", "sm")}Export Markdown</a>${r.status === "completed" ? `<button data-add-live="${esc(r.id)}">Add as unscored supplier</button>` : ""}</div>${riskDocument(r)}`,
+          "Research report · " + r.company,
+          `<div class="actions"><button id="print-live-risk" class="primary">Print / Save as PDF</button>${r.status === "completed" ? `<button data-add-live="${esc(r.id)}">Save to my suppliers</button>` : ""}</div>${riskDocument(r)}`,
         );
         $("#print-live-risk").onclick = () => printDoc(riskDocument(r));
       } catch (error) {
         if (token !== appGeneration) return;
+        toast(error.message);
+      }
+    }
+    async function scoringDialog(runId) {
+      try {
+        const data = await api("/api/research/" + encodeURIComponent(runId) + "/scoring");
+        const sc = data.scoring, s = data.scores || {};
+        const r = state.reports[runId] || {};
+        const cite = (nums) => (nums || []).map((n) => { const c = (data.citations || []).find((x) => x.n === n); return c ? `<a class="cite-chip${c.trust === "unverified" ? " unverified" : ""}" href="${esc(safeURL(c.link || c.url))}" target="_blank" rel="noopener noreferrer" title="${esc((c.publisher || c.title) + ": " + (c.quote || ""))}">${n}</a>` : ""; }).join("");
+        const areas = (sc?.areas || []).map((a) => `<section class="score-area"><h3>${esc(a.label)} <span class="muted small">${a.score === null || a.score === undefined ? "Not assessed" : esc(a.score + "/100 · " + (a.level || ""))}${a.weight_pct ? " · weight " + a.weight_pct + "%" : ""}</span></h3>${(a.sub_scores || []).map((sub) => `<div class="score-sub"><strong>${esc(sub.label)}</strong> <span class="small muted">${sub.score === null || sub.score === undefined ? esc(sub.not_assessed_reason || "Not assessed") : esc(sub.score + "/100")}</span><ul>${(sub.lines || []).map((l) => `<li>${esc(l.label || "")}${typeof l.points === "number" ? ` <span class="muted">(${l.points > 0 ? "+" : ""}${esc(l.points)})</span>` : ""} ${cite(l.citations)}</li>`).join("")}</ul></div>`).join("")}</section>`).join("");
+        dialog(
+          "How was this scored? · " + (r.company || ""),
+          `<p><strong>${typeof s.total === "number" ? esc(s.total + "/100 · " + s.level) : "No total score"}</strong>${typeof s.coverage_pct === "number" ? ` · coverage ${s.coverage_pct}%` : ""}</p><p class="small muted">0 = no risk, 100 = maximum risk. ${esc(sc?.method || "")}</p><p class="notice">Public research score, not comparable to catalogue scores. It is never ranked against catalogue suppliers.</p>${areas || "<p>No breakdown is available for this report.</p>"}`,
+        );
+      } catch (error) {
         toast(error.message);
       }
     }
@@ -1465,7 +1560,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         )
         .join(
           "",
-        )}<h2>Selection basis</h2><p>Comparison: ${esc((m.selection || []).join(", ") || "No alternatives selected")} · ${m.stale ? "STALE — refresh selection basis" : "Saved selection snapshot"}</p><p>Required fields: ${esc(missingMemo(m).join(", ") || "Complete for review; no approval granted")}</p><h2>Evidence appendix</h2>${r._research ? `<p>Separate research dossier: ${esc(r._record?.run_id || r._report?.id)}. Source scores Unknown. Public evidence is not qualification.</p>${r._report?.findings ? riskDocument(r._report) : "<p>Dossier evidence not loaded. Open its linked report before preparing the review copy.</p>"}` : sourceAppendix(r)}<h2>Scope statement</h2><p>System associations and previous-use tags are illustrative. Trend examples are not historical observations. Supplied total risk weights are unknown. This request grants no qualification, award or approval; reviewer decision remains pending.</p></article>`;
+        )}<h2>Selection basis</h2><p>Comparison: ${esc((m.selection || []).join(", ") || "No alternatives selected")} · ${m.stale ? "STALE — refresh selection basis" : "Saved selection snapshot"}</p><p>Required fields: ${esc(missingMemo(m).join(", ") || "Complete for review; no approval granted")}</p><h2>Evidence appendix</h2>${r._research ? `<p>Research report: ${esc(r._record?.run_id || r._report?.id)}. Its public research score is not comparable to catalogue scores. Public evidence is not qualification.</p>${r._report?.findings ? riskDocument(r._report) : "<p>Report not loaded. Open its linked report before preparing the review copy.</p>"}` : sourceAppendix(r)}<h2>Scope statement</h2><p>System associations and previous-use tags are illustrative. Trend examples are not historical observations. Supplied total risk weights are unknown. This request grants no qualification, award or approval; reviewer decision remains pending.</p></article>`;
     }
     function provenance() {
       dialog(
@@ -1478,6 +1573,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!b) return;
       if (b.id === "open-assistant-page") openChat();
       if (b.dataset.liveReport) showRisk({ id: b.dataset.liveReport });
+      if (b.dataset.liveScoring) scoringDialog(b.dataset.liveScoring);
+      if (b.dataset.liveAsk) {
+        chat.state.pinned = b.dataset.liveAsk;
+        await chat.poll(b.dataset.liveAsk);
+        chat.open();
+      }
       if (b.dataset.addLive) {
         const token = appGeneration;
         try {
@@ -1485,19 +1586,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             run_id: b.dataset.addLive,
           });
           if (token !== appGeneration) return;
-          const record = result.supplier || result;
-          const id = "research:" + record.id;
-          if (!get(id))
-            state.added.push({
-              supplierID: id,
-              "Supplier Name": record.company,
-              train_region_id: state.region,
-              _research: true,
-              _report: state.reports[record.run_id],
-              _record: record,
-            });
+          addResearchRow(result.supplier || result);
           persistWorkspace();
-          toast("Added separate research supplier · scores Unknown");
+          render();
+          toast("Saved to My suppliers");
         } catch (error) {
           if (token !== appGeneration) return;
           toast(error.message);

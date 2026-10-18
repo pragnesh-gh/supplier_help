@@ -14,7 +14,7 @@ Open **http://127.0.0.1:8878**. The app combines the complete supplier catalogue
 
 The landing radar defaults to the lowest supplied-total-risk supplier in the selected system or part. Cab glazing follows the train nose surface. From Compare, build a shortlist of 3–5 candidates and save a request for approval to negotiate, including trade-offs, negotiation questions and frozen source evidence. Saved requests live under Approvals and can be printed. See [the shortlist workflow](docs/shortlist-approval.md).
 
-Credentials stay on the server. Without an OpenRouter key, catalogue/data answers and the explicit historical example still work; live web research clearly reports that configuration is needed. Live requests incur provider usage. The app is loopback-only, with durable local workspace and dossier storage. It is a single-user local deliverable, not an authenticated hosted service.
+Credentials stay on the server. Without `ANTHROPIC_API_KEY` and `TAVILY_API_KEY`, catalogue/data answers and the offline research example still work; live research reports that it is not set up. Start with `--offline-fixture` to run every research request on the invented offline example (no keys, no network). Live requests incur provider usage. The app is loopback-only, with durable local workspace and dossier storage. It is a single-user local deliverable, not an authenticated hosted service.
 
 The UI uses a compact Material-style presentation layer based on the supplied design references. Google Material Symbols are vendored locally with their license and pinned source manifest in `web/vendor/material-symbols/`; no runtime font or icon CDN is required.
 
@@ -22,7 +22,7 @@ The UI uses a compact Material-style presentation layer based on the supplied de
 
 ## Research engine
 
-`research_agent/` contains bounded retrieval, source-linked observations, follow-ups and saved dossiers. The unified app uses this engine. Its old standalone UI can still be run with `python -m research_agent --env-file .env` at port8877, but use8878 for the combined product. The servers use separate default data directories so they cannot overwrite each other's active runs.
+`research_agent/` is the research pipeline (Tavily search, Claude gatherer and verifier, exact-quote checks, scoring, HTML/Markdown report). The app calls it through `research_agent/app_adapter.py`; live research needs `pip install -r research_agent/requirements.txt` and the two keys in `.env`. The chat answer is a TL;DR card (score, level, coverage, 6-area radar, cited points); the full report opens from the card and is saved under Reports. CLI: `python -m research_agent "Company" --country DE`.
 
 - [Research method](docs/research/deep-research-method.md)
 - [Score patterns and limits](docs/research/score-patterns.md)
@@ -86,15 +86,7 @@ Python 3.12+; no dependencies are required for the data audit or prototype.
 python scripts/audit_dataset.py
 ```
 
-Keep OpenRouter credentials in your process environment or ignored `.env`. `.env.example` and `config/models.json` document the proposed backend configuration; the HTML never reads them. The user confirmed Nemotron; the selected initial candidate is `nvidia/nemotron-3.5-lightning`. Its public catalog entry was verified on 2026-10-18, and the research-agent verification record documents a later live run. The baseline uses deterministic logic plus Nemotron. Jev via OpenRouter is an optional later triage experiment; OpenAI Decisions is out of the current scope. There is no image-input requirement. Speech transcription produces text before the language-model step.
-
-```sh
-python scripts/check_openrouter.py --catalog
-# After supplying OPENROUTER_API_KEY locally; no inference is sent:
-python scripts/check_openrouter.py --key
-```
-
-These setup commands are read-only and never print credentials. The separate research agent implements live provider calls; see its verification record for the prior live investigation. No paid calls are needed for the automated tests.
+Keep `ANTHROPIC_API_KEY` and `TAVILY_API_KEY` in your process environment or the ignored `.env` (see `.env.example`); the HTML never reads them. `python -m research_agent --check` validates config and keys without paid calls. No paid calls are needed for the automated tests (`python -m unittest discover -s tests`, `python -m pytest research_agent/tests`).
 
 ## Read next
 

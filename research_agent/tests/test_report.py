@@ -11,10 +11,10 @@ from research_agent.models import (
     RunStats,
     Source,
 )
-from research_agent.report import render_markdown, report_word_count
+from research_agent.report import render_markdown
 
-LABELS = {"financial": "Financial", "legal": "Legal & Compliance", "country": "Country & Location",
-          "people": "People & Safety", "operations": "Operations & Quality", "reputation": "Reputation"}
+LABELS = {"financial": "Financial", "legal": "Legal & Governance", "country": "Country & Location",
+          "people": "People & Safety", "operations": "Operations & Delivery", "reputation": "Reputation & Outside View"}
 
 
 def _src(i, tier="major_news"):
@@ -59,33 +59,45 @@ def _result(n_red=2, n_amber=2, n_green=1, n_sources=6, followups=True):
     )
 
 
-def test_has_all_sections_in_order():
+HEADINGS = ["## 1. Summary for decision makers", "## 2. Supplier profile", "## 3. Country and sector risk",
+            "## 4. Company-specific risks found", "## 5. Weighting and prioritisation", "## 6. Risk register",
+            "## 7. From priority risks to prevention", "## 8. Documentation"]
+
+
+def test_has_all_sections_in_fixed_order():
+    for kw in ({}, {"n_red": 0, "n_amber": 0, "n_green": 0, "followups": False}):
+        md = render_markdown(_result(**kw))
+        pos = [md.find(h) for h in ["# Veltrava Rail Components GmbH", *HEADINGS, "not a legal LkSG risk analysis"]]
+        assert all(p >= 0 for p in pos), pos
+        assert pos == sorted(pos)
+
+
+def test_area_order_in_section_4_is_fixed():
     md = render_markdown(_result())
-    order = ["# Supplier risk research: Veltrava Rail Components GmbH", "**Verdict:", "Red flags", "Watch items",
-             "Strengths", "Risk areas", "What we dug into", "Limits of this report",
-             "Recommended next steps", "Sources"]
-    pos = [md.find(h) for h in order]
-    assert all(p >= 0 for p in pos), list(zip(order, pos))
-    assert pos == sorted(pos)
+    sec4 = md.split(HEADINGS[3], 1)[1].split(HEADINGS[4], 1)[0]
+    order = ["Operations & Delivery", "Financial", "People & Safety", "Legal & Governance", "Country & Location",
+             "Reputation & Outside View"]
+    pos = [sec4.find(f" {o} · ") for o in order]
+    assert all(p >= 0 for p in pos) and pos == sorted(pos)
 
 
 def test_header_line_has_country_website_date_and_source_count():
     md = render_markdown(_result())
-    line = md.splitlines()[2]
-    assert "Germany" in line and "veltrava-rail.example" in line and "2026-10-18" in line and "6 sources" in line
+    line = next(ln for ln in md.splitlines() if ln.startswith("**Legal entity:**"))
+    assert "Germany" in line and "veltrava-rail.example" in line and "2026-10-18" in line
+    assert "**Sources checked:** 6" in line
 
 
-def test_risk_table_has_six_rows_and_status_symbols():
+def test_not_assessed_area_is_never_zero():
     md = render_markdown(_result())
-    rows = [ln for ln in md.splitlines() if ln.startswith("| ") and not ln.startswith("| Area") and "---" not in ln]
-    assert len(rows) == 6
-    assert any("⚪ Not assessed" in r for r in rows)
-    assert any("🔴" in r for r in rows)
+    rows = [ln for ln in md.splitlines() if ln.startswith("| Reputation")]
+    assert rows and all("_Not assessed_" in r or "_not scored yet_" in r for r in rows)
+    assert all("| 0 " not in r for r in rows)
 
 
 def test_citations_are_numbered_in_order_of_first_use_and_all_resolve():
     md = render_markdown(_result())
-    body, sources = md.split("## Sources", 1)
+    body, sources = md.split("**Sources**", 1)
     cited = [int(n) for n in re.findall(r"\[(\d+)\]", body)]
     assert cited, "no citations"
     first_seen = list(dict.fromkeys(cited))
@@ -95,68 +107,39 @@ def test_citations_are_numbered_in_order_of_first_use_and_all_resolve():
     assert "(accessed 2026-10-18)" in sources and "https://www.reuters.com/" in sources
 
 
-def test_caps_on_flag_lists():
-    md = render_markdown(_result(n_red=9, n_amber=9, n_green=9, n_sources=30))
-    sec = lambda name: md.split("## " + name, 1)[1].split("\n## ", 1)[0]  # noqa: E731
-    md = md.replace("## 🔴 ", "## ").replace("## 🟡 ", "## ").replace("## 🟢 ", "## ")
-    assert sec("Red flags").count("\n- ") <= 5
-    assert sec("Watch items").count("\n- ") <= 5
-    assert sec("Strengths").count("\n- ") <= 3
-    assert "+4 lower-priority red flags not shown (in full data)" in sec("Red flags")
-    assert "+4 lower-priority watch items not shown (in full data)" in sec("Watch items")
-    assert "+6 lower-priority strengths not shown (in full data)" in sec("Strengths")
-
-
-def _lists(md):
-    md = md.replace("## 🔴 ", "## ").replace("## 🟡 ", "## ").replace("## 🟢 ", "## ")
-    return "".join(md.split("## " + n, 1)[1].split("\n## ", 1)[0] for n in ("Red flags", "Watch items", "Strengths"))
-
-
-def test_all_flags_listed_when_under_cap():
-    r = _result(n_red=5, n_amber=5, n_green=3, n_sources=20)
+def test_every_flag_is_listed_in_section_4_never_trimmed():
+    r = _result(n_red=9, n_amber=9, n_green=9, n_sources=30)
     md = render_markdown(r)
-    lists = _lists(md)
+    sec4 = md.split(HEADINGS[3], 1)[1].split(HEADINGS[4], 1)[0]
     for f in r.flags:
-        assert f.summary in lists, f.id
-    assert "not shown" not in md
+        assert f.summary in sec4, f.id
+    assert "not shown" not in sec4.split("**Event timeline**")[0]
 
 
-def test_flags_are_never_trimmed_to_fit_word_budget():
-    r = _result(n_red=5, n_amber=5, n_green=3, n_sources=20)
-    for f in r.flags:
-        f.summary = "A fairly long one-line finding about the supplier that uses up many words in the report " + f.id
-    md = render_markdown(r)
-    lists = _lists(md)
-    assert all(f.summary in lists for f in r.flags)
-    assert report_word_count(md) <= 1000
+def test_strengths_are_checked_rows_not_a_list():
+    md = render_markdown(_result())
+    assert "Strengths" not in md.split("**Event timeline**")[0]
+    assert "**Checked, nothing adverse found:** Summary 5 of a green item." in md
 
 
-def test_report_never_mentions_result_json():
-    for kw in ({}, {"n_red": 9, "n_amber": 9, "n_green": 9, "n_sources": 30}):
-        assert "result.json" not in render_markdown(_result(**kw))
-
-
-def test_no_lazy_plurals_in_report():
+def test_report_never_mentions_result_json_or_lazy_plurals():
     for kw in ({}, {"n_red": 9, "n_amber": 9, "n_green": 9, "n_sources": 30}, {"n_red": 0, "n_amber": 0, "n_green": 0}):
-        assert "(s)" not in render_markdown(_result(**kw))
+        md = render_markdown(_result(**kw))
+        assert "result.json" not in md and "(s)" not in md and ".yaml" not in md
 
 
 def test_uncited_sources_line_pluralised():
     r = _result()
     r.sources.append(_src(50))
     md = render_markdown(r)
-    assert "further source checked is in the full data" in md or "further sources checked are in the full data" in md
-
-
-def test_length_caps():
-    assert report_word_count(render_markdown(_result())) <= 600
-    big = render_markdown(_result(n_red=12, n_amber=12, n_green=12, n_sources=40))
-    assert report_word_count(big) <= 1000
+    assert re.search(r"\n\d+ further sources? checked but not cited\.", md)
+    assert "1 further sources" not in md
 
 
 def test_empty_lists_say_none_found_not_no_risk():
     md = render_markdown(_result(n_red=0, n_amber=0, n_green=0, followups=False))
-    assert "No red flags found in the sources checked" in md
+    assert "No red flags or watch items found in the sources checked" in md
+    assert "No red flags or watch items to record." in md
     assert "no risk" not in md.lower()
     assert "No follow-up searches were needed" in md
 
@@ -188,3 +171,46 @@ def test_markdown_injection_in_titles_is_escaped():
     md = render_markdown(r)
     assert "<script>" not in md
     assert "](https://evil.example)" not in md
+
+
+def test_unverified_source_gets_yellow_marker_inline_and_in_sources():
+    r = _result()
+    r.sources[1].trust = "unverified"
+    r.sources[1].tier = "open_web"
+    r.sources[1].publisher = "blog.example"
+    r.flags[0].source_ids = ["S2"]
+    r.flags[0].trust = "unverified"
+    md = render_markdown(r)
+    body, sources = md.split("**Sources**", 1)
+    line = next(ln for ln in body.splitlines() if ln.startswith("- ") and r.flags[0].summary in ln)
+    assert "]🟨" in line and "unverified source only" in line
+    src_line = next(ln for ln in sources.splitlines() if "blog.example" in ln)
+    assert src_line.split(" ", 1)[1].startswith("🟨 not in our trusted source list")
+    trusted_lines = [ln for ln in sources.splitlines() if re.match(r"^\d+\. ", ln) and "blog.example" not in ln]
+    assert trusted_lines and all("✅ trusted" in ln for ln in trusted_lines)
+
+
+def test_unscored_result_shows_placeholders_never_zero():
+    from research_agent.scoring import score_result
+    r = _result()
+    r.scores = score_result(r.flags, r.areas)
+    md = render_markdown(r)
+    assert "**Total risk score (0–100):** Risk score not scored yet" in md
+    sec1 = md.split(HEADINGS[0], 1)[1].split(HEADINGS[1], 1)[0]
+    rows = [ln for ln in sec1.splitlines() if ln.startswith("| ") and "---" not in ln and not ln.startswith("| Risk area")]
+    assert len(rows) == 6 and all("_" in r for r in rows)
+    assert "_Not assessed_" in next(r for r in rows if r.startswith("| Reputation"))
+
+
+def test_rfc2822_source_dates_are_shown_as_iso():
+    r = _result()
+    for src in r.sources:
+        src.published_date = "Wed, 29 Jul 2026 00:00:00 GMT"
+    md = render_markdown(r)
+    assert "Wed, 29 Ju" not in md
+    assert "2026-07-29 (accessed" in md
+
+
+def test_markdown_is_deterministic():
+    r = _result()
+    assert render_markdown(r) == render_markdown(ResearchResult.model_validate_json(r.model_dump_json()))

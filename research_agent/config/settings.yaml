@@ -1,22 +1,38 @@
-# Research agent settings. Environment variables override the model IDs:
-#   RESEARCH_GATHERER_MODEL, RESEARCH_VERIFIER_MODEL
+# Research agent settings. Environment variables override the model IDs and effort:
+#   RESEARCH_GATHERER_MODEL, RESEARCH_VERIFIER_MODEL,
+#   RESEARCH_GATHERER_EFFORT, RESEARCH_VERIFIER_EFFORT
 
 models:
-  # Small, cheap model: plans queries, resolves identity candidates, extracts candidate facts.
-  gatherer: claude-haiku-5-5
+  # Mid-size model: rewrites queries, lists identity candidates, extracts candidate facts with quotes.
+  # Sonnet instead of Haiku: extraction quality decides what the verifier ever sees, and a missed
+  # or badly quoted fact cannot be recovered later in the pipeline.
+  gatherer: claude-sonnet-5-5
+  # Medium, not Sonnet's default "high": these are short, well-specified extraction tasks, and
+  # every run has 10+ gatherer calls inside a 120 s wall clock. Raise it if live runs show missed facts.
+  gatherer_effort: medium
   # Strong model: checks every candidate fact against its source, picks follow-ups, writes the summary.
   verifier: claude-opus-5-5
-  max_output_tokens: 4096
+  # Medium is Opus 5.5's own default; set explicitly so the behaviour does not change silently.
+  verifier_effort: medium
+  # Ceiling, not a target. Thinking (always on for these models) counts towards it, so 4096 risked
+  # cut-off answers ("max_tokens" stop = facts dropped). 16000 is the usual non-streaming ceiling.
+  max_output_tokens: 16000
 
 budget:
   wall_clock_seconds: 120        # whole run; on timeout partial results are returned
-  max_searches: 12               # 1 identity + 8 umbrella searches + 2 follow-ups (+1 spare)
-  max_extracts: 12               # full-page extracts via Tavily /extract
+  max_searches: 25               # 1 identity + 16 area + 2 open-web + 1 profile + 4 follow-up (2 x en/local) + 1 spare
+  max_extracts: 23               # 14 trusted + 1 World Bank data page + 2 open-web + 2 profile + 4 for follow-ups
   extracts_reserved_for_followups: 4
+  # Trusted pages per run, split across the six areas by their weight in config/scoring.yaml
+  # (largest remainder, at least 1 each): operations 4, financial 2, people 2, legal 2,
+  # country 2, reputation 2. Pages an area cannot use go to the others, highest weight first
+  # (country has no web search, so its 2 go to operations and financial).
+  # 14, not 12: with 12, Reputation got a single page (share 1), so one bad hit left the area
+  # Not assessed (live run Knorr-Bremse 2026-10-18). Extracts cost 1 credit per 5 pages.
+  max_trusted_pages: 14
   max_followups: 2               # narrowly scoped red-flag follow-ups
   pages_per_followup: 2
   max_results_per_search: 8
-  max_pages_per_umbrella: 3
   llm_timeout_seconds: 60
   search_timeout_seconds: 30
   parallel_workers: 6
@@ -30,62 +46,184 @@ tavily:
   search_depth: advanced         # 2 credits per search; "basic" costs 1
   extract_depth: basic
 
-# Six risk umbrellas. Each has one or more searches; tiers are searched in the
-# order listed (official first, then news). "{company}" is replaced with the
-# confirmed legal name. The gatherer model may rephrase "query" but can never
-# change tiers, topic or look-back.
+# Six risk umbrellas. Each search is short and focused: the company name plus 1-3 related
+# terms. One query stuffed with eight topics recalls badly (first live run: the operations and
+# people queries returned nothing). "lang: en" searches in English; "lang: local" searches in the
+# main language of the company's country (skipped when that is English), because local press and
+# registers write in the local language and international press in English.
+#
+# Reproducibility: queries come straight from these templates. English is used as written; for
+# lang: local the fixed translation under "local" is used when the country's language is listed
+# (country_languages below). Only a missing translation is written by the planner model, and that
+# answer is cached for the day. So the same company gets the same queries on every run.
+# More searches go to the areas with more weight (operations 30%).
+# Labels are the dataset umbrella names from config/scoring.yaml (dataset_umbrella), so report.md,
+# report.html and the TL;DR all name the areas the same way. The ids stay as they are.
 umbrellas:
   financial:
     label: Financial
+    # Newest pages first within this area (then the search score), so the latest reporting
+    # period wins over an older report that ranks higher. Second live run read H1 2025 figures
+    # while H1 2026 existed.
+    prefer_recent: true
     searches:
-      - tiers: [official, company_own]
-        topic: general
-        lookback: default
-        query: "{company} annual report results credit rating"
+      - {tiers: [official, company_own], topic: general, lookback: default, lang: en, query: "{company} annual report results"}
       - tiers: [major_news]
         topic: news
         lookback: default
-        query: "{company} profit warning OR credit rating OR losses OR results"
+        lang: local
+        query: "{company} profit warning rating downgrade"
+        local: {de: "{company} Gewinnwarnung Herabstufung", fr: "{company} avertissement résultats dégradation", it: "{company} allarme utili declassamento", es: "{company} advertencia beneficios rebaja"}
   legal:
-    label: Legal & Compliance
+    label: Legal & Governance
     searches:
-      - tiers: [official]
-        topic: general
-        lookback: legal
-        query: "{company} sanctions OR insolvency OR fine OR court"
+      - {tiers: [official], topic: general, lookback: legal, lang: en, query: "{company} sanctions insolvency fine"}
+      - {tiers: [major_news], topic: news, lookback: legal, lang: en, query: "{company} fine lawsuit investigation"}
       - tiers: [major_news]
         topic: news
         lookback: legal
-        query: "{company} fine OR lawsuit OR investigation OR corruption OR insolvency"
+        lang: local
+        query: "{company} fine lawsuit corruption"
+        local: {de: "{company} Bußgeld Klage Korruption", fr: "{company} amende procès corruption", it: "{company} multa causa corruzione", es: "{company} multa demanda corrupción"}
+      # Litigation history: known legal matters of the last 10 years (settlements, rulings),
+      # on official sources and major press. Runs 1 and 2 each found a different legal matter;
+      # this slot looks for the history on purpose instead of by chance.
+      - {tiers: [official, major_news], topic: general, lookback: legal, lang: en, query: "{company} lawsuit settlement court ruling"}
   country:
     label: Country & Location
-    searches:
-      - tiers: [country_data]
-        topic: general
-        lookback: default
-        query: "{country} country risk corruption index"
+    # No web search: the figures come from country_data below (World Bank WGI, TI CPI).
+    searches: []
   people:
     label: People & Safety
+    # Live run Knorr-Bremse 2026-10-18: "strike accident workers" (general topic) returned
+    # freight-train articles without the company, and the German "Streik Arbeitsunfall" an
+    # unrelated FAZ page, so People & Safety was Not assessed. Labour news is written as
+    # strikes, job cuts and works-council disputes, mostly in the business press (news topic).
+    # Slot 3 finds the baseline: safety figures (LTIFR, accident rate) and ESG ratings are in
+    # the company's sustainability report, which also gives the injury rate the Safety score
+    # uses (appendix §A2). Slots 1-2 look for adverse events, slot 3 for "checked" evidence.
     searches:
+      - {tiers: [major_news, rail_trade], topic: news, lookback: default, lang: en, query: "{company} strike job cuts"}
       - tiers: [major_news, rail_trade]
-        topic: general
+        topic: news
         lookback: default
-        query: "{company} strike OR accident OR injury OR labour dispute OR human rights"
+        lang: local
+        query: "{company} strike job cuts works council"
+        local: {de: "{company} Streik Stellenabbau Betriebsrat", fr: "{company} grève suppressions d'emplois", it: "{company} sciopero tagli posti di lavoro", es: "{company} huelga despidos"}
+      - {tiers: [company_own, official], topic: general, lookback: default, lang: en, query: "{company} sustainability report accident rate LTIFR"}
   operations:
-    label: Operations & Quality
+    label: Operations & Delivery
     searches:
-      - tiers: [rail_trade, major_news, company_own]
+      - {tiers: [rail_trade, major_news], topic: general, lookback: default, lang: en, query: "{company} recall defect quality"}
+      - {tiers: [rail_trade, major_news], topic: general, lookback: default, lang: en, query: "{company} delivery delay cyber attack"}
+      - tiers: [rail_trade, major_news]
         topic: general
         lookback: default
-        query: "{company} recall OR defect OR delivery delay OR cyber attack OR plant OR IRIS certification"
+        lang: local
+        query: "{company} recall delivery delay"
+        local: {de: "{company} Rückruf Lieferverzögerung", fr: "{company} rappel retard livraison", it: "{company} richiamo ritardo consegne", es: "{company} retirada retraso entrega"}
+      - {tiers: [company_own, rail_trade], topic: general, lookback: default, lang: en, query: "{company} IRIS certification"}
   reputation:
-    label: Reputation
+    label: Reputation & Outside View
+    # Slots 1-2 look for adverse coverage. Live run Knorr-Bremse 2026-10-18: with no scandal to
+    # find, "scandal controversy" returned 8 of 8 results about other companies (Gerresheimer,
+    # Toyota, Boeing; dropped as off-topic), so the area was Not assessed although nothing
+    # adverse exists. Slot 3 finds the baseline outside view: analyst and investor views in
+    # the business press (dataset Market_Sentiment_Score), which name the company in the title.
     searches:
+      - {tiers: [major_news], topic: news, lookback: default, lang: en, query: "{company} scandal controversy"}
       - tiers: [major_news]
         topic: news
         lookback: default
-        query: "{company} scandal OR controversy OR governance OR allegations"
+        lang: local
+        query: "{company} scandal allegations"
+        local: {de: "{company} Skandal Vorwürfe", fr: "{company} scandale accusations", it: "{company} scandalo accuse", es: "{company} escándalo acusaciones"}
+      - {tiers: [major_news], topic: news, lookback: default, lang: en, query: "{company} shares analysts outlook"}
 
+# Query guard: a planner-written query with more than this many words besides the company name
+# is ignored and the template is used. 5 allows "company + 1-3 terms" in two-word phrases, and
+# rejects the 8-topic keyword lists of the first live run. Also applies to follow-up queries.
+max_query_extra_words: 5
+# Countries whose main language is English: "lang: local" searches are skipped there,
+# because they would repeat the English search.
+english_speaking_countries: [GB, UK, US, IE, AU, NZ]
+
+# Main language per country (ISO 3166-1 alpha-2) for the fixed translations above.
+country_languages: {DE: de, AT: de, CH: de, LI: de, FR: fr, LU: fr, MC: fr, IT: it, SM: it, ES: es, MX: es, AR: es, CL: es, CO: es, PE: es}
+
+# Country figures as structured facts (value, year, source URL), no model involved.
+country_data:
+  # "tavily" (default): Tavily /extract of the World Bank API URL on worldbank.org, parsed by
+  # code. Retrieval stays on Tavily. "worldbank_api": the same URL fetched directly (free, no
+  # key), only for comparison. "off": no WGI.
+  wgi_source: tavily
+  # WGI 2025 revision (World Bank source id 3), 0-100 governance score, higher = better.
+  # Political Stability (dataset: Political_Stability_Score), Control of Corruption and Rule of
+  # Law (dataset: Governance and Compliance). The old percentile codes (PV.PER.RNK) are archived.
+  wgi_indicators: [GOV_WGI_PV.SC, GOV_WGI_CC.SC, GOV_WGI_RL.SC]
+  # TI has no API: the official results file, unmodified, from
+  # https://images.transparencycdn.org/images/CPI2025_Results.xlsx (downloaded 2026-10-18,
+  # published 2026-02-10). Licence: CC BY-ND 4.0, attribution "Transparency International".
+  cpi_file: data/country/CPI2025_Results.xlsx
+  cpi_year: 2025
+  cpi_url: https://www.transparency.org/en/cpi/2025
+  cpi_published: "2026-02-10"
+  # Bands on the 0-100 scales, in thirds: below 33.3 -> country_risk_elevated (amber),
+  # 66.7 and above -> country_risk_low (green), between -> neutral context. Thirds of the scale
+  # rather than fitted cut-offs, so no index-specific threshold is invented; the scoring step
+  # will replace this with numbers. The worst indicator decides the band.
+  elevated_below: 33.3
+  low_at_or_above: 66.7
+
+# Industry injury-rate benchmarks for the Labor/Safety score (company rate / benchmark). From
+# docs/research/facts-to-scores-appendix.md §A2: BLS SOII 2024, NAICS 3365 railroad rolling stock.
+# Taken from config, not from a page, so their quote is this label. LTIFR has no BLS benchmark:
+# an LTIFR figure is recorded but not scored.
+injury_benchmarks:
+  TRIR: {rate: 2.4, year: 2024, label: "BLS SOII 2024, NAICS 3365, TRIR", url: "https://www.bls.gov/web/osh/table-1-industry-rates-national.htm"}
+  DART: {rate: 1.7, year: 2024, label: "BLS SOII 2024, NAICS 3365, DART", url: "https://www.bls.gov/web/osh/table-1-industry-rates-national.htm"}
+
+# Same-day cache of Tavily search/extract responses and model answers, keyed by the exact
+# request. A rerun of the same company on the same day reuses them: identical results, no cost.
+# Search results and model answers both change from run to run (the models used here do not
+# accept a temperature setting), so this is what makes a same-day rerun reproducible.
+cache:
+  enabled: true
+  dir: output/.cache            # relative to the research_agent folder; git-ignored with output/
+
+# Open-web gap-fill. Runs after the trusted searches, only for areas where the trusted searches
+# returned fewer usable candidate pages than the area's share of max_trusted_pages.
+# The search has no domain restriction (denylisted sites excluded) and reuses the area's first
+# English search query above. Allowlisted and denylisted domains are excluded: the trusted ones
+# were already searched with the same query (second live run: the open web returned only the
+# company's own site pages), so the open web is used only for sites outside our lists.
+# Pages from non-allowlisted sites are kept with trust "unverified".
+open_web:
+  enabled: true
+  # Areas that may use it, in priority order for ties. Reputation and People & Safety come first
+  # because they are the known weak spots (one search, news only; see RESEARCH_MAP.md).
+  # Country & Location is left out: country risk should come from the index publishers only.
+  umbrellas: [reputation, people, operations, legal, financial]
+  max_searches: 2                # each search fills one area's gap
+  max_pages: 2                   # extra pages on top of the trusted ones; never taken from them
+  max_pages_per_umbrella: 1      # best open-web page per area; trusted pages stay the majority
+
+# Company profile (report section 2 and the TL;DR intro): what the company does, products,
+# headquarters, founding year, parent, employees, sites. Every page read is asked for these
+# too (no extra cost), with the same exact-quote check and verifier as risk facts; only
+# trusted pages count, the company's own site and registers first. When the pages read still
+# leave a "required" field empty, ONE extra trusted search reads at most max_pages more pages.
+profile:
+  enabled: true
+  required: [description, headquarters, founded]
+  tiers: [company_own, official, rail_trade]
+  query: "{company} company profile headquarters founded products"
+  max_searches: 1
+  max_pages: 2
+  min_seconds_left: 45
+
+# Identity and follow-ups use trusted sources only: the identity decides which company every
+# fact is about, and a follow-up exists to confirm a flag, which only a trusted source can do.
 identity:
   tiers: [official, major_news, rail_trade]
   max_candidates_shown: 5

@@ -25,18 +25,25 @@ from .models import (
     FollowupPick,
     IdentityCandidate,
     IdentityOutput,
+    NumberOut,
     PlanOutput,
     PlannedQuery,
+    ProfileItemOut,
+    ProfileVerdict,
     SummaryOutput,
     VerifyOutput,
 )
 from .search import ExtractResponse, SearchHit, SearchRequest
 
 FIXTURE_DIR = Path(__file__).parent / "tests" / "fixtures"
+# Grading signals the fake verifier returns when a fixture verdict does not set them.
+DEFAULT_SIGNALS: dict[str, Any] = {"publisher_named": True, "dated": True, "claim_specific_checkable": True,
+                                   "cites_primary_document": False, "attribution": "named_source"}
 T = TypeVar("T", bound=BaseModel)
 
 _URL_RE = re.compile(r'<untrusted_source id="([^"]+)" url="([^"]+)"')
 _FACT_ID_RE = re.compile(r'"fact_id":\s*"([^"]+)"')
+_ITEM_RE = re.compile(r'"item_id":\s*"([^"]+)",\s*"key":\s*"([^"]+)"')
 _FLAG_LINE_RE = re.compile(r"^- id=(\S+) colour=(\S+)", re.MULTILINE)
 _SLOT_RE = re.compile(r"^- slot_id=(\S+) .*?draft=(.*)$", re.MULTILINE)
 
@@ -46,7 +53,9 @@ def load_fixture(name: str = "veltrava.json") -> dict[str, Any]:
 
 
 class FakeSearch:
-    """Returns fixture documents whose domain is in include_domains and whose keywords hit the query."""
+    """Returns fixture documents whose keywords hit the query and whose domain is in include_domains
+    (trusted search) or not in exclude_domains (open-web search), like Tavily would.
+    ``ignore_domain_filter`` docs come back regardless, to test the code-side filters."""
 
     def __init__(self, fixture: dict[str, Any], delay_s: float = 0.0) -> None:
         self.docs: list[dict[str, Any]] = fixture["documents"]
@@ -61,11 +70,16 @@ class FakeSearch:
         if self.delay_s:
             time.sleep(self.delay_s)
         allowed = set(request.include_domains)
+        excluded = set(request.exclude_domains)
         q = request.query.lower()
         hits: list[SearchHit] = []
         for d in self.docs:
             host = domain_of(d["url"])
-            if not any(host == a or host.endswith("." + a) for a in allowed) and not d.get("ignore_domain_filter"):
+            if request.open_web:
+                ok = not any(host == a or host.endswith("." + a) for a in excluded)
+            else:
+                ok = any(host == a or host.endswith("." + a) for a in allowed)
+            if not ok and not d.get("ignore_domain_filter"):
                 continue
             if not any(k.lower() in q for k in d.get("keywords", [])):
                 continue
@@ -149,7 +163,9 @@ class FakeLLM:
             return ExtractOutput(facts=[])
         facts = [CandidateFactOut(claim=f["claim"], quote=f["quote"], entity_named=f["entity_named"],
                                   event_date=f.get("event_date", "")) for f in doc.get("facts", [])]
-        return ExtractOutput(facts=facts)
+        numbers = [NumberOut(**n) for n in doc.get("numbers", [])]
+        profile = [ProfileItemOut(key=p["key"], value=p["value"], quote=p["quote"]) for p in doc.get("profile", [])]
+        return ExtractOutput(facts=facts, numbers=numbers, profile=profile)
 
     def _verify(self, user: str) -> VerifyOutput:
         m = _URL_RE.search(user)
@@ -165,10 +181,15 @@ class FakeLLM:
             if spec is None:
                 verdicts.append(FactVerdict(fact_id=fid, supported=False, entity_match="unclear", relevant=False,
                                             event_type="other_neutral", severity="low", claim_status="unclear",
-                                            event_date="", summary="", reject_reason="not verifiable"))
+                                            event_date="", summary="", reject_reason="not verifiable",
+                                            **DEFAULT_SIGNALS))
             else:
-                verdicts.append(FactVerdict(fact_id=fid, **spec))
-        return VerifyOutput(verdicts=verdicts)
+                verdicts.append(FactVerdict(fact_id=fid, **{**DEFAULT_SIGNALS, **spec}))
+        contradicts = bool((doc or {}).get("contradicts")) and "Claim under check" in user
+        specs = {p["key"]: p.get("verdict", {}) for p in (doc or {}).get("profile", [])}
+        profile = [ProfileVerdict(item_id=pid, **{"supported": True, "entity_match": "exact", **specs.get(key, {})})
+                   for pid, key in _ITEM_RE.findall(user)]
+        return VerifyOutput(verdicts=verdicts, contradicts_claim_under_check=contradicts, profile_verdicts=profile)
 
     def _followup(self, user: str) -> FollowupOutput:
         picks = []
@@ -177,6 +198,7 @@ class FakeLLM:
             line = next(ln for ln in user.splitlines() if ln.startswith(f"- id={fid} "))
             for key, spec in plan.items():
                 if key in line:
-                    picks.append(FollowupPick(flag_id=fid, question=spec["question"], query=spec["query"]))
+                    picks.append(FollowupPick(flag_id=fid, question=spec["question"], query=spec["query"],
+                                              query_local=spec.get("query_local", spec["query"])))
                     break
         return FollowupOutput(picks=picks)

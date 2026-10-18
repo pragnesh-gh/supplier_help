@@ -4,7 +4,8 @@ Verified against docs.tavily.com on 2026-10-18:
   POST https://api.tavily.com/search   Authorization: Bearer <key>
     query, topic (general|news|finance), search_depth (basic|advanced|fast|ultra-fast),
     max_results (0-20), start_date/end_date (YYYY-MM-DD), time_range (day..year),
-    include_domains (max 300), include_domains_mode (restrict|prefer; default restrict)
+    include_domains (max 300), include_domains_mode (restrict|prefer; default restrict;
+    sending it without include_domains is a 400), exclude_domains (max 150)
     -> results[]: title, url, content, score, published_date (auto for topic=news or
        include_published_date=true), raw_content (opt.)
   POST https://api.tavily.com/extract
@@ -34,6 +35,9 @@ class SearchRequest:
     topic: Literal["general", "news"] = "general"
     start_date: str | None = None
     max_results: int = 8
+    # Open web must be asked for explicitly: an empty include_domains alone never means "everything".
+    open_web: bool = False
+    exclude_domains: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -97,19 +101,23 @@ class TavilyClient:
         return data
 
     def search(self, request: SearchRequest) -> list[SearchHit]:
-        if not request.include_domains:
-            return []  # never search the open web
+        if not request.include_domains and not request.open_web:
+            return []  # an empty trusted tier must never turn into an open-web search
         body: dict[str, Any] = {
             "query": request.query[:400],
             "topic": request.topic,
             "search_depth": self._search_depth,
             "max_results": max(1, min(request.max_results, 20)),
-            "include_domains": request.include_domains[:300],
-            "include_domains_mode": "restrict",
             "include_published_date": True,
             "include_answer": False,
             "include_raw_content": False,
         }
+        if request.open_web:
+            if request.exclude_domains:
+                body["exclude_domains"] = request.exclude_domains[:150]
+        else:
+            body["include_domains"] = request.include_domains[:300]
+            body["include_domains_mode"] = "restrict"
         if request.start_date:
             body["start_date"] = request.start_date
         data = self._post("/search", body)

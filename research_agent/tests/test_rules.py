@@ -137,7 +137,83 @@ def test_area_statuses(rules):
     assert len(areas) == 6
     assert areas["legal"].status == "red"
     assert areas["operations"].status == "green"
-    assert areas["financial"].status == "green"  # checked, nothing found
-    assert "No issues found" in areas["financial"].finding
+    assert areas["legal"].trusted_pages_used == 1
+    # Financial: 3 pages read but none gave a verified fact -> not assessed, never "No issues found".
+    assert areas["financial"].status == "not_assessed"
+    assert "3 trusted pages read, none gave usable evidence" in areas["financial"].finding
+    assert areas["financial"].trusted_pages_used == 0
     assert areas["country"].status == "not_assessed"
     assert "Not assessed" in areas["country"].finding
+
+
+def test_neutral_or_stale_facts_never_make_an_area_green(rules):
+    labels = {a: a for a in ("financial", "legal", "country", "people", "operations", "reputation")}
+    doj = _flag("neutral", area="legal", fid="F7", event_type="antitrust_settlement", date_="2018-04-03")
+    doj.stale = True
+    st = {a.area: a for a in area_statuses([doj], {"legal": 1}, labels, source_trust={"S1": "trusted"})}
+    assert st["legal"].status == "context" and st["legal"].flag_ids == ["F7"]
+
+
+def test_antitrust_settlement_is_amber_then_context_when_old(rules):
+    c = classify("antitrust_settlement", "medium", "2025-01", "legal", rules, TODAY, default_years=3)
+    assert c.colour == "amber" and not c.knockout
+    old = classify("antitrust_settlement", "medium", "2018-04-03", "legal", rules, TODAY, default_years=3)
+    assert old.colour == "neutral" and old.stale
+
+
+def test_no_issues_found_needs_a_trusted_page_that_gave_a_fact(rules):
+    labels = {a: a for a in ("financial", "legal", "country", "people", "operations", "reputation")}
+    neutral = _flag("neutral", area="country", fid="F9", event_type="other_neutral")
+    areas = {a.area: a for a in area_statuses([neutral], {"country": 1}, labels, source_trust={"S1": "trusted"})}
+    assert areas["country"].status == "context" and areas["country"].trusted_pages_used == 1
+    neutral.trust = "unverified"
+    areas = {a.area: a for a in area_statuses([neutral], {"country": 1}, labels, source_trust={"S1": "unverified"})}
+    assert areas["country"].status == "not_assessed" and areas["country"].unverified_pages_used == 1
+
+
+# --- unverified sources -----------------------------------------------------------
+
+
+def test_unverified_red_is_capped_to_amber(rules):
+    c = classify("regulatory_fine", "high", "2026-01-01", "legal", rules, TODAY, default_years=3, trusted=False)
+    assert c.colour == "amber" and c.capped_unverified
+    assert "unverified source only: red → amber" in c.note
+
+
+def test_unverified_sanctions_can_never_knock_out(rules):
+    for kind in ("sanctions_listing", "insolvency_filing"):
+        c = classify(kind, "high", "2026-09-01", "legal", rules, TODAY, default_years=3, trusted=False)
+        assert not c.knockout and c.colour == "amber"
+
+
+def test_unverified_strength_is_not_shown_as_green(rules):
+    c = classify("iris_certified", "low", "2026-01", "operations", rules, TODAY, default_years=3, trusted=False)
+    assert c.colour == "neutral" and c.capped_unverified
+
+
+def test_unverified_amber_stays_amber(rules):
+    c = classify("product_recall", "medium", "2026-01", "operations", rules, TODAY, default_years=3, trusted=False)
+    assert c.colour == "amber" and not c.capped_unverified
+
+
+def test_area_with_only_unverified_pages_is_not_assessed():
+    labels = {a: a for a in ("financial", "legal", "country", "people", "operations", "reputation")}
+    st = {a.area: a for a in area_statuses([], {}, labels, {"reputation": 2})}
+    assert st["reputation"].status == "not_assessed" and st["reputation"].unverified_pages_checked == 2
+
+
+def test_staleness_understands_rfc2822_dates(rules):
+    c = classify("regulatory_fine", "high", "Tue, 11 Apr 2017 12:17:32 GMT", "legal", rules, TODAY, default_years=3)
+    assert c.stale and c.colour == "amber"
+
+
+@pytest.mark.parametrize("kind, colour, area, knockout", [
+    ("safety_fatality", "red", "people", False), ("environmental_violation", "amber", "people", False),
+    ("data_breach", "amber", "operations", False), ("contract_penalty_or_cancellation", "amber", "operations", False),
+    ("audit_or_accounting_issue", "red", "financial", False),
+    ("supply_chain_forced_labour_listing", "red", "people", True)])
+def test_new_event_types(rules, kind, colour, area, knockout):
+    c = classify(kind, "high", "2026-06", "legal", rules, TODAY, default_years=3)
+    assert (c.colour, c.area, c.knockout) == (colour, area, knockout)
+    u = classify(kind, "high", "2026-06", "legal", rules, TODAY, default_years=3, trusted=False)
+    assert not u.knockout  # unverified-only can never knock out

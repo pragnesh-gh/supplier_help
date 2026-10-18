@@ -7,7 +7,7 @@ import threading
 import unittest
 from http.server import ThreadingHTTPServer
 
-from research_agent.core import OpenRouter, ResearchService, Store
+from research_agent.app_adapter import ResearchService, Store
 from supplier_app.approvals import Approvals
 from supplier_app.core import catalog
 from supplier_app.server import make_handler
@@ -94,7 +94,7 @@ class ApprovalTests(unittest.TestCase):
         self.assertEqual(self.approvals.list(), [second, first])
 
     def test_http_submission_readback_and_cross_origin(self):
-        service = ResearchService(self.store, OpenRouter({}))
+        service = ResearchService(self.store, {})
         server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(service, data=self.data))
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()

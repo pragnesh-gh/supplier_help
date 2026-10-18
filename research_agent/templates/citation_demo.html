@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research TL;DR with citations</title>
+<!--
+  Reference UI for the chatbot: how to render tldr.tldr_data() with NotebookLM-style citations,
+  and tldr.score_explainer() behind a "How was this scored?" button. Framework-free, no external
+  assets. Port renderTldr(), showCitation() and showScoring() into web/chat.js.
+  Rules: build DOM with textContent (never innerHTML for data), allow only http(s) links.
+  Data lives between the TLDR_DATA markers; tldr.render_citation_demo(result) fills it.
+-->
+<style>
+:root{--ink:#1d2a31;--ink2:#56656f;--muted:#87949c;--line:#dce2e6;--bg:#f4f6f7;--teal:#0f6e74;
+--red:#d03b3b;--amber:#fab219;--green:#0ca30c;--serious:#ec835a;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;max-width:1080px;margin:16px auto;padding:0 16px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.label{font-size:11px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.msg{margin-top:6px}
+.cite{display:inline-block;min-width:20px;padding:0 5px;margin:0 1px;border:1px solid var(--line);border-radius:10px;
+background:#eef6f6;color:var(--teal);font-size:11px;line-height:18px;text-align:center;cursor:pointer;vertical-align:1px}
+.cite:hover,.cite:focus-visible,.cite[aria-pressed="true"]{background:var(--teal);color:#fff;outline:none}
+.cite.unverified{background:#fff7e3}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.chip{border:1px solid var(--line);border-radius:14px;padding:2px 10px;font-size:12px;background:#fff;color:var(--ink)}
+.chip .g{margin-right:4px}
+.g.red{color:var(--red)}.g.amber{color:#c98a00}.g.green{color:var(--green)}.g.neutral{color:var(--muted)}
+.tone-red,.tone-critical{border-color:var(--red)}.tone-amber{border-color:var(--amber)}.tone-green{border-color:var(--green)}
+.actions{display:flex;gap:8px;margin-top:10px}
+button.btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 10px;font:inherit;font-size:13px;cursor:pointer}
+button.btn:hover{border-color:var(--teal)}
+a.btn{border:1px solid var(--teal);background:var(--teal);color:#fff;border-radius:6px;padding:5px 10px;text-decoration:none;font-size:13px}
+.side h3{margin:4px 0 2px;font-size:15px}
+.meta{color:var(--ink2);font-size:12px}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:11px;margin-left:4px}
+.badge.unverified{background:#fff7e3}
+.excerpt{background:#f7f9fa;border-left:3px solid var(--teal);padding:8px 10px;margin:10px 0;font-size:13px;white-space:pre-wrap}
+mark{background:#fff0b3;color:inherit;padding:0 1px}
+.note{color:var(--muted);font-size:12px;font-style:italic}
+.empty{color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:12px}td,th{text-align:left;padding:3px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+details{margin:6px 0}summary{cursor:pointer}
+@media (max-width:760px){.wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="panel" aria-label="Sourcing assistant">
+    <div class="label">Sourcing assistant</div>
+    <div id="tldr" class="msg" aria-live="polite"></div>
+  </section>
+  <aside class="panel side" id="side" aria-label="Source" tabindex="-1">
+    <p class="empty">Select a citation number to see where the point came from.</p>
+  </aside>
+</div>
+<script id="tldr-data" type="application/json">/*TLDR_DATA_START*/{
+ "scoring": {
+  "areas": [
+   {
+    "area": "financial",
+    "coverage_pct": 62,
+    "formula": "weighted mean of 1 of 2 sub-scores (Financial_Health 24 x 0.1) / 0.1",
+    "label": "Financial",
+    "level": "Low",
+    "score": 24,
+    "sub_scores": [
+     {
+      "confidence": "medium",
+      "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 1 counted event(s) = 23.82 -\u003e 24",
+      "includes_unverified": false,
+      "label": "Financial health",
+      "level": "Low",
+      "lines": [
+       {
+        "citations": [],
+        "kind": "base",
+        "label": "default base",
+        "points": 12.0,
+        "ref": "index_or_events:altman",
+        "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)"
+       },
+       {
+        "citations": [
+         1
+        ],
+        "kind": "event",
+        "label": "Profit warning: 2026 operating margin forecast cut to about 4% from 7%.",
+        "points": 13.43,
+        "ref": "F8",
+        "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-07-13; decay 0.5^(0.27/1.94) = 0.909; source weight 1: trusted source on the allowlist [S7]; profit_warning -\u003e amber (rules.yaml)"
+       }
+      ],
+      "name": "Financial_Health_Score",
+      "not_assessed_reason": "",
+      "score": 24,
+      "weight_pct": 10
+     },
+     {
+      "confidence": null,
+      "formula": "",
+      "includes_unverified": false,
+      "label": "Credit rating",
+      "level": null,
+      "lines": [],
+      "name": "Credit_Rating_Score",
+      "not_assessed_reason": "no input value for this index score",
+      "score": null,
+      "weight_pct": 6
+     }
+    ],
+    "weight_pct": 16
+   },
+   {
+    "area": "legal",
+    "coverage_pct": 100,
+    "formula": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13",
+    "label": "Legal \u0026 Governance",
+    "level": "Medium",
+    "score": 37,
+    "sub_scores": [
+     {
+      "confidence": "medium",
+      "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 2 counted event(s) = 52.75 -\u003e 53",
+      "includes_unverified": false,
+      "label": "Compliance risk",
+      "level": "High",
+      "lines": [
+       {
+        "citations": [],
+        "kind": "base",
+        "label": "default base",
+        "points": 12.0,
+        "ref": "events",
+        "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)"
+       },
+       {
+        "citations": [
+         2
+        ],
+        "kind": "not_counted",
+        "label": "Alleged by former employees: brake-pad test reports signed off without completed tests (April 2026).",
+        "points": 0.0,
+        "ref": "F10",
+        "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2026-04; decay 0.5^(0.55/6.46) = 0.943; source weight 0: unverified, fails the eligibility gate: E1 not on the record (anonymous_or_rumour); E3 no accountable publisher (appendix §A4) [S10]; fraud_or_corruption_case -\u003e red (rules.yaml)"
+       },
+       {
+        "citations": [
+         3
+        ],
+        "kind": "event",
+        "label": "Appeal against the cartel fine pending at Duesseldorf Higher Regional Court; may take over a year.",
+        "points": 13.5,
+        "ref": "F12",
+        "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-05-18; decay 0.5^(0.42/3.23) = 0.914; source weight 1: trusted source on the allowlist [S11]; major_lawsuit -\u003e amber (rules.yaml)"
+       },
+       {
+        "citations": [
+         4
+        ],
+        "kind": "event",
+        "label": "Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not yet final.",
+        "points": 37.93,
+        "ref": "F5",
+        "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2026-03-11; decay 0.5^(0.61/3.23) = 0.878; source weight 1: trusted source on the allowlist [S4, S11]; regulatory_fine -\u003e red (rules.yaml)"
+       }
+      ],
+      "name": "Compliance_Risk_Score",
+      "not_assessed_reason": "",
+      "score": 53,
+      "weight_pct": 8
+     },
+     {
+      "confidence": "low",
+      "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 0 counted event(s) = 12.0 -\u003e 12",
+      "includes_unverified": false,
+      "label": "Governance risk",
+      "level": "Low",
+      "lines": [
+       {
+        "citations": [],
+        "kind": "base",
+        "label": "nothing adverse found in the sources checked",
+        "points": 12.0,
+        "ref": "events",
+        "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)"
+       },
+       {
+        "citations": [
+         2
+        ],
+        "kind": "not_counted",
+        "label": "Alleged by former employees: brake-pad test reports signed off without completed tests (April 2026).",
+        "points": 0.0,
+        "ref": "F10",
+        "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2026-04; decay 0.5^(0.55/6.46) = 0.943; source weight 0: unverified, fails the eligibility gate: E1 not on the record (anonymous_or_rumour); E3 no accountable publisher (appendix §A4) [S10]; fraud_or_corruption_case -\u003e red (rules.yaml)"
+       }
+      ],
+      "name": "Governance_Risk_Score",
+      "not_assessed_reason": "",
+      "score": 12,
+      "weight_pct": 5
+     }
+    ],
+    "weight_pct": 13
+   },
+   {
+    "area": "country",
+    "coverage_pct": 31,
+    "formula": "weighted mean of 1 of 3 sub-scores (Political_Stability 31 x 0.04) / 0.04",
+    "label": "Country \u0026 Location",
+    "level": "Medium",
+    "score": 31,
+    "sub_scores": [
+     {
+      "confidence": null,
+      "formula": "",
+      "includes_unverified": false,
+      "label": "Geopolitical risk",
+      "level": null,
+      "lines": [],
+      "name": "Geopolitical_Risk_Score",
+      "not_assessed_reason": "no input value for this index score",
+      "score": null,
+      "weight_pct": 5
+     },
+     {
+      "confidence": "high",
+      "formula": "score = 100 - (100 - base 30.74) x product(1 - p/100) over 0 counted event(s) = 30.74 -\u003e 31",
+      "includes_unverified": false,
+      "label": "Political stability",
+      "level": "Medium",
+      "lines": [
+       {
+        "citations": [
+         5
+        ],
+        "kind": "base",
+        "label": "HQ country: DE 69.2576 (2025)",
+        "points": 30.74,
+        "ref": "index:wgi_political_stability",
+        "rule": "100 - WGI Political Stability score (WGI 2025, appendix §A2); basis = HQ country (Decision 3)"
+       }
+      ],
+      "name": "Political_Stability_Score",
+      "not_assessed_reason": "",
+      "score": 31,
+      "weight_pct": 4
+     },
+     {
+      "confidence": null,
+      "formula": "",
+      "includes_unverified": false,
+      "label": "Environmental exposure",
+      "level": null,
+      "lines": [],
+      "name": "Environmental_Exposure_Score",
+      "not_assessed_reason": "no input value for this index score",
+      "score": null,
+      "weight_pct": 4
+     }
+    ],
+    "weight_pct": 13
+   },
+   {
+    "area": "people",
+    "coverage_pct": 100,
+    "formula": "weighted mean of 3 of 3 sub-scores (Labor_Stability 22 x 0.04, Safety_Incident 12 x 0.06, ESG_Performance 12 x 0.05) / 0.15",
+    "label": "People \u0026 Safety",
+    "level": "Low",
+    "score": 15,
+    "sub_scores": [
+     {
+      "confidence": "medium",
+      "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 1 counted event(s) = 22.09 -\u003e 22",
+      "includes_unverified": false,
+      "label": "Labor stability",
+      "level": "Low",
+      "lines": [
+       {
+        "citations": [],
+        "kind": "base",
+        "label": "default base",
+        "points": 12.0,
+        "ref": "events",
+        "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)"
+       },
+       {
+        "citations": [
+         6
+        ],
+        "kind": "event",
+        "label": "Two-week strike halted Leipzig brake production in February 2026, delaying deliveries to two train builders.",
+        "points": 11.46,
+        "ref": "F6",
+        "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-02; decay 0.5^(0.71/1.94) = 0.776; source weight 1: trusted source on the allowlist [S5]; strike_or_labour_dispute -\u003e amber (rules.yaml)"
+       }
+      ],
+      "name": "Labor_Stability_Score",
+      "not_assessed_reason": "",
+      "score": 22,
+      "weight_pct": 4
+     },
+     {
+      "confidence": "low",
+      "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 0 counted event(s) = 12.0 -\u003e 12",
+      "includes_unverified": false,
+      "label": "Safety incident",
+      "level": "Low",
+      "lines": [
+       {
+        "citations": [],
+        "kind": "base",
+        "label": "nothing adverse found in the sources checked",
+        "points": 12.0,
+        "ref": "index_or_events:injury_rate",
+        "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)"
+       },
+       {
+        "citations": [
+         7
+        ],
+        "kind": "not_counted",
+        "label": "Fatal press-shop accident at the Leipzig plant in 2019.",
+        "points": 0.0,
+        "ref": "F7",
+        "rule": "red event: P = 43.18 (anchor: fresh red = 50); event 2019; older than 2 x 3 y: dropped; source weight 1: trusted source on the allowlist [S5]; safety_accident -\u003e red (rules.yaml)"
+       }
+      ],
+      "name": "Safety_Incident_Score",
+      "not_assessed_reason": "",
+      "score": 12,
+      "weight_pct": 6
+     },
+     {
+      "confidence": "low",
+      "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 0 counted event(s) = 12.0 -\u003e 12",
+      "includes_unverified": false,
+      "label": "Esg performance",
+      "level": "Low",
+      "lines": [
+       {
+        "citations": [],
+        "kind": "base",
+        "label": "nothing adverse found in the sources checked",
+        "points": 12.0,
+        "ref": "index_or_events:esg",
+        "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)"
+       }
+      ],
+      "name": "ESG_Performance_Score",
+      "not_assessed_reason": "",
+      "score": 12,
+      "weight_pct": 5
+     }
+    ],
+    "weight_pct": 15
+   },
+   {
+    "area": "operations",
+    "coverage_pct": 80,
+    "formula": "weighted mean of 3 of 4 sub-scores (Operational_Resilience 12 x 0.1, Quality_Risk 24 x 0.1, Digital_Security 12 x 0.04) / 0.24",
+    "label": "Operations \u0026 Delivery",
+    "level": "Low",
+    "score": 17,
+    "sub_scores": [
+     {
+      "confidence": "low",
+      "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 0 counted event(s) = 12.0 -\u003e 12",
+      "includes_unverified": false,
+      "label": "Operational resilience",
+      "level": "Low",
+      "lines": [
+       {
+        "citations": [],
+        "kind": "base",
+        "label": "nothing adverse found in the sources checked",
+        "points": 12.0,
+        "ref": "events",
+        "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)"
+       }
+      ],
+      "name": "Operational_Resilience_Score",
+      "not_assessed_reason": "",
+      "score": 12,
+      "weight_pct": 10
+     },
+     {
+      "confidence": "medium",
+      "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 1 counted event(s) = 24.04 -\u003e 24",
+      "includes_unverified": false,
+      "label": "Quality risk",
+      "level": "Low",
+      "lines": [
+       {
+        "citations": [],
+        "kind": "base",
+        "label": "default base",
+        "points": 12.0,
+        "ref": "events",
+        "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)"
+       },
+       {
+        "citations": [
+         8
+        ],
+        "kind": "event",
+        "label": "Recall of about 1,800 door actuators (sensor fault) in August 2026; replacements due by December.",
+        "points": 13.69,
+        "ref": "F9",
+        "rule": "amber event: P = 14.77 (anchor: fresh amber = 25); event 2026-08; decay 0.5^(0.21/1.94) = 0.926; source weight 1: trusted source on the allowlist [S9]; product_recall -\u003e amber (rules.yaml)"
+       }
+      ],
+      "name": "Quality_Risk_Score",
+      "not_assessed_reason": "",
+      "score": 24,
+      "weight_pct": 10
+     },
+     {
+      "confidence": null,
+      "formula": "",
+      "includes_unverified": false,
+      "label": "Sub tier visibility",
+      "level": null,
+      "lines": [],
+      "name": "Sub_Tier_Visibility_Score",
+      "not_assessed_reason": "no verified fact for this area or score",
+      "score": null,
+      "weight_pct": 6
+     },
+     {
+      "confidence": "low",
+      "formula": "score = 100 - (100 - base 12.0) x product(1 - p/100) over 0 counted event(s) = 12.0 -\u003e 12",
+      "includes_unverified": false,
+      "label": "Digital security",
+      "level": "Low",
+      "lines": [
+       {
+        "citations": [],
+        "kind": "base",
+        "label": "nothing adverse found in the sources checked",
+        "points": 12.0,
+        "ref": "index_or_events:security_rating",
+        "rule": "anchor: nothing adverse = 12, middle of the Low band (appendix §A3)"
+       }
+      ],
+      "name": "Digital_Security_Score",
+      "not_assessed_reason": "",
+      "score": 12,
+      "weight_pct": 4
+     }
+    ],
+    "weight_pct": 30
+   },
+   {
+    "area": "reputation",
+    "coverage_pct": 0,
+    "formula": "Not assessed: no sub-score has evidence (never 0)",
+    "label": "Reputation \u0026 Outside View",
+    "level": null,
+    "score": null,
+    "sub_scores": [
+     {
+      "confidence": null,
+      "formula": "",
+      "includes_unverified": false,
+      "label": "Media sentiment",
+      "level": null,
+      "lines": [],
+      "name": "Media_Sentiment_Score",
+      "not_assessed_reason": "the research pipeline found no trusted evidence for this area, so nothing in it is scored (never 0)",
+      "score": null,
+      "weight_pct": 3
+     },
+     {
+      "confidence": null,
+      "formula": "",
+      "includes_unverified": false,
+      "label": "Market sentiment",
+      "level": null,
+      "lines": [],
+      "name": "Market_Sentiment_Score",
+      "not_assessed_reason": "the research pipeline found no trusted evidence for this area, so nothing in it is scored (never 0)",
+      "score": null,
+      "weight_pct": 3
+     },
+     {
+      "confidence": null,
+      "formula": "",
+      "includes_unverified": false,
+      "label": "External intelligence",
+      "level": null,
+      "lines": [],
+      "name": "External_Intelligence_Score",
+      "not_assessed_reason": "the research pipeline found no trusted evidence for this area, so nothing in it is scored (never 0)",
+      "score": null,
+      "weight_pct": 3
+     },
+     {
+      "confidence": null,
+      "formula": "",
+      "includes_unverified": false,
+      "label": "Industry benchmark",
+      "level": null,
+      "lines": [],
+      "name": "Industry_Benchmark_Score",
+      "not_assessed_reason": "the research pipeline found no trusted evidence for this area, so nothing in it is scored (never 0)",
+      "score": null,
+      "weight_pct": 4
+     }
+    ],
+    "weight_pct": 13
+   }
+  ],
+  "available": true,
+  "citations": [
+   {
+    "accessed": "2026-10-18",
+    "context_found": true,
+    "excerpt": "Leipzig. Der Bahnzulieferer Veltrava Rail Components hat am Montag seine Gewinnprognose gesenkt. Die operative Marge werde 2026 nur noch bei rund 4 Prozent liegen, nach zuvor 7 Prozent, teilte das Unternehmen mit.",
+    "flag_id": "F8",
+    "id": 1,
+    "link": "https://www.handelsblatt.com/fixture/veltrava-gewinnwarnung#:~:text=Die%20operative%20Marge%20werde,nach%20zuvor%207%20Prozent",
+    "published": "2026-07-14",
+    "publisher": "Handelsblatt",
+    "quote": "Die operative Marge werde 2026 nur noch bei rund 4 Prozent liegen, nach zuvor 7 Prozent",
+    "quote_end": 184,
+    "quote_start": 97,
+    "source_id": "S7",
+    "title": "Veltrava senkt Prognose",
+    "trust": "trusted",
+    "trust_label": "✅ trusted",
+    "url": "https://www.handelsblatt.com/fixture/veltrava-gewinnwarnung"
+   },
+   {
+    "accessed": "2026-10-18",
+    "context_found": true,
+    "excerpt": "Unverified blog post. Rail Insider has heard from two former employees who allege that Veltrava Rail Components managers signed off brake-pad test reports without completing the tests in April 2026. The company did not respond to our questions.",
+    "flag_id": "F10",
+    "id": 2,
+    "link": "https://random-blog.example/veltrava-scandal#:~:text=allege%20that%20Veltrava%20Rail,without%20completing%20the%20tests",
+    "published": "2026-09-10",
+    "publisher": "random-blog.example",
+    "quote": "allege that Veltrava Rail Components managers signed off brake-pad test reports without completing the tests",
+    "quote_end": 183,
+    "quote_start": 75,
+    "source_id": "S10",
+    "title": "Rail Insider blog: Veltrava test reports questioned",
+    "trust": "unverified",
+    "trust_label": "🟨 not in our trusted source list",
+    "url": "https://random-blog.example/veltrava-scandal"
+   },
+   {
+    "accessed": "2026-10-18",
+    "context_found": true,
+    "excerpt": "Rail supplier Veltrava Rail Components said on Monday it had appealed against the EUR 4.2 million fine imposed by the Bundeskartellamt in March. The appeal before the Higher Regional Court of Duesseldorf could take more than a year, the company said.",
+    "flag_id": "F12",
+    "id": 3,
+    "link": "https://www.reuters.com/fixture/veltrava-appeal#:~:text=The%20appeal%20before%20the,more%20than%20a%20year",
+    "published": "2026-05-18",
+    "publisher": "Reuters",
+    "quote": "The appeal before the Higher Regional Court of Duesseldorf could take more than a year",
+    "quote_end": 231,
+    "quote_start": 145,
+    "source_id": "S11",
+    "title": "Veltrava appeals German cartel fine",
+    "trust": "trusted",
+    "trust_label": "✅ trusted",
+    "url": "https://www.reuters.com/fixture/veltrava-appeal"
+   },
+   {
+    "accessed": "2026-10-18",
+    "context_found": true,
+    "excerpt": "Bonn, 11 March 2026. The Bundeskartellamt has imposed fines totalling EUR 9.8 million on two manufacturers of rail brake pads for price-fixing. Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million. The decision is not yet final.",
+    "flag_id": "F5",
+    "id": 4,
+    "link": "https://www.bundeskartellamt.de/fixture/veltrava-bussgeld#:~:text=Veltrava%20Rail%20Components%20GmbH%2C,is%20not%20yet%20final.",
+    "published": "2026-03-11",
+    "publisher": "Bundeskartellamt",
+    "quote": "Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million. The decision is not yet final.",
+    "quote_end": 240,
+    "quote_start": 144,
+    "source_id": "S4",
+    "title": "Bundeskartellamt fines brake-pad manufacturers",
+    "trust": "trusted",
+    "trust_label": "✅ trusted",
+    "url": "https://www.bundeskartellamt.de/fixture/veltrava-bussgeld"
+   },
+   {
+    "accessed": "2026-10-18",
+    "context_found": false,
+    "excerpt": "",
+    "flag_id": null,
+    "id": 5,
+    "link": "https://api.worldbank.org/v2/country/DE/indicator/GOV_WGI_PV.SC;GOV_WGI_CC.SC;GOV_WGI_RL.SC?format=json\u0026source=3\u0026mrv=1",
+    "published": "2026-09-25",
+    "publisher": "World Bank (WGI)",
+    "quote": "",
+    "quote_end": 0,
+    "quote_start": 0,
+    "source_id": "S1",
+    "title": "World Bank WGI: Germany",
+    "trust": "trusted",
+    "trust_label": "✅ trusted",
+    "url": "https://api.worldbank.org/v2/country/DE/indicator/GOV_WGI_PV.SC;GOV_WGI_CC.SC;GOV_WGI_RL.SC?format=json\u0026source=3\u0026mrv=1"
+   },
+   {
+    "accessed": "2026-10-18",
+    "context_found": true,
+    "excerpt": "A two-week strike by IG Metall members halted production at Veltrava's Leipzig brake plant in February 2026, delaying deliveries to at least two train builders. The plant was also the site of a fatal accident in 2019, when a worker died in a press-shop incident.",
+    "flag_id": "F6",
+    "id": 6,
+    "link": "https://www.railjournal.com/fixture/veltrava-strike#:~:text=A%20two%2Dweek%20strike%20by,February%202026%2C%20delaying%20deliveries",
+    "published": "2026-02-20",
+    "publisher": "International Railway Journal",
+    "quote": "A two-week strike by IG Metall members halted production at Veltrava's Leipzig brake plant in February 2026, delaying deliveries",
+    "quote_end": 128,
+    "quote_start": 0,
+    "source_id": "S5",
+    "title": "Strike halts Veltrava Leipzig production",
+    "trust": "trusted",
+    "trust_label": "✅ trusted",
+    "url": "https://www.railjournal.com/fixture/veltrava-strike"
+   },
+   {
+    "accessed": "2026-10-18",
+    "context_found": true,
+    "excerpt": "A two-week strike by IG Metall members halted production at Veltrava's Leipzig brake plant in February 2026, delaying deliveries to at least two train builders. The plant was also the site of a fatal accident in 2019, when a worker died in a press-shop incident.",
+    "flag_id": "F7",
+    "id": 7,
+    "link": "https://www.railjournal.com/fixture/veltrava-strike#:~:text=a%20fatal%20accident%20in,in%20a%20press%2Dshop%20incident",
+    "published": "2026-02-20",
+    "publisher": "International Railway Journal",
+    "quote": "a fatal accident in 2019, when a worker died in a press-shop incident",
+    "quote_end": 261,
+    "quote_start": 192,
+    "source_id": "S5",
+    "title": "Strike halts Veltrava Leipzig production",
+    "trust": "trusted",
+    "trust_label": "✅ trusted",
+    "url": "https://www.railjournal.com/fixture/veltrava-strike"
+   },
+   {
+    "accessed": "2026-10-18",
+    "context_found": true,
+    "excerpt": "Veltrava Rail Components has recalled around 1,800 door actuators fitted to regional trains after a sensor fault caused doors to open slowly. The company said replacement parts would ship by December.",
+    "flag_id": "F9",
+    "id": 8,
+    "link": "https://www.railway-technology.com/fixture/veltrava-recall#:~:text=Veltrava%20Rail%20Components%20has,after%20a%20sensor%20fault",
+    "published": "2026-08-05",
+    "publisher": "Railway Technology",
+    "quote": "Veltrava Rail Components has recalled around 1,800 door actuators fitted to regional trains after a sensor fault",
+    "quote_end": 112,
+    "quote_start": 0,
+    "source_id": "S9",
+    "title": "Veltrava recalls door actuators",
+    "trust": "trusted",
+    "trust_label": "✅ trusted",
+    "url": "https://www.railway-technology.com/fixture/veltrava-recall"
+   }
+  ],
+  "method": "Published fact-to-number method (docs/research/facts-to-scores.md); weights from the challenge dataset. Areas without evidence are Not assessed, never 0.",
+  "note": "Per-fact breakdown from the scoring step.",
+  "total": {
+   "confidence_pct": {
+    "high": 6,
+    "low": 45,
+    "medium": 48
+   },
+   "coverage_pct": 66,
+   "formula": "weighted average of 10 of 18 sub-scores = 14.76 / 0.66; coverage 66 %; if unassessed scores were 0 or 100: 15-49",
+   "level": "Low",
+   "range": [
+    15,
+    49
+   ],
+   "score": 23,
+   "scored": true
+  }
+ },
+ "tldr": {
+  "chips": [
+   {
+    "kind": "verdict",
+    "label": "Red flags — review before shortlisting",
+    "tone": "red"
+   },
+   {
+    "kind": "score",
+    "label": "23/100 · Low",
+    "level": "Low"
+   },
+   {
+    "kind": "coverage",
+    "label": "Coverage 65%"
+   },
+   {
+    "area": "Legal \u0026 Governance",
+    "citations": [
+     1
+    ],
+    "colour": "red",
+    "date": "2026-03-11",
+    "flag_id": "F5",
+    "kind": "flag",
+    "label": "Fined EUR 4.2 million by the…"
+   },
+   {
+    "area": "Operations \u0026 Delivery",
+    "citations": [
+     2
+    ],
+    "colour": "amber",
+    "date": "2026-08",
+    "flag_id": "F9",
+    "kind": "flag",
+    "label": "Recall of about 1,800 door actuators…"
+   },
+   {
+    "kind": "not_assessed",
+    "label": "Country \u0026 Location"
+   }
+  ],
+  "citations": [
+   {
+    "accessed": "2026-10-18",
+    "context_found": true,
+    "excerpt": "Bonn, 11 March 2026. The Bundeskartellamt has imposed fines totalling EUR 9.8 million on two manufacturers of rail brake pads for price-fixing. Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million. The decision is not yet final.",
+    "flag_id": "F5",
+    "id": 1,
+    "link": "https://www.bundeskartellamt.de/fixture/veltrava-bussgeld#:~:text=Veltrava%20Rail%20Components%20GmbH%2C,is%20not%20yet%20final.",
+    "published": "2026-03-11",
+    "publisher": "Bundeskartellamt",
+    "quote": "Veltrava Rail Components GmbH, Leipzig, was fined EUR 4.2 million. The decision is not yet final.",
+    "quote_end": 240,
+    "quote_start": 144,
+    "source_id": "S4",
+    "title": "Bundeskartellamt fines brake-pad manufacturers",
+    "trust": "trusted",
+    "trust_label": "✅ trusted",
+    "url": "https://www.bundeskartellamt.de/fixture/veltrava-bussgeld"
+   },
+   {
+    "accessed": "2026-10-18",
+    "context_found": true,
+    "excerpt": "Veltrava Rail Components has recalled around 1,800 door actuators fitted to regional trains after a sensor fault caused doors to open slowly. The company said replacement parts would ship by December.",
+    "flag_id": "F9",
+    "id": 2,
+    "link": "https://www.railway-technology.com/fixture/veltrava-recall#:~:text=Veltrava%20Rail%20Components%20has,after%20a%20sensor%20fault",
+    "published": "2026-08-05",
+    "publisher": "Railway Technology",
+    "quote": "Veltrava Rail Components has recalled around 1,800 door actuators fitted to regional trains after a sensor fault",
+    "quote_end": 112,
+    "quote_start": 0,
+    "source_id": "S9",
+    "title": "Veltrava recalls door actuators",
+    "trust": "trusted",
+    "trust_label": "✅ trusted",
+    "url": "https://www.railway-technology.com/fixture/veltrava-recall"
+   }
+  ],
+  "company": "Veltrava Rail Components GmbH",
+  "flags": [
+   {
+    "area": "Legal \u0026 Governance",
+    "colour": "red",
+    "date": "2026-03-11",
+    "id": "F5",
+    "summary": "Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not yet final."
+   },
+   {
+    "area": "Operations \u0026 Delivery",
+    "colour": "amber",
+    "date": "2026-08",
+    "id": "F9",
+    "summary": "Recall of about 1,800 door actuators (sensor fault) in August 2026; replacements due by December."
+   }
+  ],
+  "not_assessed": [
+   "Country \u0026 Location"
+  ],
+  "report": {
+   "label": "Open full report",
+   "url": null
+  },
+  "researched_at": "2026-10-18",
+  "score": {
+   "coverage_pct": 65,
+   "level": "Low",
+   "range": [
+    15,
+    50
+   ],
+   "scored": true,
+   "text": "Risk score 23/100 · Low · coverage 65%.",
+   "total": 23
+  },
+  "segments": [
+   {
+    "citations": [],
+    "kind": "verdict",
+    "text": "Red flags — review before shortlisting.",
+    "tone": "red"
+   },
+   {
+    "citations": [],
+    "kind": "score",
+    "text": "Risk score 23/100 · Low · coverage 65%."
+   },
+   {
+    "area": "legal",
+    "citations": [
+     1
+    ],
+    "colour": "red",
+    "date": "2026-03-11",
+    "flag_id": "F5",
+    "kind": "flag",
+    "text": "Red flag: Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not… (2026-03-11)."
+   },
+   {
+    "area": "operations",
+    "citations": [
+     2
+    ],
+    "colour": "amber",
+    "date": "2026-08",
+    "flag_id": "F9",
+    "kind": "flag",
+    "text": "Watch item: Recall of about 1,800 door actuators (sensor fault) in August 2026; replacements due by December (2026-08)."
+   },
+   {
+    "citations": [],
+    "kind": "gaps",
+    "text": "Not assessed: Country \u0026 Location."
+   },
+   {
+    "citations": [],
+    "kind": "pointer",
+    "text": "Full report with all sources: see the report."
+   }
+  ],
+  "status": "ok",
+  "text": "Red flags — review before shortlisting. Risk score 23/100 · Low · coverage 65%. Red flag: Fined EUR 4.2 million by the German competition authority for price-fixing in rail brake pads; not… (2026-03-11) [1]. Watch item: Recall of about 1,800 door actuators (sensor fault) in August 2026; replacements due by December (2026-08) [2]. Not assessed: Country \u0026 Location. Full report with all sources: see the report.",
+  "verdict": {
+   "text": "Red flags — review before shortlisting",
+   "tone": "red"
+  },
+  "word_count": 60
+ }
+}/*TLDR_DATA_END*/</script>
+<script>
+"use strict";
+(function () {
+  var raw = document.getElementById("tldr-data").textContent;
+  var data = JSON.parse(raw.replace("/*TLDR_DATA_START*/", "").replace("/*TLDR_DATA_END*/", ""));
+  var root = document.getElementById("tldr"), side = document.getElementById("side");
+  if (!data) { root.textContent = "No research result loaded."; return; }
+  var t = data.tldr;
+  var GLYPH = { red: "◆", amber: "▲", green: "●", neutral: "○" };
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function safeHref(u) {
+    try { var p = new URL(u); return p.protocol === "https:" || p.protocol === "http:" ? p.href : null; }
+    catch (e) { return null; }
+  }
+
+  // Source card: publisher, date, trust badge, the quote highlighted in its context, deep link.
+  function showCitation(c, btn) {
+    document.querySelectorAll(".cite[aria-pressed]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+    if (btn) btn.setAttribute("aria-pressed", "true");
+    side.replaceChildren();
+    side.append(el("div", "label", "Source [" + c.id + "]"));
+    var meta = el("div", "meta", c.publisher + " · " + (c.published || "date not stated") + " · accessed " + c.accessed);
+    meta.append(el("span", "badge " + c.trust, c.trust_label));
+    side.append(meta, el("h3", null, c.title));
+    if (c.quote) {
+      var ex = el("div", "excerpt");
+      ex.append(document.createTextNode(c.excerpt.slice(0, c.quote_start)));
+      ex.append(el("mark", null, c.excerpt.slice(c.quote_start, c.quote_end)));
+      ex.append(document.createTextNode(c.excerpt.slice(c.quote_end)));
+      side.append(ex);
+      if (!c.context_found) side.append(el("p", "note", "Quote as stored; the surrounding page text was not saved."));
+    } else {
+      side.append(el("p", "note", "Corroborating source; no quote stored from it."));
+    }
+    var href = safeHref(c.link) || safeHref(c.url);
+    if (href) {
+      var a = el("a", "btn", c.quote ? "Open source at this passage" : "Open source");
+      a.href = href; a.target = "_blank"; a.rel = "noopener noreferrer";
+      side.append(a);
+    }
+    side.focus();
+  }
+
+  // "How was this scored?": totals, then per area and sub-score, each line with its citations.
+  function showScoring() {
+    var s = data.scoring; side.replaceChildren();
+    side.append(el("div", "label", "How was this scored?"), el("p", "note", s.note));
+    var tot = s.total;
+    side.append(el("p", null, "Total: " + (tot.score != null ? tot.score + "/100 · " + tot.level : "not shown") +
+      (tot.coverage_pct != null ? " · coverage " + tot.coverage_pct + "%" : "") +
+      (tot.range ? " · range " + tot.range[0] + "–" + tot.range[1] : "")));
+    side.append(el("p", "meta", tot.formula));
+    s.areas.forEach(function (a) {
+      var d = el("details"), sum = el("summary", null, a.label + ": " + (a.score != null ? a.score + " · " + a.level : "Not assessed"));
+      d.append(sum, el("p", "meta", a.formula));
+      var tb = el("table");
+      a.sub_scores.forEach(function (sub) {
+        var tr = el("tr");
+        tr.append(el("td", null, sub.label), el("td", null, sub.score != null ? String(sub.score) : "Not assessed"));
+        var td = el("td");
+        (sub.lines || []).forEach(function (ln) {
+          var p = el("div", "meta", ln.label + (ln.points != null ? " [" + ln.points + "]" : "") + " — " + ln.rule + " ");
+          (ln.citations || []).forEach(function (n) { p.append(citeButton(n, s.citations)); });
+          td.append(p);
+        });
+        if (!sub.lines.length && sub.not_assessed_reason) td.append(el("div", "note", sub.not_assessed_reason));
+        tr.append(td); tb.append(tr);
+      });
+      d.append(tb); side.append(d);
+    });
+    var back = el("button", "btn", "Back to sources"); back.type = "button";
+    back.onclick = function () { side.replaceChildren(el("p", "empty", "Select a citation number to see where the point came from.")); };
+    side.append(back); side.focus();
+  }
+
+  function citeButton(n, table) {
+    var c = (table || []).find(function (x) { return x.id === n; });
+    var b = el("button", "cite" + (c && c.trust === "unverified" ? " unverified" : ""), String(n) + (c && c.trust === "unverified" ? "🟨" : ""));
+    b.type = "button"; b.setAttribute("aria-pressed", "false");
+    b.setAttribute("aria-label", "Citation " + n + (c ? ": " + c.publisher : ""));
+    b.onclick = function () { if (c) showCitation(c, b); };
+    return b;
+  }
+
+  function renderTldr() {
+    var p = el("p");
+    t.segments.forEach(function (sg) {
+      if (sg.kind === "pointer") return;
+      var span = el("span", null, sg.text.replace(/[.]$/, ""));
+      p.append(span);
+      sg.citations.forEach(function (n) { p.append(document.createTextNode(" "), citeButton(n, t.citations)); });
+      p.append(document.createTextNode(/[.!?…]$/.test(sg.text) ? ". " : " "));
+    });
+    root.append(p);
+    var chips = el("div", "chips");
+    t.chips.forEach(function (c) {
+      var ch = el("span", "chip" + (c.kind === "verdict" ? " tone-" + c.tone : ""));
+      if (c.kind === "flag") ch.append(el("span", "g " + c.colour, GLYPH[c.colour] || "○"));
+      if (c.kind === "not_assessed") ch.append(el("span", "g neutral", "○"));
+      ch.append(document.createTextNode((c.kind === "not_assessed" ? "Not assessed: " : "") + c.label + (c.date ? " (" + c.date + ")" : "")));
+      chips.append(ch);
+    });
+    root.append(chips);
+    var act = el("div", "actions");
+    var how = el("button", "btn", "How was this scored?"); how.type = "button"; how.onclick = showScoring;
+    act.append(how);
+    var href = t.report && t.report.url ? safeHref(t.report.url) : null;
+    if (href) { var a = el("a", "btn", t.report.label); a.href = href; a.target = "_blank"; a.rel = "noopener noreferrer"; act.append(a); }
+    root.append(act);
+  }
+  renderTldr();
+})();
+</script>
+</body>
+</html>

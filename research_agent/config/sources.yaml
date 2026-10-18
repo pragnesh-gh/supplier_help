@@ -1,6 +1,14 @@
-# Trusted-source allowlist for the research agent.
+# Trusted-source allowlist and denylist for the research agent.
 #
-# Only pages on these domains are ever used as evidence. A domain also covers
+# Three kinds of site:
+#   trusted     - on a tier below. Searched first. Facts count fully ("company_own" ones are
+#                 labelled "company-stated").
+#   unverified  - any other site, found by the open-web gap-fill pass. Kept, but marked
+#                 "not in our trusted source list"; its facts can at most be a watch item
+#                 (see rules.yaml) unless a trusted source confirms them.
+#   denylisted  - the "denylist" section at the end. Always dropped, in every search.
+#
+# A domain also covers
 # its subdomains (e.g. "gov.uk" covers "find-and-update.company-information.service.gov.uk").
 # When several entries match, the longest (most specific) one wins.
 #
@@ -85,3 +93,68 @@ tiers:
       worldbank.org: World Bank
       transparency.org: Transparency International
       oecd.org: OECD
+
+# Sites that are never used, even from the open web. Dropped before any model sees them.
+# A domain covers its subdomains. A domain cannot be both trusted and denylisted (config error).
+# The first 150 entries are also sent to Tavily as exclude_domains (its limit) to save results;
+# the code check is what actually enforces this list.
+denylist:
+  # Anyone can post; no editor, no corrections policy, often anonymous.
+  social_media:
+    - facebook.com
+    - instagram.com
+    - x.com
+    - twitter.com
+    - tiktok.com
+    - linkedin.com
+    - youtube.com
+    - pinterest.com
+    - threads.net
+    - bsky.app
+    - vk.com
+    - weibo.com
+    - telegram.org
+    - t.me
+  # User posts and anonymous reviews: unaccountable and easy to fake.
+  forums:
+    - reddit.com
+    - quora.com
+    - stackexchange.com
+    - glassdoor.com
+    - glassdoor.de
+    - kununu.com
+    - indeed.com
+    - trustpilot.com
+    - 4chan.org
+  # Leaked or stolen data: legally risky to use and impossible to check.
+  leak_sites:
+    - wikileaks.org
+    - ddosecrets.com
+    - pastebin.com
+  # Re-publish press releases, filings or scraped profiles; the original source should be cited
+  # instead. publicnow.com redistributes releases and reports of many companies: from the domain
+  # we cannot tell whose document it is, and the original is on the company's own site (trusted,
+  # company-stated) or a register, so it is blocked rather than treated as company-stated.
+  aggregators:
+    - publicnow.com
+    - prnewswire.com
+    - businesswire.com
+    - globenewswire.com
+    - einpresswire.com
+    - openpr.com
+    - newswire.com
+    - pressat.co.uk
+    - presseportal.de
+    - zoominfo.com
+    - dnb.com
+    - crunchbase.com
+    - craft.co
+  # User-edited or mass-produced content with no accountable author.
+  content_farms:
+    - wikipedia.org
+    - fandom.com
+    - ezinearticles.com
+    - hubpages.com
+    - answers.com
+    - ehow.com
+    - scribd.com

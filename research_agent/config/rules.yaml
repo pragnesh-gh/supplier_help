@@ -26,8 +26,34 @@ event_types:
   fraud_or_corruption_case: {colour: red,     area: legal,      stale_after_years: 10}
   regulatory_fine:          {colour: red,     area: legal,      stale_after_years: 5}
   major_lawsuit:            {colour: amber,   area: legal,      stale_after_years: 5}
+  # Settlement or consent decree with an authority (often competition law) without an
+  # admission or a court finding of wrongdoing. Amber, not red: unlike regulatory_fine no
+  # violation was found, but the company accepted obligations, so the buyer should ask about
+  # compliance with them. Same 5-year staleness as other legal matters; after that it is
+  # shown as context ("older or resolved matter"). Example: US v. Knorr-Bremse & Wabtec (2018).
+  antitrust_settlement:     {colour: amber,   area: legal,      stale_after_years: 5}
   forced_labour_or_human_rights_case: {colour: red, area: people, stale_after_years: 5}
   safety_accident:          {colour: red,     area: people}
+  # A death at work. Red like safety_accident, but stale after 5 years, not 3: fatal accidents
+  # lead to investigations and prosecutions that run for years.
+  safety_fatality:          {colour: red,     area: people,     stale_after_years: 5}
+  # Breach of an environmental permit or law found by an authority, a spill or emission
+  # incident (no fine; a fine is regulatory_fine). Amber: needs follow-up, no penalty yet.
+  # Area people (dataset ESG_Performance_Score). 5 years like other legal matters.
+  environmental_violation:  {colour: amber,   area: people,     stale_after_years: 5}
+  # Personal or customer data stolen or exposed. Amber like cyber_incident (dataset
+  # Digital_Security_Score); red only through a regulatory_fine. Default staleness.
+  data_breach:              {colour: amber,   area: operations}
+  # A customer imposed contract penalties or cancelled a contract for non-performance. Amber like
+  # delivery_failure: direct evidence of delivery risk, but one contract, not the company.
+  contract_penalty_or_cancellation: {colour: amber, area: operations}
+  # Auditor qualified or refused an opinion, restated accounts, or an accounting investigation.
+  # Red: the figures every other financial check relies on may be wrong. Low severity -> amber.
+  audit_or_accounting_issue: {colour: red,    area: financial,  stale_after_years: 5}
+  # On a government forced-labour list (e.g. US UFLPA Entity List; EU Forced Labour Regulation
+  # from 2027). Red and knock-out like sanctions_listing: goods can be detained or banned, so
+  # sourcing stops until Compliance clears it. Never stale while listed.
+  supply_chain_forced_labour_listing: {colour: red, area: people, knockout: true, stale_after_years: never}
   strike_or_labour_dispute: {colour: amber,   area: people}
   product_recall:           {colour: amber,   area: operations}
   cyber_incident:           {colour: amber,   area: operations}
@@ -37,6 +63,9 @@ event_types:
   profit_warning:           {colour: amber,   area: financial}
   leadership_scandal:       {colour: amber,   area: reputation}
   country_risk_elevated:    {colour: amber,   area: country}
+  # Set by code from country data (WGI, CPI) in the best-governed third of the 0-100 scale:
+  # measured evidence of a low-risk location, not just silence. See settings.yaml country_data.
+  country_risk_low:         {colour: green,   area: country}
   iris_certified:           {colour: green,   area: operations}
   iso_certified:            {colour: green,   area: operations}
   credit_upgrade_or_strong_results: {colour: green, area: financial}

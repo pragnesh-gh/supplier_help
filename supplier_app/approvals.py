@@ -65,7 +65,7 @@ class Approvals:
                 except KeyError:
                     raise ValueError(f'Research evidence for {supplier_id} is unavailable; restore its dossier before submitting') from None
                 snapshot = {'kind': 'research', 'record': record, 'dossier': dossier,
-                            'notice': 'Research entity is separate from anonymized CSV identities. Numeric challenge scores are unavailable.'}
+                            'notice': 'Public research report, kept separate from the anonymised catalogue. Its score is not comparable to catalogue scores.'}
             frozen.append({'supplier_id': supplier_id, **notes, 'snapshot': snapshot})
         result.update(id=uuid.uuid4().hex, created_at=datetime.now(timezone.utc).isoformat(timespec='seconds'),
                       status='awaiting_approval', purpose='approval_to_negotiate', candidates=frozen,
