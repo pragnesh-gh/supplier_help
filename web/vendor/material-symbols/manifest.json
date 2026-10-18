@@ -123,6 +123,20 @@
       "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/star/materialsymbolsoutlined/star_fill1_24px.svg",
       "sha256": "de38d3df08eed293ef1d64c331c32dfa56512116d85ca213be2c1e5aa92a9f9f",
       "bytes": 190
+    },
+    {
+      "name": "bookmark",
+      "file": "bookmark.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/bookmark/materialsymbolsoutlined/bookmark_24px.svg",
+      "sha256": "5a3089ec31268db8da66ce9e5d7cbb8bdfb9b25c5ac53f3200b5147caf746e29",
+      "bytes": 240
+    },
+    {
+      "name": "bookmark_filled",
+      "file": "bookmark_filled.svg",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/symbols/web/bookmark/materialsymbolsoutlined/bookmark_fill1_24px.svg",
+      "sha256": "faeec089cffa27feb293c9846e36748ece4b581168e297a31f31e4b8743f1946",
+      "bytes": 190
     }
   ]
 }

@@ -3,7 +3,7 @@
 const NAMES = new Set([
   "train", "search", "compare_arrows", "description", "fact_check", "history",
   "star", "chat", "close", "filter_list", "download", "arrow_forward",
-  "restart_alt", "check", "info", "expand_more",
+  "restart_alt", "check", "info", "expand_more", "bookmark", "bookmark_filled",
   "arrow_back", // mirrored arrow_forward (see ui.css)
 ]);
 

@@ -1,5 +1,6 @@
 :root {
-  /* Palette follows the Figma supplier-card design. */
+  /* Palette follows the Figma supplier-card design. ui.css (loaded last) holds the same
+     values under Material role names and aliases these legacy names to them. */
   --bg: #f5f7f6;
   --line: #dfe6e4;
   --ink: #1d2a2a;
@@ -45,7 +46,7 @@ textarea {
   outline-offset: 3px;
 }
 :focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--accent);
 }
 button,
 .button {
@@ -204,10 +205,10 @@ main {
 }
 .risk {
   font-size: 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 2px 6px;
-  background: #eff2f4;
-  color: #526875;
+  background: var(--panel);
+  color: var(--muted);
 }
 .risk.Low {
   color: var(--risk-low);
@@ -1170,7 +1171,7 @@ dialog::backdrop {
   text-decoration: underline;
 }
 .title-link:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--accent);
 }
 .widget-sub {
   color: var(--muted);
@@ -1232,16 +1233,16 @@ dialog::backdrop {
   gap: 8px;
   align-items: center;
 }
-.icon {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-  flex: none;
-}
 .compare-button {
   font-weight: 600;
   font-size: 15px;
   padding: 9px 16px;
+}
+/* Material Symbols mask icon (icons.js), sized to the 15px Compare label. */
+.compare-button .msi {
+  width: 18px;
+  height: 18px;
+  vertical-align: 0;
 }
 .compare-button[aria-pressed="true"] {
   border-color: var(--accent);
@@ -2124,41 +2125,111 @@ h1 {
   gap: 10px;
   flex-wrap: wrap;
 }
+/* Discovery: title, KPI tiles, slim assembly strip, full-width results. */
 .discovery-intro {
-  display: grid;
-  grid-template-columns: 230px minmax(0, 1fr);
-  gap: 18px;
-  margin-bottom: 18px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 .discovery-intro > .screen-title {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 18px;
-  padding-top: 12px;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0;
   margin: 0;
 }
 .discovery-intro .screen-title h1 {
-  font-size: 28px;
-  margin: 4px 0 8px;
+  font-size: 26px;
+  margin: 2px 0 4px;
+}
+.discovery-intro .screen-title p {
+  margin: 0;
+}
+.discovery-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.kpi-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 12px 14px;
+}
+.kpi-tile > span,
+.kpi-tile > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .assembly-selector {
   overflow: hidden;
   min-width: 0;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) auto;
+  grid-template-areas: "preview body actions";
+  gap: 16px;
+  align-items: center;
+  padding: 10px;
 }
-.assembly-selector .card-head {
-  padding: 10px 14px;
+.assembly-preview {
+  grid-area: preview;
+  height: 130px;
+  min-width: 0;
+  overflow: hidden;
 }
-.assembly-selector .card-head p {
-  margin-top: 4px;
+.assembly-body {
+  grid-area: body;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.assembly-body h2 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+.assembly-actions {
+  grid-area: actions;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  align-self: start;
+}
+.assembly-actions button {
+  justify-content: center;
+  white-space: nowrap;
+}
+.assembly-selector.is-expanded {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "preview preview"
+    "body actions";
+}
+.assembly-selector.is-expanded .assembly-preview {
+  height: 360px;
+}
+.assembly-selector:not(.is-expanded) .pa-note {
+  display: none;
+}
+.assembly-selector.is-expanded [data-action="toggle-assembly"] .msi {
+  transform: rotate(180deg);
 }
 .parts-scene {
-  height: 240px;
-  min-height: 240px;
   position: relative;
   overflow: hidden;
   background: radial-gradient(ellipse at center, #fff, #edf4f4);
+}
+#parts-scene {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
 }
 .parts-scene canvas {
   display: block;
@@ -2169,10 +2240,8 @@ h1 {
 .part-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  padding: 10px 12px;
-  border-top: 1px solid var(--line);
-  background: #fcfefe;
+  gap: 6px;
+  padding: 0;
 }
 .part-chips button {
   font-size: 11px;
@@ -2188,45 +2257,181 @@ h1 {
   background: #e3f0f0;
   color: #115a63;
 }
-.assembly-empty {
-  min-height: 255px;
+.assembly-selector.assembly-empty {
   display: flex;
   align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  text-align: left;
+}
+.assembly-empty-icon {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  padding: 28px;
-  text-align: center;
-  background: linear-gradient(135deg, white, #eef5f5);
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  color: var(--accent);
 }
 .assembly-empty h2 {
-  margin: 8px 0;
-  font-size: 21px;
+  margin: 2px 0;
+  font-size: 15px;
 }
 .assembly-empty p {
-  max-width: 440px;
+  margin: 0;
 }
-.part-name {
+.part-name,
+.system-name {
   font-size: 11px;
-  color: #47787f;
+  color: var(--muted);
   line-height: 1.4;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 .discovery {
+  display: block;
   height: auto;
-  min-height: 500px;
-  align-items: start;
+  min-height: 0;
 }
 .discovery .results {
-  max-height: 680px;
-  min-height: 480px;
+  max-height: none;
+  min-height: 0;
 }
 .discovery .results > .scroll {
-  flex: 1;
+  flex: none;
   min-height: 0;
   overflow: auto;
 }
-.discovery .filters {
-  position: sticky;
-  top: 14px;
+.results-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 6px;
+}
+.results-toolbar .search-field {
+  flex: 1 1 220px;
+  min-width: 180px;
+  max-width: 320px;
+}
+.results-toolbar select,
+.results-toolbar input {
+  height: 34px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 13px;
+}
+.results-toolbar .delivery-filter {
+  width: 128px;
+}
+.results-toolbar .rank-by {
+  margin-left: auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.filter-chip {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 11px 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.filter-chip input {
+  margin: 0;
+  height: auto;
+}
+.results-note {
+  margin: 0;
+  padding: 0 14px 10px;
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.delivery-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.delivery-cell .num {
+  min-width: 44px;
+}
+.delivery-meter {
+  position: relative;
+  flex: none;
+  width: 60px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.delivery-meter i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--accent);
+}
+@media (max-width: 900px) {
+  .discovery-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .assembly-selector {
+    grid-template-columns: 180px minmax(0, 1fr);
+    grid-template-areas:
+      "preview body"
+      "actions actions";
+  }
+  .assembly-selector.is-expanded {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "preview"
+      "body"
+      "actions";
+  }
+  .assembly-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+  .results-toolbar .rank-by {
+    margin-left: 0;
+  }
+}
+@media (max-width: 520px) {
+  .discovery-kpis {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .assembly-selector,
+  .assembly-selector.is-expanded {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "preview"
+      "body"
+      "actions";
+  }
+  .assembly-preview {
+    height: 150px;
+  }
+  .assembly-selector.is-expanded .assembly-preview {
+    height: 280px;
+  }
+  .results-toolbar .search-field {
+    max-width: none;
+    flex-basis: 100%;
+  }
+  .results-toolbar select,
+  .results-toolbar .delivery-filter {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
 }
 .overview #train-scene {
   display: block;
@@ -2247,37 +2452,10 @@ h1 {
     height: 240px;
     min-height: 240px;
   }
-  .parts-scene {
-    height: 220px;
-    min-height: 220px;
-  }
-  .discovery-intro {
-    grid-template-columns: 210px minmax(0, 1fr);
-    gap: 14px;
-  }
-  .discovery-intro .screen-title h1 {
-    font-size: 25px;
-  }
 }
 @media (max-width: 1000px) {
-  .discovery-intro {
-    grid-template-columns: 1fr;
-  }
-  .discovery-intro > .screen-title {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0;
-  }
   .discovery-intro .screen-title h1 {
     font-size: 24px;
-  }
-  .parts-scene {
-    height: 230px;
-    min-height: 230px;
-  }
-  .discovery .filters {
-    position: static;
   }
   .overview #train-scene {
     height: 270px;
@@ -2289,36 +2467,15 @@ h1 {
     gap: 12px;
   }
   .discovery-intro > .screen-title {
+    flex-wrap: wrap;
     align-items: flex-start;
     gap: 10px;
   }
   .discovery-intro .screen-title h1 {
     font-size: 22px;
   }
-  .assembly-selector .card-head {
-    align-items: flex-start;
-  }
-  .assembly-selector .card-head h2 {
-    font-size: 14px;
-  }
-  .assembly-selector .card-head p {
-    font-size: 10px;
-  }
-  .parts-scene {
-    height: 220px;
-    min-height: 220px;
-  }
   .part-chips {
     gap: 5px;
-    padding: 8px;
-  }
-  .part-chips button {
-    font-size: 10px;
-    padding: 6px 7px;
-  }
-  .discovery .results {
-    max-height: 680px;
-    min-height: 420px;
   }
   .overview #train-scene {
     height: 240px;
@@ -2329,25 +2486,20 @@ h1 {
   }
 }
 .part-chips button,
-.part-chips button span,
-.assembly-selector .card-head p,
-.part-name {
+.part-chips button span {
   font-size: 12px;
 }
 .part-unassigned {
-  padding: 0 14px 10px;
-  font-size: 12px;
+  margin: 4px 0 0;
+  font-size: 11px;
   color: var(--muted);
-  background: #fcfefe;
 }
 .supplier-tabs button {
   font-size: 12px;
 }
 @media (max-width: 650px) {
   .part-chips button,
-  .part-chips button span,
-  .assembly-selector .card-head p,
-  .part-name {
+  .part-chips button span {
     font-size: 12px;
     line-height: 1.5;
   }
@@ -2356,24 +2508,5 @@ h1 {
   }
   .overview .supplier-strip .card-head > .muted {
     font-size: 12px;
-  }
-}
-#parts-scene {
-  height: 240px;
-  min-height: 240px;
-  max-height: 240px;
-}
-@media (max-height: 720px) and (min-width: 1051px) {
-  #parts-scene {
-    height: 220px;
-    min-height: 220px;
-    max-height: 220px;
-  }
-}
-@media (max-width: 650px) {
-  #parts-scene {
-    height: 220px;
-    min-height: 220px;
-    max-height: 220px;
   }
 }
