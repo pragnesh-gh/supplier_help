@@ -636,7 +636,7 @@ td { border-bottom-color: var(--outline-variant); }
 }
 .part-row:hover:not(:disabled) { background: var(--surface-low); border-color: transparent; }
 .part-row-label { font-size: 13px; }
-.part-row-count { font-family: var(--mono); font-size: 11px; color: var(--on-surface-variant); }
+.part-row-count { font-family: var(--mono); font-size: 13px; color: var(--on-surface-variant); }
 .part-row[aria-pressed="true"] {
   background: var(--primary-container);
   color: var(--primary);
