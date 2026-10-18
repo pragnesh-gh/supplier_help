@@ -31,3 +31,7 @@ The user confirmed “Nemotron, and System One models like Jev or Decisions API.
 ## Scope and verdict
 
 Research is sufficient to prototype this direction. User/buyer validation remains pending; no design winner or production readiness is claimed. Keep the throwaway HTML on `prototype/supplier-workbench`; `main` retains setup and research. Production implementation should be designed after the user selects a layout and reviews the workflow.
+
+## Research-fixture follow-up during prototype review
+
+The initial identity-only company example was too shallow to evaluate the challenge's investigation flow. A researcher prepared `company-fixture.md` using Siemens Report 2025 and rail supplier-assurance guidance. The parent reopened both primary sources and checked the operational-risk passages (report PDF pages 28–29) and the supplier-criticality guidance. The prototype now includes three historical, company-disclosed exposures and one saved follow-up to stated assurance processes. Neither source establishes that a specific supplier passed a check; no current incident, supplier rating or anonymized-entity mapping is inferred.

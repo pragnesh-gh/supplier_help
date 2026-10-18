@@ -7,4 +7,6 @@ __pycache__/
 .venv/
 .local/
 artifacts/
+output/
+.playwright-cli/
 *.log
