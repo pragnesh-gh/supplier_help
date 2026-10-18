@@ -39,7 +39,7 @@ Python 3.12+; no dependencies are required for the data audit or prototype.
 python scripts/audit_dataset.py
 ```
 
-Keep OpenRouter credentials in your process environment or ignored `.env`. `.env.example` and `config/models.json` document the proposed backend configuration; the HTML never reads them. The user confirmed Nemotron; the selected initial candidate is `nvidia/nemotron-3.5-lightning`. Its public catalog entry was verified on 2026-10-18, but credentialed model/provider access remains unverified. Optional Jev and OpenAI Decisions are alternative future triage adapters, not requirements for this prototype.
+Keep OpenRouter credentials in your process environment or ignored `.env`. `.env.example` and `config/models.json` document the proposed backend configuration; the HTML never reads them. The user confirmed Nemotron; the selected initial candidate is `nvidia/nemotron-3.5-lightning`. Its public catalog entry was verified on 2026-10-18, but credentialed model/provider access remains unverified. The baseline uses deterministic logic plus Nemotron. Jev via OpenRouter is an optional later triage experiment; OpenAI Decisions is out of the current scope. There is no image-input requirement. Speech transcription produces text before the language-model step.
 
 ```sh
 python scripts/check_openrouter.py --catalog
@@ -53,7 +53,7 @@ These are read-only setup checks, not an implemented LLM backend. They never pri
 
 - [Reviewed research and design brief](docs/research/review-and-decisions.md)
 - [Buyer roles, demographics and existing tools](docs/research/buyers-and-workflows.md)
-- [Nemotron, Jev, Decisions, speech and agent architecture](docs/research/models-speech-and-agents.md)
+- [Model, speech and agent research (with current scope update)](docs/research/models-speech-and-agents.md)
 - [End-to-end build plan, deliverables and two-minute demo script](docs/delivery-plan.md)
 - [Reproducible dataset audit](docs/data-audit.json)
 

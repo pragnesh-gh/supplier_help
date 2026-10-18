@@ -35,3 +35,7 @@ Research is sufficient to prototype this direction. User/buyer validation remain
 ## Research-fixture follow-up during prototype review
 
 The initial identity-only company example was too shallow to evaluate the challenge's investigation flow. A researcher prepared `company-fixture.md` using Siemens Report 2025 and rail supplier-assurance guidance. The parent reopened both primary sources and checked the operational-risk passages (report PDF pages 28–29) and the supplier-criticality guidance. The prototype now includes three historical, company-disclosed exposures and one saved follow-up to stated assurance processes. Neither source establishes that a specific supplier passed a check; no current incident, supplier rating or anonymized-entity mapping is inferred.
+
+## Latest scope decision
+
+The user subsequently deferred OpenAI Decisions. Current implementation planning is rules plus Nemotron, optional editable speech transcription, and Jev via OpenRouter only if text-triage evaluation justifies it. No image workflow is required. Current Jev 1.14 also supports images, so modality alone is not a valid product distinction. See the dated update in `models-speech-and-agents.md`. Shared gateway access uses an OpenRouter-issued key; the existing local `.env` is preserved.

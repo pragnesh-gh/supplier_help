@@ -12,7 +12,8 @@
   "decision_triage": {
     "enabled": false,
     "initial_implementation": "rules",
-    "future_candidates": ["TypeSafe Jev", "OpenAI Decisions API"],
+    "future_candidates": ["TypeSafe Jev via OpenRouter (only if evaluation justifies it)"],
+    "credential_env": "OPENROUTER_API_KEY",
     "purpose": "Intent routing and evidence relevance/category triage; never final supplier approval"
   },
   "speech": {
