@@ -131,6 +131,13 @@ class AppTests(unittest.TestCase):
             body = json.dumps({'favorites': [], 'chat': [{'text': 'x' * 20000}]})
             conn.request('PUT', '/api/workspace', body, {'Content-Type': 'application/json'})
             response = conn.getresponse(); self.assertEqual(response.status, 200); response.read()
+            rich = [{'role': 'assistant', 'answer': 'value', 'citations': [{'id': 'D1', 'kind': 'dataset', 'supplier_id': 'SUPP_00012', 'column': 'Total_Risk_Index', 'value': 50}]} for _ in range(190)]
+            compact_size = len(json.dumps(rich, ensure_ascii=False, separators=(',', ':')).encode('utf-8'))
+            rich[0]['answer'] += 'x' * (95000 - compact_size)
+            self.assertEqual(len(json.dumps(rich, ensure_ascii=False, separators=(',', ':')).encode('utf-8')), 95000)
+            body = json.dumps({'chat': rich}, ensure_ascii=False, separators=(',', ':'))
+            conn.request('PUT', '/api/workspace', body.encode('utf-8'), {'Content-Type': 'application/json'})
+            response = conn.getresponse(); self.assertEqual(response.status, 200); response.read()
             conn.request('POST', '/api/assistant', json.dumps({'message': 'Research Acme', 'company': 'Acme'}), {'Content-Type': 'application/json'})
             response = conn.getresponse(); self.assertEqual(response.status, 400)
             self.assertIn('unavailable', json.loads(response.read())['error'])

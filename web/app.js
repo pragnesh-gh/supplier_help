@@ -898,6 +898,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           kind: "research-record",
           record: {
             ...record,
+            _record: record._record
+              ? { id: record._record.id, run_id: record._record.run_id }
+              : null,
             _report: record._report ? { id: record._report.id } : null,
           },
         }),
@@ -919,7 +922,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       savingStatus("Saving...");
       return flushWorkspace();
     }
-    function flushWorkspace() {
+    function flushWorkspace(exiting = false) {
       if (saveTask) return saveTask;
       saveTask = (async () => {
         while (pendingWorkspace) {
@@ -931,12 +934,15 @@ document.addEventListener("DOMContentLoaded", async () => {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body,
-              keepalive: new TextEncoder().encode(body).length < 60000,
+              keepalive:
+                exiting && new TextEncoder().encode(body).length < 60000,
             });
             if (!response.ok) {
               const error = await response.json();
               throw Error(error.error || "Server rejected workspace");
             }
+            // Consume the successful response before starting the next serialized write.
+            await response.text();
             if (!pendingWorkspace) {
               try {
                 localStorage.removeItem(recoveryKey);
@@ -962,7 +968,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
           localStorage.setItem(recoveryKey, JSON.stringify(pendingWorkspace));
         } catch {}
-        if (!saveTask) flushWorkspace().catch(() => {});
+        if (!saveTask) flushWorkspace(true).catch(() => {});
       }
     });
     async function restoreWorkspace() {

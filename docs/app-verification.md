@@ -24,3 +24,9 @@ Review findings prompted fixes to metric direction, explicit identity precedence
 ## Scope
 
 Localhost only, as requested; no public hosting or jury credentials. Example trends are synthetic, and real telemetry is absent. Research retrieves provider excerpts and links, with bounded searches and explicit evidence gaps; it is not exhaustive crawling or independently audited source text. Earlier prototypes are retained as references; the active app is `web/` + `supplier_app/`.
+
+## Final review resolution
+
+Opus follow-up is in `docs/research/unified-app-review-followup.md`. Its remaining JSON-size blocker was fixed by measuring compact UTF-8 JSON on both sides; the HTTP regression saves an exactly95,000-byte rich conversation. Normal saves no longer use browser keepalive quotas and consume their responses before the next queued write. Research workspace entries store compact record references. A single-browser recovery snapshot protects interrupted saves; concurrent edits from multiple tabs are not conflict-merged.
+
+Final checks:26 backend tests pass; all four frontend modules pass syntax checks. Four-page PDF verification confirms the draft header on every page. Final checked app instance runs at http://127.0.0.1:8879 (default CLI port remains8878).

@@ -49,7 +49,7 @@ class Workspace:
             items = value.get(key, [])
             if not isinstance(items, list) or len(items) > limit or any(not isinstance(item, dict) for item in items):
                 raise ValueError(f'{key} must be a bounded array of objects')
-            if len(json.dumps(items, allow_nan=False, ensure_ascii=False).encode('utf-8')) > 100000:
+            if len(json.dumps(items, allow_nan=False, ensure_ascii=False, separators=(',', ':')).encode('utf-8')) > 100000:
                 raise ValueError(f'{key} is too large')
             result[key] = items
         region = value.get('region')

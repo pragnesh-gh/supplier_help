@@ -43,3 +43,5 @@ The supplied CSV is a single synthetic snapshot. Component assignments and prior
 
 The user explicitly selected localhost for this pass. There is no public deployment, authentication or jury account, and no claim that a local URL is remotely accessible. The challenge's public live URL and access-sharing requirements remain submission decisions. The runnable app, source data, tests and demo journey are prepared for local review.
 
+
+The final checked instance for this session uses port8879 because the earlier development server remains on8878. To launch an additional instance: `python -m supplier_app --port 8879 --env-file .env`. Use one browser tab for edits; concurrent tab changes are not merged.
