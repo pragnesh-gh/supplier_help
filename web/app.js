@@ -597,7 +597,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         .sort((a, b) => r[b] - r[a])
         .slice(0, 2);
       if (!top.length) return '<div class="attention-slot"></div>';
-      return `<div class="attention-slot attention"><div class="attention-title">Why it needs attention</div><p>Highest supplied scores: ${top.map((k) => `${esc(k.replace(/_Score$/, "").replaceAll("_", " ").toLowerCase())} ${fmt(r[k])}/100`).join(" · ")}.</p></div>`;
+      return `<div class="attention-slot attention"><div class="attention-title">Why it needs attention</div><p class="attention-lead">Highest supplied scores</p><ul class="attention-list">${top
+        .map((k) => {
+          const label = k.replace(/_Score$/, "").replaceAll("_", " ").toLowerCase();
+          return `<li><span>${esc(label[0].toUpperCase() + label.slice(1))}</span><strong>${fmt(r[k])}/100</strong></li>`;
+        })
+        .join("")}</ul></div>`;
     }
     function widget(r) {
       return `<article class="card portfolio-widget${state.compare.includes(r.supplierID) ? " compared" : ""}"><div class="widget-head"><div class="widget-id">${esc(r.supplierID)}${r._research ? " · Research-only" : isUsed(r) ? " · Previously used · demo" : ""}</div><div class="widget-icons">${compareIconButton(r)}${saveButton(r)}</div></div><div><h2><button class="title-link" data-action="detail" data-id="${esc(r.supplierID)}">${esc(nameOf(r))}</button></h2><div class="widget-sub">${esc(regionLabel(regionOf(r)))}${r.train_part_id ? " · " + esc(partLabel(r.train_part_id)) : ""}</div></div><div class="widget-line"><span>Total Risk Index</span>${level(r.Total_Risk_Index_Level, r.Total_Risk_Index)}</div>${attention(r)}<div class="widget-metrics"><div><span>PO volume</span><strong>${euro(r["Purchase Order Volume (EUR)"])}</strong></div><div><span>On-time delivery</span><strong>${pct(r["Supplier Delivery Rating"])}</strong></div><div><span>Order changes</span><strong>${pct(r["Order Change Rate"])}</strong></div></div><div class="widget-foot"><div class="widget-line"><span>Sourcing risk</span>${level(r["Sourcing Risk Level"])}</div>${cartIconButton(r.supplierID, "shortlist-solid")}</div></article>`;
