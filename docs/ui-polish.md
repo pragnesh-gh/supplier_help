@@ -38,3 +38,12 @@ These are unchanged: the compact overview (fits 1440×790 with three recent card
 - `approval.js` markup was out of scope, so the Approvals page was polished through CSS only. For example, "Back to comparison" has no icon.
 
 Parent verification: all 33 Python tests and both JavaScript tests pass. Independent Standards and Spec reviews found no unresolved issues. Selected favorites now use the filled Google star asset as well as aria-pressed and amber styling.
+
+
+## Gretel visual answers and train selection (2026-10-18)
+
+Approved blue selection uses #2267e8 with a lighter hover tint. Both bogies use shallow horizontal frames, recessed supports, axles and layered steel wheels; no train branding was added.
+
+Gretel now uses an expandable transcript, compact research controls, source-linked findings and bar/radar cards with exact values. The existing theme is unchanged. See [visual research](research/gretel-chat-ui.md) for primary-source references and contact sheet. Research coverage counts are explicitly not risk scores. Unknown numeric risks remain unknown.
+
+Verification: 39 Python and 14 Node tests passed; syntax and whitespace checks passed. Browser checks on isolated localhost8881 covered radar6 with all36 citations saved, first5 chart/all6 table disclosure, source-cell inspection from bar labels, saved research source links, evidence coverage chart, reload persistence and mobile drawer bounds. Final Opus review found no blockers. No paid live research was performed; the research UI check used the labelled historical fixture.

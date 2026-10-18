@@ -13,6 +13,7 @@ import {
   BufferGeometry,
   Float32BufferAttribute,
   DoubleSide,
+  Color,
   Raycaster,
   Vector2,
   Vector3,
@@ -21,6 +22,7 @@ import {
 export function mountTrain(container, options) {
   // Stretch the carbody and fittings, but keep circular wheel geometry round.
   const lengthScale = 1.45;
+  const selectionColor = "#2267e8";
   const defaultYaw = -0.24, defaultPitch = 0.20;
   const viewTarget = new Vector3(-0.25, 1.75, 0);
   // No idle rotation or inertia: reduced-motion users receive the same stable view.
@@ -34,7 +36,7 @@ export function mountTrain(container, options) {
   root.className = "ts-scene";
   container.replaceChildren();
   root.innerHTML = `<style>
-.ts-scene{position:relative;width:100%;height:100%;min-height:0;flex:1 1 auto;overflow:hidden;background:radial-gradient(ellipse at 50% 65%,#edf2f3 0%,#f8fafb 65%,#fff 100%);isolation:isolate}.ts-scene canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}.ts-scene canvas:active{cursor:grabbing}.ts-scene .ts-tip{position:absolute;z-index:3;pointer-events:none;max-width:270px;padding:9px 12px;border:1px solid #dce2e6;border-radius:6px;background:#fff;color:#1e2a33;box-shadow:0 3px 14px #142d3620;font:12px/1.5 'Segoe UI',sans-serif}.ts-scene .ts-hint{position:absolute;bottom:12px;left:16px;color:#687983;font:12px 'Segoe UI',sans-serif;pointer-events:none}.train-scene .ts-scene .ts-fallback{width:100%;height:100%;display:none!important}.train-scene .ts-scene.ts-failed .ts-fallback{display:block!important}.ts-scene.ts-failed canvas{display:none}.ts-scene .ts-fallback [data-region]{cursor:pointer;stroke:#60727b;stroke-width:1.2;transition:fill .12s}.ts-scene .ts-fallback [data-region].ts-active{stroke:#bd8a24;stroke-width:4}.ts-scene .ts-fallback [data-region].ts-hover{stroke:#bd8a24;stroke-width:3}.ts-scene .ts-fallback [data-region]:focus{outline:none;stroke:#2563eb;stroke-width:3}@media(prefers-reduced-motion:reduce){.ts-scene .ts-fallback [data-region]{transition:none}}@media print{.ts-scene canvas,.ts-scene .ts-hint,.ts-scene .ts-tip{display:none!important}.train-scene .ts-scene .ts-fallback{display:block!important}}
+.ts-scene{position:relative;width:100%;height:100%;min-height:0;flex:1 1 auto;overflow:hidden;background:radial-gradient(ellipse at 50% 65%,#edf2f3 0%,#f8fafb 65%,#fff 100%);isolation:isolate}.ts-scene canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}.ts-scene canvas:active{cursor:grabbing}.ts-scene .ts-tip{position:absolute;z-index:3;pointer-events:none;max-width:270px;padding:9px 12px;border:1px solid #dce2e6;border-radius:6px;background:#fff;color:#1e2a33;box-shadow:0 3px 14px #142d3620;font:12px/1.5 'Segoe UI',sans-serif}.ts-scene .ts-hint{position:absolute;bottom:12px;left:16px;color:#687983;font:12px 'Segoe UI',sans-serif;pointer-events:none}.train-scene .ts-scene .ts-fallback{width:100%;height:100%;display:none!important}.train-scene .ts-scene.ts-failed .ts-fallback{display:block!important}.ts-scene.ts-failed canvas{display:none}.ts-scene .ts-fallback [data-region]{cursor:pointer;stroke:#60727b;stroke-width:1.2;transition:fill .12s}.ts-scene .ts-fallback [data-region].ts-active{stroke:#2267e8;stroke-width:4}.ts-scene .ts-fallback [data-region].ts-hover{stroke:#2267e8;stroke-width:3}.ts-scene .ts-fallback [data-region]:focus{outline:none;stroke:#2563eb;stroke-width:3}@media(prefers-reduced-motion:reduce){.ts-scene .ts-fallback [data-region]{transition:none}}@media print{.ts-scene canvas,.ts-scene .ts-hint,.ts-scene .ts-tip{display:none!important}.train-scene .ts-scene .ts-fallback{display:block!important}}
 </style><div class="ts-tip" hidden></div><span class="ts-hint">Drag to rotate · select a system to explore</span>`;
   container.append(root);
   const tip = root.querySelector(".ts-tip"),
@@ -147,15 +149,14 @@ export function mountTrain(container, options) {
   }
   function paint() {
     for (const m of meshes) {
+      const active = m.userData.regionId && m.userData.regionId === selected;
+      const over = m.userData.regionId && m.userData.regionId === hovered;
       m.material.color.set(m.userData.base);
-      m.material.emissive.set(
-        m.userData.regionId === selected
-          ? "#96651a"
-          : m.userData.regionId === hovered
-            ? "#bb851e"
-            : "#000000",
-      );
-      m.material.emissiveIntensity = 0.19;
+      if (active) m.material.color.set(selectionColor);
+      else if (over) m.material.color.lerp(new Color(selectionColor),0.55);
+      m.material.emissive.set(active ? (selectionColor) : "#000000");
+      m.material.emissiveIntensity = active ? 0.16 : 0;
+
     }
     svg.querySelectorAll("[data-region]").forEach((p) => {
       p.classList.toggle("ts-active", p.dataset.region === selected);
@@ -408,30 +409,37 @@ export function mountTrain(container, options) {
     proxy("traction", -1.8, 0.8, 0, 2.3, 0.5, 1.9);
     box("braking", 1, 0.81, 0, 1.5, 0.37, 1.4, "#82929d");
     proxy("braking", 1, 0.8, 0, 1.6, 0.5, 1.9);
+    // Shallow bogie: horizontal side frames, recessed suspension, steel wheel faces.
     for (const x of [-4.1, 3.6]) {
-      box("bogie_structure", x, 0.64, 0, 1.7, 0.24, 1.65, "#405564");
+      box("bogie_structure", x, 0.91, 0, 1.72, 0.12, 1.45, "#35434c");
+      for (const z of [-0.65, 0.65]) {
+        box("bogie_structure", x, 0.65, z, 1.52, 0.10, 0.15, "#394952");
+        for (const dx of [-0.32, 0.32])
+          box("bogie_structure", x + dx, 0.80, z * 0.68, 0.20, 0.16, 0.25, "#26333b");
+      }
       proxy("bogie_structure", x, 0.55, 0, 1.9, 0.7, 2.05);
-      for (const dx of [-0.52, 0.52])
+      for (const dx of [-0.52, 0.52]) {
+        const axle = detail("bogie_structure", new CylinderGeometry(0.065,0.065,1.8,16), x+dx,0.43,0,"#596670");
+        axle.rotation.x = Math.PI / 2;
         for (const z of [-0.89, 0.89]) {
-          const wheel = detail(
-            "bogie_structure",
-            new CylinderGeometry(0.34, 0.34, 0.19, 24),
-            x + dx,
-            0.43,
-            z,
-            "#283d4b",
-          );
-          wheel.rotation.x = Math.PI / 2;
-          const disc = detail(
-            "braking",
-            new CylinderGeometry(0.19, 0.19, 0.205, 24),
-            x + dx,
-            0.43,
-            z,
-            "#98a7b0",
-          );
-          disc.rotation.x = Math.PI / 2;
+          const sign = Math.sign(z);
+          for (const [radius, depth, offset, color, id] of [
+            [0.34,0.19,0,"#28323a","bogie_structure"],
+            [0.30,0.018,0.10,"#7c8990","bogie_structure"],
+            [0.245,0.022,0.114,"#3c4851","bogie_structure"],
+            [0.09,0.038,0.134,"#86939a","braking"]
+          ]) {
+            const wheel=detail(id,new CylinderGeometry(radius,radius,depth,40),x+dx,0.43,z+sign*offset,color);
+            wheel.rotation.x=Math.PI/2;
+            wheel.material.metalness=0.55;
+          }
+          for(let j=0;j<6;j++) {
+            const a=j*Math.PI/3;
+            const bolt=detail("bogie_structure",new CylinderGeometry(0.018,0.018,0.018,8),x+dx+Math.cos(a)*0.17/lengthScale,0.43+Math.sin(a)*0.17,z+sign*0.132,"#1d282e");
+            bolt.rotation.x=Math.PI/2;
+          }
         }
+      }
     }
     for (const z of [-0.9, 0.9])
       box(null, 0, 0.07, z, 13.3, 0.04, 0.055, "#c2cdd3");
@@ -439,9 +447,6 @@ export function mountTrain(container, options) {
     for (let x = -6.4; x <= 6.5; x += 0.43)
       box(null, x, -0.005, 0, 0.13, 0.09, 2.65, "#a7afb2");
     box(null, 0, -0.15, 0, 13.7, 0.16, 3.35, "#e4e9e9");
-    // Visible bolster connections between both bogies and the continuous floor.
-    for (const x of [-4.1, 3.6])
-      box("bogie_structure", x, 0.89, 0, 0.7, 0.30, 1.35, "#405564");
     const raycaster = new Raycaster(),
       pointer = new Vector2();
     function hit(e) {

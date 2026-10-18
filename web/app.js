@@ -1,3 +1,4 @@
+import { boundedChatHistory } from "./chat-history.js";
 import { api, safeURL } from "./api.js";
 import { mountTrain } from "./train.js";
 import { mountParts } from "./parts-scene.js";
@@ -1181,35 +1182,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       node.textContent = message;
     }
     function boundedChat() {
-      let messages = chat.state.messages
-        .map((m) => ({
-          ...m,
-          answer: String(m.answer || m.content || "").slice(0, 20000),
-          citations: (m.citations || []).slice(0, 24),
-          ...(m.chart
-            ? {
-                chart: {
-                  ...m.chart,
-                  points: (m.chart.points || []).slice(0, 20),
-                },
-              }
-            : {}),
-        }))
-        .slice(-199);
-      let removed = false;
-      const bytes = (v) => new TextEncoder().encode(JSON.stringify(v)).length;
-      while (messages.length && bytes(messages) > 95000) {
-        messages.shift();
-        removed = true;
-      }
-      if (removed)
-        messages.unshift({
-          role: "assistant",
-          answer:
-            "Earlier conversation turns were omitted from saved history to keep workspace storage bounded.",
-        });
-      chat.state.messages = messages;
-      return messages;
+      chat.state.messages = boundedChatHistory(chat.state.messages);
+      return chat.state.messages;
     }
     function workspaceSnapshot() {
       const drafts = [];

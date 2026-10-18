@@ -116,3 +116,10 @@ Research and delivery notes are in `docs/`. The deployed app, authentication and
 ## Working branch
 
 Use `main` in `supplier_help` for ongoing edits. The former UI and research branches were consolidated on 18 October 2026. The secondary `supplier_help-research-agent` worktree is retained as a detached snapshot; its ignored local runs and exports remain there. Use the primary checkout for new work rather than creating separate feature branches. Historical branch references in review notes describe the original capture, not the current workflow.
+
+
+### Gretel chat and visual answers
+
+Gretel keeps data questions and public research in one expandable conversation. Ask `Show radar risk profile for SUPP_00012, SUPP_00450 and SUPP_00731` for the six derived axes, or compare a supplied metric for a bar chart. Inline source references open the exact dataset cell or public source; chart cards include an exact-values table. Unknown radar values are omitted, never zero-filled. A completed research dossier can answer `Show evidence coverage chart` with retained-observation counts, explicitly separate from risk scores. The first five radar profiles are plotted for legibility; all supplied profiles remain in the table.
+
+The UI uses the existing palette and local assets. [Visual research and contact sheet](docs/research/gretel-chat-ui.md) document the LangChain inspiration; no LangChain runtime dependency was added.
