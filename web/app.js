@@ -341,7 +341,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ---------- Shortlist cart ----------
     function cartButton(id, cls = "") {
       const on = state.cart.includes(id);
-      return `<button class="cart-toggle${cls ? " " + cls : ""}" data-action="${on ? "unshortlist" : "recommend"}" data-id="${esc(id)}" aria-pressed="${on}" title="${on ? "In shortlist · click to remove" : "Add to shortlist"}">${icon(on ? "playlist_add_check" : "playlist_add", "sm")}${on ? "In shortlist" : "Add to shortlist"}</button>`;
+      return `<button class="cart-toggle${cls ? " " + cls : ""}" data-action="${on ? "unshortlist" : "recommend"}" data-id="${esc(id)}" aria-pressed="${on}" title="${on ? "In shortlist · click to remove" : "Add to shortlist"}">${icon(on ? "playlist_add_check" : "playlist_add", "sm")}<span class="btn-label">${on ? "In shortlist" : "Add to shortlist"}</span></button>`;
     }
     function cartIconButton(id) {
       const on = state.cart.includes(id);
