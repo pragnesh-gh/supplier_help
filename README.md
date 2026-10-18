@@ -11,9 +11,28 @@ Research and a disposable, deterministic HTML prototype for the Siemens challeng
 
 Explore and filter actual data, compare at most 20 suppliers, inspect evidence, try scripted grounded questions and simulated dictation, review a separately labelled company-research fixture, and export a shortlist memo. No live LLM, web crawling, microphone recording, login, or procurement-system integration is claimed.
 
-The clickable prototype lives on `prototype/supplier-workbench`, separate from the research/setup baseline on `main`. No UI choice has been validated by a buyer yet.
+The latest clickable prototype lives on `prototype/train-risk-v2`; the earlier layouts remain on `prototype/supplier-workbench`, separate from the research/setup baseline on `main`. No UI choice has been validated by a buyer yet.
 
 ## Open the prototype
+
+### New train overview (v2)
+
+On `prototype/train-risk-v2`, open `prototype/train-risk-v2.html` after building:
+
+```sh
+python scripts/augment_dataset.py
+python scripts/build_v2.py
+```
+
+The output embeds the augmented dataset and the 3D renderer for offline use. It starts with a compact train overview; Discovery, comparison, Deep Research and report previews are separate screens. The guided tour walks through the simulated sourcing journey. Research replay does not call a backend. Speech input remains a later design option; v2 uses text.
+
+The derivative `docs/supplier_risk_dataset_augmented.csv` preserves the original data and adds reproducible demo system/part assignments, relationship tags and six derived risk summaries. The manifest records the allocation, overrides and equal within-axis weights. These summaries do not reconstruct the supplied Total Risk Index. Research-added records have unknown scores and stay separate from the anonymized source rows.
+
+Reports use **Print / Save as PDF** through the browser. They are draft approval requests or limited-scope research reports, not approvals or qualification records. Reloading resets prototype state.
+
+Design evidence: [v2 brief](docs/prototype-v2-brief.md), [bounded rail research](docs/research/train-parts-and-radar.md), [adversarial review](docs/research/prototype-v2-challenge.md), [Opus design review](docs/research/opus-v2-design-review.md), [final visual review](docs/research/opus-v2-final-review.md), and [verification record](docs/prototype-v2-review.md). The brief's final decisions supersede alternatives in the research notes.
+
+### Earlier layouts (v1)
 
 Check out `prototype/supplier-workbench`, then double-click `prototype/supplier-workbench.html`. It embeds all 10,000 supplied rows and needs no server, internet, API key or package installation. The floating bottom switcher chooses three layouts (`?variant=A`, `B`, or `C`). Start the guided demo or explore freely; state resets when the page reloads.
 
