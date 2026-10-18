@@ -1,5 +1,6 @@
 import { api, safeURL } from "./api.js";
 import { mountTrain } from "./train.js";
+import { mountParts } from "./parts-scene.js";
 import { createChat } from "./chat.js";
 ("use strict");
 document.addEventListener("DOMContentLoaded", async () => {
@@ -32,6 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       ),
       sourceById = new Map(originals.map((r) => [r.supplierID, r]));
     let train = null,
+      partsScene = null,
       timer = null,
       toastTimer = null,
       runSequence = 0;
@@ -39,7 +41,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       route: "overview",
       region: "doors",
       focus: "SUPP_00012",
-      tab: "guided",
+      tab: "recents",
+      recents: [],
       favorites: new Set(
         originals.filter((r) => r.is_favorite_demo).map((r) => r.supplierID),
       ),
@@ -47,6 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       filters: {
         q: "",
         region: "doors",
+        part: "",
         risk: "",
         delivery: "",
         favorite: false,
@@ -151,40 +155,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     function overview() {
       let c = counts()[state.region],
         all = catalog().filter((r) => regionOf(r) === state.region),
-        rs =
-          state.tab === "favorite"
-            ? all.filter((r) => state.favorites.has(r.supplierID))
-            : state.tab === "used"
-              ? all.filter(isUsed)
-              : all.filter((r) => !r._research);
-      rs.sort(
-        state.tab === "lowest"
-          ? (a, b) =>
-              a.Total_Risk_Index - b.Total_Risk_Index ||
-              a.supplierID.localeCompare(b.supplierID)
-          : (a, b) => a.supplierID.localeCompare(b.supplierID),
-      );
-      if (state.tab === "guided" && state.region === "doors")
-        rs = ["SUPP_00012", "SUPP_00450", "SUPP_00731"].map(get);
-      rs = rs.slice(0, 3);
+        rs = (
+          state.tab === "used"
+            ? all
+                .filter(isUsed)
+                .sort((a, b) => a.supplierID.localeCompare(b.supplierID))
+            : state.recents
+                .map(get)
+                .filter((r) => r && regionOf(r) === state.region)
+        ).slice(0, 3);
       let focus = get(state.focus);
       if (!focus || regionOf(focus) !== state.region) {
         focus = rs[0] || all[0];
         state.focus = focus?.supplierID;
       }
-      return `<div class="overview"><div class="left"><section class="card train-card"><div class="card-head"><div class="row"><h2>Explore the train</h2><span class="tag demo">Illustrative assembly</span></div><button class="quiet small" data-action="reset-view">↺ Reset view</button></div><div id="train-scene" class="train-scene"></div><div class="regions">${regions.map((r) => `<button title="${esc(r.label)} · ${counts()[r.id].total} assigned records" data-action="region" data-region="${r.id}" aria-pressed="${state.region === r.id}" class="${state.region === r.id ? "selected" : ""}"><strong>${esc(r.shortLabel || r.label)}</strong><span class="count">${fmt(counts()[r.id].total)}</span></button>`).join("")}</div></section><section class="card supplier-strip"><div class="card-head"><span class="small muted">${state.tab === "lowest" ? "Lowest supplied Total_Risk_Index · not a recommendation" : state.tab === "guided" ? "Guided comparison · supplied data" : "Sorted by supplier ID"}</span><select id="supplier-tab" aria-label="Supplier collection">${[
-        ["guided", "Guided suppliers"],
-        ["lowest", "Lowest total risk"],
-        ["favorite", "Favorites"],
-        ["used", "Previously used"],
-      ]
-        .map(
-          ([v, l]) =>
-            `<option value="${v}" ${state.tab === v ? "selected" : ""}>${l}</option>`,
-        )
-        .join(
-          "",
-        )}</select></div><div class="suppliers">${rs.length ? rs.map(supplierCard).join("") : '<div class="empty">No matching records. Explore Discovery.</div>'}</div></section></div><div class="right"><section class="card summary"><div><div class="eyebrow">Selected system · demo assignment</div><h1>${esc(regionLabel(state.region))}</h1><div><strong class="stat">${fmt(c.total)}</strong><span class="muted small"> records · ${fmt(c.scored)} scored · ${c.researchOnly} research-only</span></div><p class="small muted">${all.filter((r) => r.Total_Risk_Index_Level === "Critical").length} Critical · supplied total-risk level</p></div><button class="primary" data-action="discover-region">Discover →</button></section><section class="card radar-card"><div class="card-head"><div><h2>Risk profile</h2><span class="small muted">Focus ${esc(state.focus || "none")} · higher = more risk</span></div><button class="quiet small" data-action="radar-table">${state.tableRadar ? "Chart" : "View as table"}</button></div><div class="radar-body">${radar(focus, state.region, state.tableRadar)}</div><div class="radar-note"><div class="legend"><span><i></i>Focused supplier</span><span><i class="band"></i>System P25–P75</span><span>− − Median</span></div>Assignments are synthetic and independent of risk; system distributions are similar. <button class="link small" data-action="mapping">Weights & mapping</button></div></section></div></div>`;
+      return `<div class="overview"><div class="left"><section class="card train-card"><div class="card-head"><div class="row"><h2>Explore the train</h2><span class="tag demo">Illustrative assembly</span></div><button class="quiet small" data-action="reset-view">↺ Reset view</button></div><div id="train-scene" class="train-scene"></div><div class="regions">${regions.map((r) => `<button title="${esc(r.label)} · ${counts()[r.id].total} assigned records" data-action="region" data-region="${r.id}" aria-pressed="${state.region === r.id}" class="${state.region === r.id ? "selected" : ""}"><strong>${esc(r.shortLabel || r.label)}</strong><span class="count">${fmt(counts()[r.id].total)}</span></button>`).join("")}</div></section><section class="card supplier-strip"><div class="card-head"><div class="supplier-tabs" role="group" aria-label="Supplier collection"><button data-action="supplier-tab" data-tab="recents" aria-pressed="${state.tab === "recents"}">Recents</button><button data-action="supplier-tab" data-tab="used" aria-pressed="${state.tab === "used"}">Previously used</button></div><span class="small muted">${state.tab === "recents" ? "Recently viewed in this system" : "Illustrative previous-use relationships"}</span></div><div class="suppliers">${rs.length ? rs.map(supplierCard).join("") : `<div class="empty recent-empty">${state.tab === "recents" ? "Inspect a supplier in Discovery to see it here." : "No previously used demonstration suppliers in this system."} <button data-action="discover-region" class="link">Explore Discovery</button></div>`}</div></section></div><div class="right"><section class="card summary"><div><div class="eyebrow">Selected system · demo assignment</div><h1>${esc(regionLabel(state.region))}</h1><div><strong class="stat">${fmt(c.total)}</strong><span class="muted small"> records · ${fmt(c.scored)} scored · ${c.researchOnly} research-only</span></div><p class="small muted">${all.filter((r) => r.Total_Risk_Index_Level === "Critical").length} Critical · supplied total-risk level</p></div><button class="primary" data-action="discover-region">Discover →</button></section><section class="card radar-card"><div class="card-head"><div><h2>Risk profile</h2><span class="small muted">Focus ${esc(state.focus || "none")} · higher = more risk</span></div><button class="quiet small" data-action="radar-table">${state.tableRadar ? "Chart" : "View as table"}</button></div><div class="radar-body">${radar(focus, state.region, state.tableRadar)}</div><div class="radar-note"><div class="legend"><span><i></i>Focused supplier</span><span><i class="band"></i>System P25–P75</span><span>− − Median</span></div>Assignments are synthetic and independent of risk; system distributions are similar. <button class="link small" data-action="mapping">Weights & mapping</button></div></section></div></div>`;
     }
     function filtered() {
       let f = state.filters;
@@ -192,6 +177,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         .filter(
           (r) =>
             (!f.region || regionOf(r) === f.region) &&
+            (!f.part || r.train_part_id === f.part) &&
             (!f.q ||
               (r.supplierID + " " + nameOf(r))
                 .toLowerCase()
@@ -215,6 +201,52 @@ document.addEventListener("DOMContentLoaded", async () => {
                 a.supplierID.localeCompare(b.supplierID),
         );
     }
+    const partLabel = (id) =>
+      regions
+        .flatMap((region) => region.parts || [])
+        .find((part) => part.id === id)?.label || "Unassigned part";
+    function partCounts(region) {
+      return Object.fromEntries(
+        (region?.parts || []).map((part) => [
+          part.id,
+          catalog().filter(
+            (r) => regionOf(r) === region.id && r.train_part_id === part.id,
+          ).length,
+        ]),
+      );
+    }
+    function assemblySelector() {
+      const region = regions.find((r) => r.id === state.filters.region);
+      if (!region)
+        return `<section class="card assembly-selector assembly-empty"><div><div class="eyebrow">Explore a system assembly</div><h2>Choose a train system</h2><p class="muted">Select a system in the filters to inspect its parts and narrow the catalog.</p></div></section>`;
+      const counts = partCounts(region),
+        total = catalog().filter((r) => regionOf(r) === region.id).length;
+      const unassigned =
+        total - Object.values(counts).reduce((sum, value) => sum + value, 0);
+      return `<section class="card assembly-selector"><div class="card-head"><div><h2>${esc(region.label)} assembly</h2><p class="small muted">Select a part to filter suppliers &middot; illustrative geometry and assignments</p></div><button data-action="reset-parts" class="quiet small">Reset view</button></div><div id="parts-scene" class="parts-scene"></div><div class="part-chips" aria-label="Assembly part filters"><button data-action="part" data-part="" aria-pressed="${!state.filters.part}">All parts <span>${fmt(total)}</span></button>${(region.parts || []).map((part) => `<button data-action="part" data-part="${esc(part.id)}" aria-pressed="${state.filters.part === part.id}">${esc(part.label)} <span>${fmt(counts[part.id])}</span></button>`).join("")}</div>${unassigned ? `<p class="part-unassigned">${fmt(unassigned)} ${unassigned === 1 ? "record has" : "records have"} no part assignment; included in All parts.</p>` : ""}</section>`;
+    }
+    function selectPart(id) {
+      const region = regions.find((r) => r.id === state.filters.region);
+      const restoreFocus = !!document.activeElement?.closest(
+        ".part-chips,#parts-scene",
+      );
+      state.filters.part = region?.parts.some((part) => part.id === id)
+        ? id
+        : "";
+      state.page = 1;
+      render();
+      if (restoreFocus)
+        document
+          .querySelector(`.part-chips [data-part="${state.filters.part}"]`)
+          ?.focus();
+    }
+    function touchSupplier(id) {
+      if (!get(id)) return;
+      state.recents = [
+        id,
+        ...state.recents.filter((value) => value !== id),
+      ].slice(0, 50);
+    }
     function discovery() {
       let result = filtered(),
         pages = Math.max(1, Math.ceil(result.length / 12));
@@ -224,7 +256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           (id) => !result.some((r) => r.supplierID === id),
         ).length,
         f = state.filters;
-      return `<div class="screen-title"><div><div class="eyebrow">Supplier catalog</div><h1>Discovery</h1><p class="muted small">${fmt(result.length)} matching · ${fmt(catalog().length)} total · relationship tags are demo metadata</p></div><button data-action="provenance">Inspect provenance</button></div><div class="discovery"><aside class="card filters stack"><label>Search ID or name<input data-filter="q" value="${esc(f.q)}" placeholder="e.g. SUPP_00731"></label><label>Train system<select data-filter="region"><option value="">All systems</option>${regions.map((r) => `<option value="${r.id}" ${f.region === r.id ? "selected" : ""}>${esc(r.label)}</option>`).join("")}</select></label><label>Supplied total-risk level<select data-filter="risk"><option value="">All levels</option>${["Low", "Medium", "High", "Critical"].map((x) => `<option ${f.risk === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Minimum delivery rating (%)<input data-filter="delivery" type="number" min="0" max="100" value="${esc(f.delivery)}" placeholder="No minimum"></label><label class="check"><input type="checkbox" data-filter="favorite" ${f.favorite ? "checked" : ""}> Favorites only</label><label class="check"><input type="checkbox" data-filter="used" ${f.used ? "checked" : ""}> Previously used · demo only</label><button data-action="clear-filters">Clear filters</button><p class="small muted">Filters combine with AND. Country filtering is unavailable: a country-risk score does not identify country.</p><div class="notice">Previous use does not mean qualified. All candidates use the same approval request.</div></aside><section class="card results"><div class="card-head"><h2>Supplier records</h2><label class="row">Rank by<select data-filter="sort">${[
+      return `<div class="discovery-intro"><div class="screen-title"><div><div class="eyebrow">Supplier catalog</div><h1>Discovery</h1><p class="muted small">${fmt(result.length)} matching · ${fmt(catalog().length)} total · relationship tags are demo metadata</p></div><button data-action="provenance">Inspect provenance</button></div>${assemblySelector()}</div><div class="discovery"><aside class="card filters stack"><label>Search ID or name<input data-filter="q" value="${esc(f.q)}" placeholder="e.g. SUPP_00731"></label><label>Train system<select data-filter="region"><option value="">All systems</option>${regions.map((r) => `<option value="${r.id}" ${f.region === r.id ? "selected" : ""}>${esc(r.label)}</option>`).join("")}</select></label><label>Supplied total-risk level<select data-filter="risk"><option value="">All levels</option>${["Low", "Medium", "High", "Critical"].map((x) => `<option ${f.risk === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Minimum delivery rating (%)<input data-filter="delivery" type="number" min="0" max="100" value="${esc(f.delivery)}" placeholder="No minimum"></label><label class="check"><input type="checkbox" data-filter="favorite" ${f.favorite ? "checked" : ""}> Favorites only</label><label class="check"><input type="checkbox" data-filter="used" ${f.used ? "checked" : ""}> Previously used · demo only</label><button data-action="clear-filters">Clear filters</button><p class="small muted">Filters combine with AND. Country filtering is unavailable: a country-risk score does not identify country.</p><div class="notice">Previous use does not mean qualified. All candidates use the same approval request.</div></aside><section class="card results"><div class="card-head"><h2>Supplier records</h2><label class="row">Rank by<select data-filter="sort">${[
         ["total", "Supplied total risk ↑"],
         ["delivery", "Delivery rating ↓"],
         ["id", "Supplier ID ↑"],
@@ -235,7 +267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         )
         .join(
           "",
-        )}</select></label></div><div class="scroll"><table><thead><tr><th>Select</th><th>Supplier</th><th>System</th><th>Total risk</th><th>Delivery</th><th>Relationship · demo</th><th>Actions</th></tr></thead><tbody>${visible.map((r) => `<tr><td><input type="checkbox" aria-label="Compare ${r.supplierID}" data-compare="${r.supplierID}" ${state.compare.includes(r.supplierID) ? "checked" : ""}></td><td><button class="link" data-action="detail" data-id="${r.supplierID}">${esc(nameOf(r))}</button><div class="small muted">${r.supplierID}</div></td><td class="small">${esc(regionLabel(regionOf(r)))}</td><td><strong>${fmt(r.Total_Risk_Index)}</strong> <span class="risk ${esc(r.Total_Risk_Index_Level)}">${esc(r.Total_Risk_Index_Level || "Unknown")}</span></td><td>${fmt(r["Supplier Delivery Rating"])}${r._research ? "" : "%"}</td><td>${tags(r) || '<span class="muted small">No demo relationship</span>'}</td><td><button data-action="favorite" data-id="${r.supplierID}" aria-label="Toggle favorite ${r.supplierID}">${state.favorites.has(r.supplierID) ? "★" : "☆"}</button> <button data-action="recommend" data-id="${r.supplierID}">Request review</button></td></tr>`).join("")}</tbody></table>${!visible.length ? '<div class="empty">No results. Adjust filters; comparison selections are preserved.</div>' : ""}</div><div class="pagination"><span class="small muted">Page ${state.page} of ${pages} · 12 per page · unknown scores last</span><div class="row"><button data-action="prev-page" ${state.page === 1 ? "disabled" : ""}>← Previous</button><button data-action="next-page" ${state.page === pages ? "disabled" : ""}>Next →</button></div></div><div class="tray"><div><strong>${state.compare.length} / 20 selected</strong><span class="small muted"> · ${hidden} outside current filters</span>${state.compareError ? `<div class="error">${esc(state.compareError)}</div>` : ""}</div><div class="row"><button data-action="manage-compare">Manage selection</button><button class="primary" data-action="compare" ${!state.compare.length ? "disabled" : ""}>Compare →</button></div></div></section></div>`;
+        )}</select></label></div><div class="scroll"><table><thead><tr><th>Select</th><th>Supplier</th><th>System</th><th>Total risk</th><th>Delivery</th><th>Relationship · demo</th><th>Actions</th></tr></thead><tbody>${visible.map((r) => `<tr><td><input type="checkbox" aria-label="Compare ${r.supplierID}" data-compare="${r.supplierID}" ${state.compare.includes(r.supplierID) ? "checked" : ""}></td><td><button class="link" data-action="detail" data-id="${r.supplierID}">${esc(nameOf(r))}</button><div class="small muted">${r.supplierID}</div></td><td class="small">${esc(regionLabel(regionOf(r)))}<div class="part-name">${esc(partLabel(r.train_part_id))}</div></td><td><strong>${fmt(r.Total_Risk_Index)}</strong> <span class="risk ${esc(r.Total_Risk_Index_Level)}">${esc(r.Total_Risk_Index_Level || "Unknown")}</span></td><td>${fmt(r["Supplier Delivery Rating"])}${r._research ? "" : "%"}</td><td>${tags(r) || '<span class="muted small">No demo relationship</span>'}</td><td><button data-action="favorite" data-id="${r.supplierID}" aria-label="Toggle favorite ${r.supplierID}">${state.favorites.has(r.supplierID) ? "★" : "☆"}</button> <button data-action="recommend" data-id="${r.supplierID}">Request review</button></td></tr>`).join("")}</tbody></table>${!visible.length ? '<div class="empty">No results. Adjust filters; comparison selections are preserved.</div>' : ""}</div><div class="pagination"><span class="small muted">Page ${state.page} of ${pages} · 12 per page · unknown scores last</span><div class="row"><button data-action="prev-page" ${state.page === 1 ? "disabled" : ""}>← Previous</button><button data-action="next-page" ${state.page === pages ? "disabled" : ""}>Next →</button></div></div><div class="tray"><div><strong>${state.compare.length} / 20 selected</strong><span class="small muted"> · ${hidden} outside current filters</span>${state.compareError ? `<div class="error">${esc(state.compareError)}</div>` : ""}</div><div class="row"><button data-action="manage-compare">Manage selection</button><button class="primary" data-action="compare" ${!state.compare.length ? "disabled" : ""}>Compare →</button></div></div></section></div>`;
     }
     function compare() {
       let rs = state.compare.map(get).filter(Boolean),
@@ -337,6 +369,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     function detail(id) {
       let r = get(id);
+      if (r) touchSupplier(id);
       if (!r) return '<div class="empty">Record unavailable.</div>';
       return `<div class="screen-title"><div><div class="eyebrow">Catalog record · ${esc(id)}</div><h1>${esc(nameOf(r))}</h1><p class="small muted">${esc(regionLabel(regionOf(r)))} · ${r._research ? "Buyer-selected research association" : "Synthetic assignment"} · ${tags(r)}</p></div><div class="row"><a class="button" href="#/discover">Discovery</a><button class="primary" data-action="recommend" data-id="${esc(id)}">Approval request</button></div></div><div class="two"><section class="card padded"><h2>Risk profile · ${esc(id)}</h2><div style="height:290px">${radar(r, regionOf(r))}</div><p class="small muted">Scores and relationship history do not establish qualification.</p></section><section class="card padded"><h2>Identity & relationship</h2><p style="margin:12px 0">${r._research ? "Public research company record. Exact contracting entity, component fit and current qualification require buyer verification." : "Supplier name is anonymized. No real-company identity or country established."}</p><p class="small muted">Favorites are personal session preferences. Previous use is demo history, not qualification. ${isUsed(r) ? "Demo history: prior-program sourcing; date, outcome, applicability and freshness Unknown." : ""}</p><div class="actions" style="margin-top:12px"><button data-action="favorite" data-id="${esc(id)}">${state.favorites.has(id) ? "Remove favorite" : "Add favorite"}</button><button data-action="toggle-compare" data-id="${esc(id)}">${state.compare.includes(id) ? "Remove from" : "Add to"} comparison</button>${r._research ? `<button data-action="saved-report" data-run="${r._report.id}">Linked risk report</button>` : ""}</div>${r._research ? '<div class="notice" style="margin-top:14px">Separate research-only record. All source scores Unknown and excluded from numeric aggregates.</div>' : ""}</section><section class="card padded" style="grid-column:1/-1"><div class="row spread"><h2>Supplied cells & derived mapping</h2><button data-action="source-cells" data-id="${esc(id)}">Inspect all cells</button></div>${radar(r, regionOf(r), true)}<p class="screen-note">Source Total_Risk_Index weights unavailable; derived axes do not reproduce its weighting.</p></section></div>`;
     }
@@ -439,6 +472,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     function render() {
       train?.destroy();
       train = null;
+      partsScene?.destroy();
+      partsScene = null;
       let route = location.hash.replace(/^#\//, "") || "overview";
       state.route = route;
       $("#app").innerHTML =
@@ -482,6 +517,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           selected: state.region,
           onSelect: selectRegion,
         });
+      if (route === "discover" && $("#parts-scene")) {
+        const region = regions.find((r) => r.id === state.filters.region);
+        partsScene = mountParts($("#parts-scene"), {
+          region,
+          counts: partCounts(region),
+          selected: state.filters.part,
+          onSelect: selectPart,
+        });
+      }
       renderTour();
       persistWorkspace();
     }
@@ -491,6 +535,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     function selectRegion(id) {
       state.region = id;
+      state.filters.region = id;
+      state.filters.part = "";
+      state.page = 1;
       state.focus = null;
       render();
     }
@@ -505,6 +552,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       $("#dialog").showModal();
     }
     function cells(id, column) {
+      touchSupplier(id);
+      persistWorkspace();
       let r = get(id);
       if (!r) return;
       dialog(
@@ -515,6 +564,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         $("#dialog-body .selected")?.scrollIntoView({ block: "center" });
     }
     function toggleCompare(id) {
+      touchSupplier(id);
       if (state.compare.includes(id)) {
         state.compare = state.compare.filter((x) => x !== id);
         state.compareError = "";
@@ -536,7 +586,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         "Explore Doors",
         () => {
           state.region = "doors";
-          state.focus = "SUPP_00012";
+          state.filters.part = "";
           navigate("overview");
         },
       ],
@@ -546,24 +596,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         "Open Doors Discovery",
         () => {
           state.filters.region = "doors";
+          state.filters.part = "";
           state.page = 1;
           navigate("discover");
         },
       ],
       [
         "Build a comparison set",
-        "Compare the three guided source records. Selections persist across pages and filters; use Manage selection to remove records at the 20-record limit.",
-        "Compare three examples",
-        () => {
-          state.compare = ["SUPP_00012", "SUPP_00450", "SUPP_00731"];
-          state.focus = "SUPP_00012";
-          if (state.memo) state.memo.stale = true;
-          navigate("compare");
-        },
+        "Select actual supplier rows in Discovery. Part and system filters narrow candidates while comparison selections persist across filters, up to 20 suppliers.",
+        "Choose comparison candidates",
+        () => navigate("discover"),
       ],
       [
         "Name the financial metric",
-        "Ask which supplier has the lowest supplied Financial_Health_Score. Inspect its exact cells. The derived Financial axis also includes credit rating and gives a different ordering.",
+        "Ask which supplier has the lowest supplied Financial_Health_Score. Inspect its exact cells. The derived Financial axis also includes credit rating and may produce a different ordering.",
         "Ask financial source question",
         () => {
           navigate("compare");
@@ -620,7 +666,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!b) return;
       let a = b.dataset.action,
         id = b.dataset.id;
+      if (
+        id &&
+        ["detail", "recommend", "favorite", "compare-focus"].includes(a)
+      )
+        touchSupplier(id);
       switch (a) {
+        case "supplier-tab":
+          state.tab = b.dataset.tab;
+          render();
+          break;
+        case "part":
+          selectPart(b.dataset.part);
+          break;
+        case "reset-parts":
+          partsScene?.resetView();
+          break;
         case "region":
           selectRegion(b.dataset.region);
           break;
@@ -629,6 +690,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           break;
         case "discover-region":
           state.filters.region = state.region;
+          state.filters.part = "";
           state.page = 1;
           navigate("discover");
           break;
@@ -674,6 +736,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           state.filters = {
             q: "",
             region: "",
+            part: "",
             risk: "",
             delivery: "",
             favorite: false,
@@ -780,6 +843,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       let c = e.target.closest("[data-focus]");
       if (c && state.focus !== c.dataset.focus) {
         state.focus = c.dataset.focus;
+        touchSupplier(c.dataset.focus);
         render();
       }
     });
@@ -787,6 +851,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       let c = e.target.closest("[data-focus]");
       if (c && e.key === "Enter") {
         state.focus = c.dataset.focus;
+        touchSupplier(c.dataset.focus);
         render();
       }
     });
@@ -801,6 +866,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       let el = e.target;
       if (el.dataset.filter) {
         if (["q", "delivery"].includes(el.dataset.filter)) return;
+        if (el.dataset.filter === "region") {
+          state.filters.part = "";
+          if (el.value) state.region = el.value;
+        }
         state.filters[el.dataset.filter] =
           el.type === "checkbox" ? el.checked : el.value;
         state.page = 1;
@@ -907,6 +976,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
       return {
         favorites: [...state.favorites],
+        recents: state.recents,
         compare: state.compare,
         drafts,
         chat: boundedChat(),
@@ -997,6 +1067,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           state.added.push(draft.record);
       }
       state.compare = (w.compare || []).filter((id) => get(id)).slice(0, 20);
+      state.recents = (w.recents || []).filter((id) => get(id)).slice(0, 50);
       chat = createChat({
         esc,
         selected: () => state.compare,
@@ -1059,16 +1130,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     function financial() {
       chat.send(
-        "Compare Financial_Health_Score for " +
-          (state.compare.length
-            ? state.compare
-            : ["SUPP_00012", "SUPP_00450", "SUPP_00731"]
-          ).join(", "),
+        state.compare.length
+          ? "Compare Financial_Health_Score for " + state.compare.join(", ")
+          : "Help me select suppliers to compare their supplied Financial_Health_Score",
       );
     }
     function whyHigh() {
       chat.send(
-        "Explain the supplied risk profile of " + (state.focus || "SUPP_00012"),
+        state.focus
+          ? "Explain the supplied risk profile of " + state.focus
+          : "Help me inspect a supplied risk profile",
       );
     }
     function reports() {

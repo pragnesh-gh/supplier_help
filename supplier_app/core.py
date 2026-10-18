@@ -37,7 +37,7 @@ class Workspace:
             raise ValueError('Workspace must be an object')
         result = {}
         known_ids = self.ids | set(self.research_ids())
-        for key, limit in [('favorites', 10000), ('compare', 20)]:
+        for key, limit in [('favorites', 10000), ('compare', 20), ('recents', 50)]:
             items = value.get(key, None if key == 'favorites' else [])
             if key == 'favorites' and items is None:
                 result[key] = None
@@ -82,8 +82,9 @@ class Workspace:
                 recovered = self.validate({})
                 for key in recovered:
                     item = stored.get(key, recovered[key])
-                    if key in {'favorites', 'compare'} and isinstance(item, list):
-                        item = [i for i in item if isinstance(i, str) and i in known][:10000 if key == 'favorites' else 20]
+                    if key in {'favorites', 'compare', 'recents'} and isinstance(item, list):
+                        limit = {'favorites': 10000, 'compare': 20, 'recents': 50}[key]
+                        item = [i for i in item if isinstance(i, str) and i in known][:limit]
                     try:
                         recovered[key] = self.validate({key: item})[key]
                     except (ValueError, TypeError):

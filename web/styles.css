@@ -1962,3 +1962,268 @@ h1 {
     display: none !important;
   }
 }
+/* System discovery and personally viewed suppliers. */
+.supplier-tabs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.supplier-tabs button {
+  padding: 6px 11px;
+  font-size: 12px;
+  border-color: transparent;
+  background: transparent;
+}
+.supplier-tabs button[aria-pressed="true"] {
+  background: #e4f0f0;
+  color: #155f68;
+  border-color: #b7d4d5;
+}
+.recent-empty {
+  grid-column: 1/-1;
+  padding: 24px 14px;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+}
+.overview .supplier-strip .card-head {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.discovery-intro {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+  align-items: start;
+}
+.discovery-intro > .screen-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding-top: 12px;
+  margin: 0;
+}
+.discovery-intro .screen-title h1 {
+  font-size: 28px;
+  margin: 4px 0 8px;
+}
+.assembly-selector {
+  overflow: hidden;
+  min-width: 0;
+}
+.assembly-selector .card-head {
+  padding: 10px 14px;
+}
+.assembly-selector .card-head p {
+  margin-top: 4px;
+}
+.parts-scene {
+  height: 240px;
+  min-height: 240px;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #fff, #edf4f4);
+}
+.parts-scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.part-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: #fcfefe;
+}
+.part-chips button {
+  font-size: 11px;
+  gap: 8px;
+  padding: 6px 9px;
+}
+.part-chips button span {
+  color: #68858a;
+  font-size: 10px;
+}
+.part-chips button[aria-pressed="true"] {
+  border-color: #287c83;
+  background: #e3f0f0;
+  color: #115a63;
+}
+.assembly-empty {
+  min-height: 255px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  text-align: center;
+  background: linear-gradient(135deg, white, #eef5f5);
+}
+.assembly-empty h2 {
+  margin: 8px 0;
+  font-size: 21px;
+}
+.assembly-empty p {
+  max-width: 440px;
+}
+.part-name {
+  font-size: 11px;
+  color: #47787f;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+.discovery {
+  height: auto;
+  min-height: 500px;
+  align-items: start;
+}
+.discovery .results {
+  max-height: 680px;
+  min-height: 480px;
+}
+.discovery .results > .scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.discovery .filters {
+  position: sticky;
+  top: 14px;
+}
+.overview #train-scene {
+  display: block;
+  height: 280px;
+  min-height: 280px;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+}
+.overview #train-scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+@media (max-height: 720px) and (min-width: 1051px) {
+  .overview #train-scene {
+    height: 240px;
+    min-height: 240px;
+  }
+  .parts-scene {
+    height: 220px;
+    min-height: 220px;
+  }
+  .discovery-intro {
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .discovery-intro .screen-title h1 {
+    font-size: 25px;
+  }
+}
+@media (max-width: 1000px) {
+  .discovery-intro {
+    grid-template-columns: 1fr;
+  }
+  .discovery-intro > .screen-title {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+  }
+  .discovery-intro .screen-title h1 {
+    font-size: 24px;
+  }
+  .parts-scene {
+    height: 230px;
+    min-height: 230px;
+  }
+  .discovery .filters {
+    position: static;
+  }
+  .overview #train-scene {
+    height: 270px;
+    min-height: 270px;
+  }
+}
+@media (max-width: 650px) {
+  .discovery-intro {
+    gap: 12px;
+  }
+  .discovery-intro > .screen-title {
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .discovery-intro .screen-title h1 {
+    font-size: 22px;
+  }
+  .assembly-selector .card-head {
+    align-items: flex-start;
+  }
+  .assembly-selector .card-head h2 {
+    font-size: 14px;
+  }
+  .assembly-selector .card-head p {
+    font-size: 10px;
+  }
+  .parts-scene {
+    height: 220px;
+    min-height: 220px;
+  }
+  .part-chips {
+    gap: 5px;
+    padding: 8px;
+  }
+  .part-chips button {
+    font-size: 10px;
+    padding: 6px 7px;
+  }
+  .discovery .results {
+    max-height: 680px;
+    min-height: 420px;
+  }
+  .overview #train-scene {
+    height: 240px;
+    min-height: 240px;
+  }
+  .overview .supplier-strip .card-head > .muted {
+    font-size: 10px;
+  }
+}
+.part-chips button,
+.part-chips button span,
+.assembly-selector .card-head p,
+.part-name {
+  font-size: 12px;
+}
+.part-unassigned {
+  padding: 0 14px 10px;
+  font-size: 12px;
+  color: var(--muted);
+  background: #fcfefe;
+}
+.supplier-tabs button {
+  font-size: 12px;
+}
+@media (max-width: 650px) {
+  .part-chips button,
+  .part-chips button span,
+  .assembly-selector .card-head p,
+  .part-name {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .part-chips button {
+    padding: 6px 8px;
+  }
+  .overview .supplier-strip .card-head > .muted {
+    font-size: 12px;
+  }
+}

@@ -116,6 +116,25 @@ class AppTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             workspace.put({'compare': list(self.assistant.rows)[:21]})
 
+    def test_recents_preserve_mru_order_and_validate_identity(self):
+        workspace = Workspace(self.temp.name, self.assistant.rows)
+        self.assertEqual(workspace.get()['recents'], [])
+        workspace.put({'recents': ['SUPP_00450', 'SUPP_00012', 'SUPP_00450']})
+        self.assertEqual(workspace.get()['recents'], ['SUPP_00450', 'SUPP_00012'])
+        with self.assertRaises(ValueError):
+            workspace.put({'recents': ['unknown']})
+        with self.assertRaises(ValueError):
+            workspace.put({'recents': list(self.assistant.rows)[:51]})
+
+    def test_every_augmented_part_belongs_to_its_system(self):
+        columns = self.data['columns']
+        region_index = columns.index('train_region_id')
+        part_index = columns.index('train_part_id')
+        allowed = {region['id']: {part['id'] for part in region['parts']}
+                   for region in self.data['manifest']['regions']}
+        for row in self.data['rows']:
+            self.assertIn(row[part_index], allowed[row[region_index]])
+
     def test_http_contract_and_boundaries(self):
         server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(self.service, data=self.data))
         thread = threading.Thread(target=server.serve_forever, daemon=True)
