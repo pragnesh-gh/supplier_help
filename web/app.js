@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       compareError: "",
     });
     let state = initial();
-    let saveTimer;
+    let appGeneration = 0;
     const catalog = () => originals.concat(state.added),
       get = (id) =>
         sourceById.get(id) || state.added.find((r) => r.supplierID === id),
@@ -277,6 +277,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         .map((x) => x[0]);
     }
     async function newMemo(id) {
+      const token = appGeneration;
       let r = get(id);
       if (r?._research) {
         try {
@@ -285,10 +286,12 @@ document.addEventListener("DOMContentLoaded", async () => {
               encodeURIComponent(r._record?.run_id || r._report?.id),
           );
         } catch (error) {
+          if (token !== appGeneration) return;
           toast(error.message);
           return;
         }
       }
+      if (token !== appGeneration) return;
       state.memo = {
         id: "MEMO-" + id.replace(/[^a-z0-9]/gi, "") + "-01",
         candidate: id,
@@ -761,6 +764,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
             return;
           clearRun();
+          appGeneration++;
           if (chat) chat.reset();
           state = initial();
           statCache.clear();
@@ -840,44 +844,142 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     let chat;
-    function persistWorkspace() {
-      if (!chat) return;
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(async () => {
-        const drafts = [];
-        if (state.memo)
-          drafts.push({
-            kind: "approval",
-            memo: { ...state.memo, preview: "" },
-          });
-        state.added.forEach((record) =>
-          drafts.push({
-            kind: "research-record",
-            record: {
-              ...record,
-              _report: record._report ? { id: record._report.id } : null,
-            },
-          }),
-        );
-        try {
-          await api(
-            "/api/workspace",
-            {
-              favorites: [...state.favorites],
-              compare: state.compare,
-              drafts,
-              chat: chat.state.messages.slice(-200),
-              region: state.region,
-            },
-            "PUT",
-          );
-        } catch (error) {
-          toast("Workspace could not be saved: " + error.message);
-        }
-      }, 350);
+    const recoveryKey = "supplier-workspace-pending-v1";
+    let pendingWorkspace = null,
+      saveTask = null;
+    function savingStatus(message) {
+      let node = document.querySelector("#workspace-status");
+      if (!node) {
+        node = document.createElement("small");
+        node.id = "workspace-status";
+        node.className = "muted";
+        node.setAttribute("role", "status");
+        document.querySelector("header").append(node);
+      }
+      node.textContent = message;
     }
+    function boundedChat() {
+      let messages = chat.state.messages
+        .map((m) => ({
+          ...m,
+          answer: String(m.answer || m.content || "").slice(0, 20000),
+          citations: (m.citations || []).slice(0, 24),
+          ...(m.chart
+            ? {
+                chart: {
+                  ...m.chart,
+                  points: (m.chart.points || []).slice(0, 20),
+                },
+              }
+            : {}),
+        }))
+        .slice(-199);
+      let removed = false;
+      const bytes = (v) => new TextEncoder().encode(JSON.stringify(v)).length;
+      while (messages.length && bytes(messages) > 95000) {
+        messages.shift();
+        removed = true;
+      }
+      if (removed)
+        messages.unshift({
+          role: "assistant",
+          answer:
+            "Earlier conversation turns were omitted from saved history to keep workspace storage bounded.",
+        });
+      chat.state.messages = messages;
+      return messages;
+    }
+    function workspaceSnapshot() {
+      const drafts = [];
+      if (state.memo)
+        drafts.push({ kind: "approval", memo: { ...state.memo, preview: "" } });
+      state.added.forEach((record) =>
+        drafts.push({
+          kind: "research-record",
+          record: {
+            ...record,
+            _report: record._report ? { id: record._report.id } : null,
+          },
+        }),
+      );
+      return {
+        favorites: [...state.favorites],
+        compare: state.compare,
+        drafts,
+        chat: boundedChat(),
+        region: state.region,
+      };
+    }
+    function persistWorkspace() {
+      if (!chat) return Promise.resolve();
+      pendingWorkspace = workspaceSnapshot();
+      try {
+        localStorage.setItem(recoveryKey, JSON.stringify(pendingWorkspace));
+      } catch {}
+      savingStatus("Saving...");
+      return flushWorkspace();
+    }
+    function flushWorkspace() {
+      if (saveTask) return saveTask;
+      saveTask = (async () => {
+        while (pendingWorkspace) {
+          const snapshot = pendingWorkspace;
+          pendingWorkspace = null;
+          try {
+            const body = JSON.stringify(snapshot);
+            const response = await fetch("/api/workspace", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body,
+              keepalive: new TextEncoder().encode(body).length < 60000,
+            });
+            if (!response.ok) {
+              const error = await response.json();
+              throw Error(error.error || "Server rejected workspace");
+            }
+            if (!pendingWorkspace) {
+              try {
+                localStorage.removeItem(recoveryKey);
+              } catch {}
+              savingStatus("Saved locally");
+            }
+          } catch (error) {
+            if (!pendingWorkspace) pendingWorkspace = snapshot;
+            savingStatus("Save failed - recovery stored in this browser");
+            toast("Workspace could not be saved: " + error.message);
+            throw error;
+          }
+        }
+      })().finally(() => {
+        saveTask = null;
+      });
+      saveTask.catch(() => {});
+      return saveTask;
+    }
+    window.addEventListener("pagehide", () => {
+      if (chat && (saveTask || pendingWorkspace)) {
+        pendingWorkspace = workspaceSnapshot();
+        try {
+          localStorage.setItem(recoveryKey, JSON.stringify(pendingWorkspace));
+        } catch {}
+        if (!saveTask) flushWorkspace().catch(() => {});
+      }
+    });
     async function restoreWorkspace() {
-      const w = await api("/api/workspace");
+      let w = await api("/api/workspace");
+      try {
+        const recovered = JSON.parse(
+          localStorage.getItem(recoveryKey) || "null",
+        );
+        if (
+          recovered &&
+          Array.isArray(recovered.drafts) &&
+          Array.isArray(recovered.chat)
+        ) {
+          w = recovered;
+          savingStatus("Restored unsaved browser changes");
+        }
+      } catch {}
       if (Array.isArray(w.favorites)) state.favorites = new Set(w.favorites);
       state.compare = (w.compare || [])
         .filter((id) => sourceById.has(id))
@@ -891,12 +993,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       state.compare = (w.compare || []).filter((id) => get(id)).slice(0, 20);
       chat = createChat({
         esc,
-        selected: () =>
-          state.compare.length
-            ? state.compare
-            : state.focus
-              ? [state.focus]
-              : [],
+        selected: () => state.compare,
         getMessages: () => w.chat || [],
         onSave: persistWorkspace,
         onCell: (id, column) => {
@@ -983,9 +1080,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       return `<article class="document"><div class="doc-header">SUPPLIER RESEARCH · ${esc(r.id)}</div><h1>${esc(r.company)}</h1><div class="doc-status">${esc(r.status)} · ${r.demo ? "SAVED HISTORICAL EXAMPLE" : "PUBLIC RESEARCH"} · NO APPROVAL GRANTED</div><h2>Identity & scope</h2><p>Country hint: ${esc(r.country || "Unknown")} · website hint: ${esc(r.website || "Unknown")}</p><p>${esc(r.scope || "Procurement scope unspecified")}</p><p>Entity verification: ${esc(r.entity?.verification || "Unverified")}</p>${r.dataset_context ? `<h3>Separate supplied-data context</h3><pre>${esc(JSON.stringify(r.dataset_context, null, 2))}</pre><p>Supplied records do not establish the real company’s identity or numerical risk.</p>` : ""}<h2>Summary</h2><p>${esc(r.summary || r.error || "Not completed")}</p><h2>Research plan</h2>${(r.plan || []).map((p) => `<details><summary>${esc(p.category)}</summary>${p.questions.map((q) => `<p>${esc(q)}</p>`).join("")}</details>`).join("")}<h2>${r.demo ? "Saved historical observations" : "Source-bound observations"}</h2><div class="research-findings">${(r.findings || []).map((f) => `<article><h3>${esc(f.id)} · ${esc(f.title)}</h3><p>${esc(f.category)} · ${esc(f.severity)} · confidence ${esc(f.confidence)}</p><p>${esc(f.detail)}</p>${(f.evidence || []).map((e) => `${r.demo ? "<div><p><strong>Saved historical paraphrase (not a verified source quotation)</strong></p><p>" : "<blockquote>"}${esc(e.quote)}<p class="small">${esc(e.source_id)} · ${esc(e.locator || "")}</p>${r.demo ? "</p></div>" : "</blockquote>"}`).join("")}</article>`).join("") || "<p>No retained source-bound observations.</p>"}</div><h2>Gaps and limits</h2>${[...(r.gaps || []), ...(r.limitations || [])].map((v) => `<p>• ${esc(v)}</p>`).join("")}<h2>Buyer actions</h2>${(r.actions || []).map((a) => `<p>☐ ${esc(a.action)} · ${esc(a.owner || "Unassigned")} · ${esc(a.status)}</p>`).join("")}<h2>Source register</h2>${(r.sources || []).map((s, i) => `<section class="source"><a class="citation-chip" href="${esc(safeURL(s.url))}" target="_blank" rel="noopener noreferrer"><b>${i + 1}</b>${esc(s.title || s.id)}</a><p class="small">${esc(s.id)} · ${esc(s.url)}</p><details><summary>Retrieved excerpt</summary><p>${esc(s.excerpt || "No excerpt available")}</p></details></section>`).join("")}<h2>Actual activity</h2>${(r.events || []).map((e) => `<p class="small">${esc(e.at)} · ${esc(e.stage)} · ${esc(e.message)}</p>`).join("")}</article>`;
     }
     async function showRisk(run) {
+      const token = appGeneration;
       if (!run?.id) return;
       try {
         const r = await api("/api/research/" + encodeURIComponent(run.id));
+        if (token !== appGeneration) return;
         state.reports[r.id] = r;
         dialog(
           "Research dossier · " + r.company,
@@ -993,12 +1092,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
         $("#print-live-risk").onclick = () => printDoc(riskDocument(r));
       } catch (error) {
+        if (token !== appGeneration) return;
         toast(error.message);
       }
     }
-    function printDoc(html) {
-      $("#print-root").innerHTML = html;
-      window.print();
+    async function printDoc(html) {
+      const token = appGeneration;
+      $("#print-root").innerHTML =
+        '<div class="running-print-header">DRAFT / NOT APPROVED - SUPPLIER REVIEW COPY</div>' +
+        html;
+      try {
+        await persistWorkspace();
+        if (token === appGeneration) window.print();
+      } catch {
+        toast(
+          "Save failed. Your browser recovery copy is retained; retry saving before printing.",
+        );
+      }
     }
     function sourceAppendix(r) {
       const table = (columns) =>
@@ -1040,10 +1150,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (b.id === "open-assistant-page") openChat();
       if (b.dataset.liveReport) showRisk({ id: b.dataset.liveReport });
       if (b.dataset.addLive) {
+        const token = appGeneration;
         try {
           const result = await api("/api/suppliers", {
             run_id: b.dataset.addLive,
           });
+          if (token !== appGeneration) return;
           const record = result.supplier || result;
           const id = "research:" + record.id;
           if (!get(id))
@@ -1058,6 +1170,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           persistWorkspace();
           toast("Added separate research supplier · scores Unknown");
         } catch (error) {
+          if (token !== appGeneration) return;
           toast(error.message);
         }
       }

@@ -20,7 +20,8 @@ export function createChat({
   const drawer = document.querySelector("#chat-drawer"),
     launch = document.querySelector("#chat-launch");
   let pollTimer,
-    generation = 0;
+    generation = 0,
+    forceScroll = false;
   function citation(c, index) {
     const label =
       c.kind === "dataset"
@@ -39,7 +40,12 @@ export function createChat({
   function progress(r) {
     if (!r) return "";
     const events = r.events || [];
-    return `<section class="research-progress"><div class="row spread"><strong>${esc(r.company)} · ${esc(r.status)}</strong><span>${r.mode === "deep" ? "Deep" : "Basic"}</span></div><p>${r.demo ? "Saved historical example · no live retrieval" : "Live public research · server events"}</p><ul>${(
+    const completed = r.status === "completed";
+    const covered = new Set((r.findings || []).map((f) => f.category)).size;
+    const completion = completed
+      ? `<div class="research-completion"><h3>TLDR</h3><p>${esc(r.summary || "Research dossier ready for review.")}</p><p class="small muted">${(r.sources || []).length} sources &middot; ${(r.findings || []).length} observations &middot; ${covered}/${(r.plan || []).length || 6} categories with observations</p><div class="actions"><button data-chat-report="${esc(r.id)}">Read report</button><button data-chat-add="${esc(r.id)}">Add as unscored supplier</button></div><p class="small muted">Coverage remains partial; completion is not supplier approval.</p></div>`
+      : "";
+    return `<section class="research-progress"><div class="row spread"><strong>${esc(r.company)} · ${esc(r.status)}</strong><span>${r.mode === "deep" ? "Deep" : "Basic"}</span></div><p>${r.demo ? "Saved historical example · no live retrieval" : "Live public research · server events"}</p>${completion}<ul>${(
       r.plan || []
     )
       .map((p) => {
@@ -56,7 +62,7 @@ export function createChat({
         const label = failed
           ? "Search failed"
           : searched
-            ? "Retrieved ? review remains partial"
+            ? "Retrieved - review remains partial"
             : savedEvidence
               ? "Saved observations"
               : r.status === "completed"
@@ -66,7 +72,7 @@ export function createChat({
       })
       .join(
         "",
-      )}</ul><details open><summary>Actual research activity (${events.length})</summary><div class="research-events">${events.map((e) => `<p><small>${esc(e.at)}</small><br><strong>${esc(e.stage.replaceAll("_", " "))}</strong> · ${esc(e.message)}</p>`).join("") || "<p>Queued on server. Waiting for first event.</p>"}</div></details>${r.status === "failed" ? `<p role="alert">${esc(r.error || "Research failed. No fallback evidence generated.")}</p>` : ""}${r.status === "completed" ? `<p>${esc(r.summary)}</p><div class="actions"><button data-chat-report="${esc(r.id)}">Read report</button><button data-chat-add="${esc(r.id)}">Add as unscored supplier</button></div>` : ""}</section>`;
+      )}</ul><details ${completed ? "" : "open"}><summary>Actual research activity (${events.length})</summary><div class="research-events">${events.map((e) => `<p><small>${esc(e.at)}</small><br><strong>${esc(e.stage.replaceAll("_", " "))}</strong> · ${esc(e.message)}</p>`).join("") || "<p>Queued on server. Waiting for first event.</p>"}</div></details>${r.status === "failed" ? `<p role="alert">${esc(r.error || "Research failed. No fallback evidence generated.")}</p>` : ""}</section>`;
   }
   function render() {
     if (!state.open) return;
@@ -97,7 +103,8 @@ export function createChat({
       drawer.querySelector("textarea").setSelectionRange(pos, pos);
     }
     const list = drawer.querySelector(".chat-messages");
-    list.scrollTop = stick ? list.scrollHeight : oldScroll;
+    list.scrollTop = forceScroll || stick ? list.scrollHeight : oldScroll;
+    forceScroll = false;
   }
   function open() {
     state.open = true;
@@ -139,6 +146,7 @@ export function createChat({
     const token = generation;
     open();
     drawer.querySelector("textarea").value = "";
+    forceScroll = true;
     state.messages.push({ role: "user", answer: message });
     state.busy = true;
     render();
@@ -167,6 +175,7 @@ export function createChat({
         chart: response.chart,
         run_id: response.run_id,
       });
+      forceScroll = true;
       if (response.run_id) poll(response.run_id);
     } catch (error) {
       if (token !== generation) return;
@@ -197,6 +206,7 @@ export function createChat({
     if (!b) return;
     if (b.id === "chat-close") close();
     if (b.id === "saved-example") {
+      forceScroll = true;
       const token = generation;
       state.messages.push({
         role: "user",
@@ -215,6 +225,7 @@ export function createChat({
           answer: "Saved historical example. No live search performed.",
           run_id: r.run_id || r.id,
         });
+        forceScroll = true;
         poll(r.run_id || r.id);
         onSave();
         render();
@@ -233,10 +244,12 @@ export function createChat({
     if (b.dataset.resumeRun) poll(b.dataset.resumeRun);
     if (b.dataset.chatReport) onReport(state.run, true);
     if (b.dataset.chatAdd) {
+      const token = generation;
       try {
         const record = await api("/api/suppliers", {
           run_id: b.dataset.chatAdd,
         });
+        if (token !== generation) return;
         onAdded(record.supplier || record);
       } catch (error) {
         if (token !== generation) return;

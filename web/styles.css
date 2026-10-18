@@ -1898,3 +1898,67 @@ h1 {
     padding-bottom: 76px;
   }
 }
+.running-print-header {
+  display: none;
+}
+@media print {
+  .running-print-header {
+    display: block;
+    position: fixed;
+    top: -11mm;
+    left: 0;
+    right: 0;
+    height: 7mm;
+    border-bottom: 1px solid #999;
+    font-size: 8pt;
+    font-weight: 700;
+    line-height: 6mm;
+    color: #333;
+    background: white;
+  }
+  .document details {
+    display: block;
+  }
+  .document details > summary {
+    display: none;
+  }
+  .document details:not([open]) > *:not(summary) {
+    display: block;
+  }
+}
+#workspace-status {
+  position: absolute;
+  right: 28px;
+  top: 73px;
+  font-size: 10px;
+  line-height: 12px;
+}
+@media (max-width: 650px) {
+  #workspace-status {
+    position: static;
+    flex-basis: 100%;
+    font-size: 10px;
+    line-height: 12px;
+  }
+}
+@media print {
+  #workspace-status {
+    display: none !important;
+  }
+}
+/* Paged-media margin boxes repeat independently of document fragmentation. */
+@page {
+  @top-center {
+    content: "DRAFT / NOT APPROVED - SUPPLIER REVIEW COPY";
+    font-family: "Segoe UI", sans-serif;
+    font-size: 8pt;
+    font-weight: 700;
+    color: #333;
+    vertical-align: middle;
+  }
+}
+@media print {
+  .running-print-header {
+    display: none !important;
+  }
+}

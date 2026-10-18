@@ -39,6 +39,30 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.assistant.answer({'message': 'Research SUPP_00001', 'mode': 'deep'})['kind'], 'clarify')
         self.assertNotIn('chart', self.assistant.answer({'message': 'Show trends', 'selected_ids': ['SUPP_00001']}))
 
+    def test_recovery_preserves_original_and_valid_fields(self):
+        workspace = Workspace(self.temp.name, self.assistant.rows)
+        original = {'favorites': ['SUPP_00012', 'research:missing'], 'compare': ['missing'], 'drafts': [{'kind': 'approval', 'memo': {'text': 'retain'}}]}
+        workspace.path.write_text(json.dumps(original), encoding='utf-8')
+        restored = workspace.get()
+        self.assertEqual(restored['favorites'], ['SUPP_00012'])
+        self.assertEqual(restored['compare'], [])
+        self.assertEqual(restored['drafts'], original['drafts'])
+        self.assertEqual(json.loads(workspace.path.with_suffix('.recovery.json').read_text()), original)
+        workspace.path.write_text('{corrupt', encoding='utf-8')
+        self.assertIsNone(workspace.get()['favorites'])
+
+    def test_count_missing_numeric_and_conflicting_direction(self):
+        answer = self.assistant.answer({'message': 'How many suppliers?', 'selected_ids': ['SUPP_00012']})
+        self.assertIn('10,000', answer['answer'])
+        answer = self.assistant.answer({'message': 'How many selected suppliers?', 'selected_ids': ['SUPP_00012']})
+        self.assertIn('1 explicitly selected', answer['answer'])
+        answer = self.assistant.answer({'message': 'Rank risk highest lowest', 'selected_ids': ['SUPP_00012']})
+        self.assertEqual(answer['kind'], 'clarify')
+        self.assistant.rows['SUPP_00012']['Supplier Delivery Rating'] = None
+        answer = self.assistant.answer({'message': 'Rank best delivery', 'selected_ids': ['SUPP_00012', 'SUPP_00450']})
+        self.assertEqual(len(answer['chart']['points']), 1)
+        self.assertEqual(answer['chart']['points'][0]['label'], 'SUPP_00450')
+
     def test_ranking_direction_matches_metric_meaning(self):
         ids = ['SUPP_00012', 'SUPP_00450', 'SUPP_00731']
         def values(question):
