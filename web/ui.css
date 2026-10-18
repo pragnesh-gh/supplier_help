@@ -969,3 +969,29 @@ nav a,
 .chat-empty { display: flex; flex-direction: column; align-items: flex-start; }
 .chat-empty .chat-suggestions { align-self: stretch; }
 .chart-point button { min-height: 0; font-family: var(--mono); }
+
+
+/* Match the two Overview columns; both risk views share the same card footprint. */
+@media (min-width: 1051px) {
+  .overview { align-items: stretch; }
+  .overview .left { grid-template-rows: auto minmax(0, 1fr); }
+  .overview .supplier-strip { align-self: stretch; }
+  .overview .right {
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: stretch;
+  }
+  .overview .radar-card { contain: size; }
+  .overview .radar-body,
+  .overview .radar-card.is-table .radar-body {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    padding: 12px;
+  }
+  .overview .radar-body svg { height: 100%; max-height: 420px; }
+  .overview .radar-card.is-table .radar-body { display: flex; align-items: stretch; min-height: 0; }
+  .overview .radar-card.is-table .radar-body > .scroll { width: 100%; overflow-y: auto; }
+  .overview .radar-card.is-table .axis-table { height: 100%; }
+  .overview .radar-card.is-table .axis-table td { vertical-align: middle; }
+  .overview .radar-note { margin-top: auto; padding-top: 12px; }
+}
