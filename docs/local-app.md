@@ -27,13 +27,13 @@ Open **http://127.0.0.1:8878**. No frontend installation or build is needed. The
 
 ## Journey
 
-1. Select a train system. Counts refer to illustrative component assignments. The risk profile shows a selected supplier against the scored suppliers in that system, not the physical train's risk.
+1. Select a train system. The supplier ring groups its suppliers by supplied risk level, with full counts and a labelled sample of clickable suppliers. Counts refer to illustrative component assignments, not the physical train's risk.
 2. Open Discovery to see the selected system as an exploded assembly. Click a component or its labelled chip to filter by part, then filter/rank the actual source rows. Select up to 20 and open Compare. Selection survives changing filters.
 3. Open the Copilot bubble. Ask the exact financial comparison or a supplied-data question. Inspect the small citation chips and any structured graph.
 4. Ask to research a named company. Auto routes recognized dataset identities to source data; Deep requests more extensive research. Resolve ambiguous identities rather than equating anonymized rows with real companies.
 5. The same conversation shows actual planning/retrieval/follow-up/synthesis events. Close the drawer to continue exploring; reopen it to inspect progress and cited findings.
 6. View/export a research report and add the researched company to the research list. Its numerical CSV scores remain unknown.
-7. Prepare an approval request with rationale, alternatives, evidence gaps, reviewer and next action. Print/Save as PDF is a review handoff, not an approval.
+7. From Compare, prepare a shortlist of three to five suppliers. Review the optional risk-based suggestion, write trade-offs and negotiation questions, and name the requester and reviewer. Submit to save an immutable request for approval to negotiate. View it under Approvals and Print/Save as PDF. No notification is sent and no approval is implied. See [the shortlist contract](shortlist-approval.md).
 
 ## What is and is not measured
 

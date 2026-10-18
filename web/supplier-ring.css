@@ -1,0 +1,47 @@
+.supplier-ring { --sr-low: #52777a; --sr-medium: #99712f; --sr-high: #ad5334; --sr-critical: #a4313f; width: 100%; min-width: 0; padding: 12px 14px; }
+.supplier-ring-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.supplier-ring-header h2 { margin: 3px 0 0; font-size: 19px; font-weight: 650; letter-spacing: -.025em; }
+.supplier-ring-total { color: var(--muted, #56656f); font-size: 12px; white-space: nowrap; }
+.supplier-ring-stage { position: relative; width: min(100%, 300px); aspect-ratio: 1; margin: 0 auto; }
+.supplier-ring-stage > svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.supplier-ring-band.sr-low { stroke: #edf3f3; }
+.supplier-ring-band.sr-medium { stroke: #f4f0e7; }
+.supplier-ring-band.sr-high { stroke: #f8ede7; }
+.supplier-ring-band.sr-critical { stroke: #f7e6e8; }
+.supplier-ring-band-label { font: 600 17px "Segoe UI", system-ui, sans-serif; letter-spacing: .02em; }
+.supplier-ring-band-label.sr-low { fill: var(--sr-low); }
+.supplier-ring-band-label.sr-medium { fill: #785621; }
+.supplier-ring-band-label.sr-high { fill: #98442a; }
+.supplier-ring-band-label.sr-critical { fill: #922635; }
+.supplier-ring-centre { position: absolute; inset: 37.5%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px; pointer-events: none; }
+.supplier-ring-centre strong { font-size: 12px; line-height: 1.2; overflow-wrap: anywhere; }
+.supplier-ring-centre span, .supplier-ring-centre small { color: #627078; font-size: 12px; line-height: 1.2; }
+.supplier-ring-centre small { max-width: 100%; }
+.supplier-ring-dot { position: absolute; display: grid; place-items: center; width: 28px; height: 28px; min-width: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; transform: translate(-50%, -50%); transition: background .15s ease; z-index: 1; }
+.supplier-ring-dot span { display: block; width: var(--dot-size); height: var(--dot-size); border: 2px solid white; border-radius: 50%; background: currentColor; box-shadow: 0 1px 2px #2432361a; transition: transform .15s ease; }
+.supplier-ring-dot.sr-low { color: var(--sr-low); }
+.supplier-ring-dot.sr-medium { color: var(--sr-medium); }
+.supplier-ring-dot.sr-high { color: var(--sr-high); }
+.supplier-ring-dot.sr-critical { color: var(--sr-critical); }
+.supplier-ring-dot.is-favorite span { border-color: #d5ad37; box-shadow: 0 0 0 1px white; }
+.supplier-ring-dot.volume-unknown span { background: white; border-color: currentColor; }
+.supplier-ring-dot:hover, .supplier-ring-dot:focus-visible { background: #ffffffc9; z-index: 2; }
+.supplier-ring-dot:hover span, .supplier-ring-dot:focus-visible span { transform: scale(1.18); }
+.supplier-ring-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+.supplier-ring-filters button { padding: 5px 8px; gap: 6px; justify-content: flex-start; font-size: 12px; }
+.supplier-ring-filters button strong { margin-left: auto; font-weight: 600; }
+.supplier-ring-filters i { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--sr-low); }
+.supplier-ring-filters .sr-medium i { background: var(--sr-medium); }
+.supplier-ring-filters .sr-high i { background: var(--sr-high); }
+.supplier-ring-filters .sr-critical i { background: var(--sr-critical); }
+.supplier-ring-filters .sr-unknown i { background: repeating-linear-gradient(45deg, #69747a 0 1px, white 1px 3px); border: 1px solid #69747a; }
+.supplier-ring-key { display: flex; flex-wrap: wrap; gap: 6px 14px; color: #56656f; margin-top: 7px; font-size: 12px; }
+.supplier-ring-key > span { display: inline-flex; gap: 5px; align-items: center; }
+.supplier-ring-size { width: 10px; height: 10px; border-radius: 50%; background: #8b999c; box-shadow: -6px 2px 0 -2px #b7c0c2; margin-left: 5px; }
+.supplier-ring-favorite { width: 10px; height: 10px; border: 2px solid #d5ad37; border-radius: 50%; background: #748a8d; }
+.supplier-ring-caption, .supplier-ring-provenance { font-size: 12px; line-height: 1.35; color: #56656f; margin: 5px 0 0; }
+.supplier-ring-provenance { color: #68777f; }
+@media (min-width: 1100px) { .supplier-ring-filters { grid-template-columns: repeat(4, minmax(0, 1fr)); } .supplier-ring-filters button { padding: 5px; gap: 4px; } }
+@media (max-height: 820px) and (min-width: 901px) { .supplier-ring-stage { width: min(100%, 284px); } .supplier-ring-header h2 { font-size: 17px; } .supplier-ring-provenance { margin-top: 4px; } }
+@media (max-width: 460px) { .supplier-ring-header { gap: 6px; } .supplier-ring-header h2 { font-size: 17px; } }
+@media (prefers-reduced-motion: reduce) { .supplier-ring-dot, .supplier-ring-dot span { transition: none; } }

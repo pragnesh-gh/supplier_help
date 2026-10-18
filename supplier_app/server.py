@@ -7,18 +7,20 @@ import urllib.parse
 from research_agent.core import ROOT, ResearchService, Store, OpenRouter, read_environment
 from research_agent.server import make_handler as research_handler
 from .core import Assistant, Workspace, catalog
+from .approvals import Approvals
 
 
 def make_handler(service, web=None, data=None, workspace=None):
     data = data or catalog()
     assistant = Assistant(service, data)
     workspace = workspace or Workspace(service.store.path, assistant.rows, lambda: ['research:' + r['id'] for r in service.store.suppliers()])
+    approvals = Approvals(service.store.path, data, service.store)
     base = research_handler(service, web or ROOT / 'web')
 
     class Handler(base):
         def dispatch(self, method):
             path = urllib.parse.urlsplit(self.path).path
-            custom = path in {'/health', '/api/catalog', '/api/workspace', '/api/assistant'} or (method == 'POST' and path == '/api/research')
+            custom = path in {'/health', '/api/catalog', '/api/workspace', '/api/assistant', '/api/approvals'} or (method == 'POST' and path == '/api/research')
             if not custom:
                 return super().dispatch(method)
             if not self.validate_host():
@@ -28,6 +30,10 @@ def make_handler(service, web=None, data=None, workspace=None):
                     return self.respond(200, {'status': 'ok', 'catalog_rows': len(data['rows'])})
                 if method == 'GET' and path == '/api/catalog':
                     return self.respond(200, data)
+                if method == 'GET' and path == '/api/approvals':
+                    return self.respond(200, {'requests': approvals.list()})
+                if method == 'POST' and path == '/api/approvals':
+                    return self.respond(201, approvals.submit(self.workspace_body()))
                 if method == 'GET' and path == '/api/workspace':
                     return self.respond(200, workspace.get())
                 if method == 'PUT' and path == '/api/workspace':

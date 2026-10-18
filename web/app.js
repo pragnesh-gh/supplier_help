@@ -2,6 +2,8 @@ import { api, safeURL } from "./api.js";
 import { mountTrain } from "./train.js";
 import { mountParts } from "./parts-scene.js";
 import { createChat } from "./chat.js";
+import { createApproval } from "./approval.js";
+import { renderSupplierRing, riskLevel } from "./supplier-ring.js";
 ("use strict");
 document.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -151,8 +153,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       return `${state.favorites.has(r.supplierID) ? '<span class="tag">Favorite</span>' : ""}${isUsed(r) ? '<span class="tag">Previously used · demo</span>' : ""}${r._research ? '<span class="tag demo">Research-only · unscored</span>' : ""}`;
     }
     function supplierCard(r) {
-      return `<article class="supplier ${state.focus === r.supplierID ? "focused" : ""}" data-focus="${esc(r.supplierID)}" tabindex="0"><div class="row spread"><strong class="small">${esc(r.supplierID)}</strong><button class="quiet" data-action="favorite" data-id="${esc(r.supplierID)}" aria-label="Toggle favorite ${esc(r.supplierID)}">${state.favorites.has(r.supplierID) ? "★" : "☆"}</button></div><div class="name">${esc(nameOf(r))}</div><div class="meta"><span>Total ${fmt(r.Total_Risk_Index)}</span><span class="risk ${esc(r.Total_Risk_Index_Level)}">${esc(r.Total_Risk_Index_Level || "Unknown")}</span></div><div class="row" style="margin-top:7px"><button data-action="detail" data-id="${r.supplierID}">Inspect</button><button data-action="recommend" data-id="${r.supplierID}">Request review</button></div>${isUsed(r) ? '<div class="small muted">Previously used · demo history</div>' : ""}</article>`;
+      return `<article class="supplier ${state.focus === r.supplierID ? "focused" : ""}" data-focus="${esc(r.supplierID)}" tabindex="0"><div class="row spread"><strong class="small">${esc(r.supplierID)}</strong><button class="quiet" data-action="favorite" data-id="${esc(r.supplierID)}" aria-label="Toggle favorite ${esc(r.supplierID)}">${state.favorites.has(r.supplierID) ? "★" : "☆"}</button></div><div class="name">${esc(nameOf(r))}</div><div class="meta"><span>Total ${fmt(r.Total_Risk_Index)}</span><span class="risk ${esc(r.Total_Risk_Index_Level)}">${esc(r.Total_Risk_Index_Level || "Unknown")}</span></div><div class="row" style="margin-top:7px"><button data-action="detail" data-id="${r.supplierID}">Inspect</button><button data-action="recommend" data-id="${r.supplierID}">Add to shortlist</button></div>${isUsed(r) ? '<div class="small muted">Previously used · demo history</div>' : ""}</article>`;
     }
+    const approval = createApproval({get, esc, fmt, render, navigate, save: () => persistWorkspace(), print: printDoc, comparison: () => state.compare,
+      scope: () => regionLabel(state.region) + (state.filters.part ? " / " + partLabel(state.filters.part) : "")});
     function overview() {
       let c = counts()[state.region],
         all = catalog().filter((r) => regionOf(r) === state.region),
@@ -170,7 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         focus = rs[0] || all[0];
         state.focus = focus?.supplierID;
       }
-      return `<div class="overview"><div class="left"><section class="card train-card"><div class="card-head"><div class="row"><h2>Explore the train</h2><span class="tag demo">Illustrative assembly</span></div><button class="quiet small" data-action="reset-view">↺ Reset view</button></div><div id="train-scene" class="train-scene"></div><div class="regions">${regions.map((r) => `<button title="${esc(r.label)} · ${counts()[r.id].total} assigned records" data-action="region" data-region="${r.id}" aria-pressed="${state.region === r.id}" class="${state.region === r.id ? "selected" : ""}"><strong>${esc(r.shortLabel || r.label)}</strong><span class="count">${fmt(counts()[r.id].total)}</span></button>`).join("")}</div></section><section class="card supplier-strip"><div class="card-head"><div class="supplier-tabs" role="group" aria-label="Supplier collection"><button data-action="supplier-tab" data-tab="recents" aria-pressed="${state.tab === "recents"}">Recents</button><button data-action="supplier-tab" data-tab="used" aria-pressed="${state.tab === "used"}">Previously used</button></div><span class="small muted">${state.tab === "recents" ? "Recently viewed in this system" : "Illustrative previous-use relationships"}</span></div><div class="suppliers">${rs.length ? rs.map(supplierCard).join("") : `<div class="empty recent-empty">${state.tab === "recents" ? "Inspect a supplier in Discovery to see it here." : "No previously used demonstration suppliers in this system."} <button data-action="discover-region" class="link">Explore Discovery</button></div>`}</div></section></div><div class="right"><section class="card summary"><div><div class="eyebrow">Selected system · demo assignment</div><h1>${esc(regionLabel(state.region))}</h1><div><strong class="stat">${fmt(c.total)}</strong><span class="muted small"> records · ${fmt(c.scored)} scored · ${c.researchOnly} research-only</span></div><p class="small muted">${all.filter((r) => r.Total_Risk_Index_Level === "Critical").length} Critical · supplied total-risk level</p></div><button class="primary" data-action="discover-region">Discover →</button></section><section class="card radar-card"><div class="card-head"><div><h2>Risk profile</h2><span class="small muted">Focus ${esc(state.focus || "none")} · higher = more risk</span></div><button class="quiet small" data-action="radar-table">${state.tableRadar ? "Chart" : "View as table"}</button></div><div class="radar-body">${radar(focus, state.region, state.tableRadar)}</div><div class="radar-note"><div class="legend"><span><i></i>Focused supplier</span><span><i class="band"></i>System P25–P75</span><span>− − Median</span></div>Assignments are synthetic and independent of risk; system distributions are similar. <button class="link small" data-action="mapping">Weights & mapping</button></div></section></div></div>`;
+      return `<div class="overview"><div class="left"><section class="card train-card"><div class="card-head"><div class="row"><h2>Explore the train</h2><span class="tag demo">Illustrative assembly</span></div><button class="quiet small" data-action="reset-view">↺ Reset view</button></div><div id="train-scene" class="train-scene"></div><div class="regions">${regions.map((r) => `<button title="${esc(r.label)} · ${counts()[r.id].total} assigned records" data-action="region" data-region="${r.id}" aria-pressed="${state.region === r.id}" class="${state.region === r.id ? "selected" : ""}"><strong>${esc(r.shortLabel || r.label)}</strong><span class="count">${fmt(counts()[r.id].total)}</span></button>`).join("")}</div></section><section class="card supplier-strip"><div class="card-head"><div class="supplier-tabs" role="group" aria-label="Supplier collection"><button data-action="supplier-tab" data-tab="recents" aria-pressed="${state.tab === "recents"}">Recents</button><button data-action="supplier-tab" data-tab="used" aria-pressed="${state.tab === "used"}">Previously used</button></div><span class="small muted">${state.tab === "recents" ? "Recently viewed in this system" : "Illustrative previous-use relationships"}</span></div><div class="suppliers">${rs.length ? rs.map(supplierCard).join("") : `<div class="empty recent-empty">${state.tab === "recents" ? "Inspect a supplier in Discovery to see it here." : "No previously used demonstration suppliers in this system."} <button data-action="discover-region" class="link">Explore Discovery</button></div>`}</div></section></div><div class="right"><section class="card summary"><div><div class="eyebrow">Selected system · demo assignment</div><h1>${esc(regionLabel(state.region))}</h1><div><strong class="stat">${fmt(c.total)}</strong><span class="muted small"> records · ${fmt(c.scored)} scored · ${c.researchOnly} research-only</span></div><p class="small muted">${all.filter((r) => r.Total_Risk_Index_Level === "Critical").length} Critical · supplied total-risk level</p></div><button class="primary" data-action="discover-region">Discover →</button></section>${renderSupplierRing({rows: all.filter(r => !state.filters.part || state.filters.region !== state.region || r.train_part_id === state.filters.part), regionLabel:regionLabel(state.region), partLabel:state.filters.part && state.filters.region === state.region ? partLabel(state.filters.part) : "", favorites:state.favorites})}</div></div>`;
     }
     function filtered() {
       let f = state.filters;
@@ -183,7 +187,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               (r.supplierID + " " + nameOf(r))
                 .toLowerCase()
                 .includes(f.q.toLowerCase())) &&
-            (!f.risk || r.Total_Risk_Index_Level === f.risk) &&
+            (!f.risk || riskLevel(r) === f.risk) &&
             (!f.delivery ||
               (typeof r["Supplier Delivery Rating"] === "number" &&
                 r["Supplier Delivery Rating"] >= Number(f.delivery))) &&
@@ -257,7 +261,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           (id) => !result.some((r) => r.supplierID === id),
         ).length,
         f = state.filters;
-      return `<div class="discovery-intro"><div class="screen-title"><div><div class="eyebrow">Supplier catalog</div><h1>Discovery</h1><p class="muted small">${fmt(result.length)} matching · ${fmt(catalog().length)} total · relationship tags are demo metadata</p></div><button data-action="provenance">Inspect provenance</button></div>${assemblySelector()}</div><div class="discovery"><aside class="card filters stack"><label>Search ID or name<input data-filter="q" value="${esc(f.q)}" placeholder="e.g. SUPP_00731"></label><label>Train system<select data-filter="region"><option value="">All systems</option>${regions.map((r) => `<option value="${r.id}" ${f.region === r.id ? "selected" : ""}>${esc(r.label)}</option>`).join("")}</select></label><label>Supplied total-risk level<select data-filter="risk"><option value="">All levels</option>${["Low", "Medium", "High", "Critical"].map((x) => `<option ${f.risk === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Minimum delivery rating (%)<input data-filter="delivery" type="number" min="0" max="100" value="${esc(f.delivery)}" placeholder="No minimum"></label><label class="check"><input type="checkbox" data-filter="favorite" ${f.favorite ? "checked" : ""}> Favorites only</label><label class="check"><input type="checkbox" data-filter="used" ${f.used ? "checked" : ""}> Previously used · demo only</label><button data-action="clear-filters">Clear filters</button><p class="small muted">Filters combine with AND. Country filtering is unavailable: a country-risk score does not identify country.</p><div class="notice">Previous use does not mean qualified. All candidates use the same approval request.</div></aside><section class="card results"><div class="card-head"><h2>Supplier records</h2><label class="row">Rank by<select data-filter="sort">${[
+      return `<div class="discovery-intro"><div class="screen-title"><div><div class="eyebrow">Supplier catalog</div><h1>Discovery</h1><p class="muted small">${fmt(result.length)} matching · ${fmt(catalog().length)} total · relationship tags are demo metadata</p></div><button data-action="provenance">Inspect provenance</button></div>${assemblySelector()}</div><div class="discovery"><aside class="card filters stack"><label>Search ID or name<input data-filter="q" value="${esc(f.q)}" placeholder="e.g. SUPP_00731"></label><label>Train system<select data-filter="region"><option value="">All systems</option>${regions.map((r) => `<option value="${r.id}" ${f.region === r.id ? "selected" : ""}>${esc(r.label)}</option>`).join("")}</select></label><label>Supplied total-risk level<select data-filter="risk"><option value="">All levels</option>${["Low", "Medium", "High", "Critical", "Unknown"].map((x) => `<option ${f.risk === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Minimum delivery rating (%)<input data-filter="delivery" type="number" min="0" max="100" value="${esc(f.delivery)}" placeholder="No minimum"></label><label class="check"><input type="checkbox" data-filter="favorite" ${f.favorite ? "checked" : ""}> Favorites only</label><label class="check"><input type="checkbox" data-filter="used" ${f.used ? "checked" : ""}> Previously used · demo only</label><button data-action="clear-filters">Clear filters</button><p class="small muted">Filters combine with AND. Country filtering is unavailable: a country-risk score does not identify country.</p><div class="notice">Previous use does not mean qualified. All candidates use the same approval request.</div></aside><section class="card results"><div class="card-head"><h2>Supplier records</h2><label class="row">Rank by<select data-filter="sort">${[
         ["total", "Supplied total risk ↑"],
         ["delivery", "Delivery rating ↓"],
         ["id", "Supplier ID ↑"],
@@ -268,7 +272,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         )
         .join(
           "",
-        )}</select></label></div><div class="scroll"><table><thead><tr><th>Select</th><th>Supplier</th><th>System</th><th>Total risk</th><th>Delivery</th><th>Relationship · demo</th><th>Actions</th></tr></thead><tbody>${visible.map((r) => `<tr><td><input type="checkbox" aria-label="Compare ${r.supplierID}" data-compare="${r.supplierID}" ${state.compare.includes(r.supplierID) ? "checked" : ""}></td><td><button class="link" data-action="detail" data-id="${r.supplierID}">${esc(nameOf(r))}</button><div class="small muted">${r.supplierID}</div></td><td class="small">${esc(regionLabel(regionOf(r)))}<div class="part-name">${esc(partLabel(r.train_part_id))}</div></td><td><strong>${fmt(r.Total_Risk_Index)}</strong> <span class="risk ${esc(r.Total_Risk_Index_Level)}">${esc(r.Total_Risk_Index_Level || "Unknown")}</span></td><td>${fmt(r["Supplier Delivery Rating"])}${r._research ? "" : "%"}</td><td>${tags(r) || '<span class="muted small">No demo relationship</span>'}</td><td><button data-action="favorite" data-id="${r.supplierID}" aria-label="Toggle favorite ${r.supplierID}">${state.favorites.has(r.supplierID) ? "★" : "☆"}</button> <button data-action="recommend" data-id="${r.supplierID}">Request review</button></td></tr>`).join("")}</tbody></table>${!visible.length ? '<div class="empty">No results. Adjust filters; comparison selections are preserved.</div>' : ""}</div><div class="pagination"><span class="small muted">Page ${state.page} of ${pages} · 12 per page · unknown scores last</span><div class="row"><button data-action="prev-page" ${state.page === 1 ? "disabled" : ""}>← Previous</button><button data-action="next-page" ${state.page === pages ? "disabled" : ""}>Next →</button></div></div><div class="tray"><div><strong>${state.compare.length} / 20 selected</strong><span class="small muted"> · ${hidden} outside current filters</span>${state.compareError ? `<div class="error">${esc(state.compareError)}</div>` : ""}</div><div class="row"><button data-action="manage-compare">Manage selection</button><button class="primary" data-action="compare" ${!state.compare.length ? "disabled" : ""}>Compare →</button></div></div></section></div>`;
+        )}</select></label></div><div class="scroll"><table><thead><tr><th>Select</th><th>Supplier</th><th>System</th><th>Total risk</th><th>Delivery</th><th>Relationship · demo</th><th>Actions</th></tr></thead><tbody>${visible.map((r) => `<tr><td><input type="checkbox" aria-label="Compare ${r.supplierID}" data-compare="${r.supplierID}" ${state.compare.includes(r.supplierID) ? "checked" : ""}></td><td><button class="link" data-action="detail" data-id="${r.supplierID}">${esc(nameOf(r))}</button><div class="small muted">${r.supplierID}</div></td><td class="small">${esc(regionLabel(regionOf(r)))}<div class="part-name">${esc(partLabel(r.train_part_id))}</div></td><td><strong>${fmt(r.Total_Risk_Index)}</strong> <span class="risk ${esc(r.Total_Risk_Index_Level)}">${esc(r.Total_Risk_Index_Level || "Unknown")}</span></td><td>${fmt(r["Supplier Delivery Rating"])}${r._research ? "" : "%"}</td><td>${tags(r) || '<span class="muted small">No demo relationship</span>'}</td><td><button data-action="favorite" data-id="${r.supplierID}" aria-label="Toggle favorite ${r.supplierID}">${state.favorites.has(r.supplierID) ? "★" : "☆"}</button> <button data-action="recommend" data-id="${r.supplierID}">Add to shortlist</button></td></tr>`).join("")}</tbody></table>${!visible.length ? '<div class="empty">No results. Adjust filters; comparison selections are preserved.</div>' : ""}</div><div class="pagination"><span class="small muted">Page ${state.page} of ${pages} · 12 per page · unknown scores last</span><div class="row"><button data-action="prev-page" ${state.page === 1 ? "disabled" : ""}>← Previous</button><button data-action="next-page" ${state.page === pages ? "disabled" : ""}>Next →</button></div></div><div class="tray"><div><strong>${state.compare.length} / 20 selected</strong><span class="small muted"> · ${hidden} outside current filters</span>${state.compareError ? `<div class="error">${esc(state.compareError)}</div>` : ""}</div><div class="row"><button data-action="manage-compare">Manage selection</button><button class="primary" data-action="compare" ${!state.compare.length ? "disabled" : ""}>Compare →</button></div></div></section></div>`;
     }
     function compare() {
       let rs = state.compare.map(get).filter(Boolean),
@@ -292,7 +296,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ["Relationship · demo", (r) => tags(r) || "None"],
         ["Illustrative delivery history · 12 weeks", (r) => sparkline(r)],
       ];
-      return `<div class="screen-title"><div><div class="eyebrow">Comparison · ${rs.length} of 20</div><h1>Evidence side by side</h1><p class="muted small">Focus one supplier's six-axis profile. Unknown is never treated as low risk.</p></div><a class="button" href="#/discover">← Discovery</a></div><div class="compare-layout"><section class="card matrix"><table><thead><tr><th>Metric · higher scores = more risk</th>${rs.map((r) => `<th><button class="link" data-action="compare-focus" data-id="${r.supplierID}">${r.supplierID}</button><div class="small muted">${esc(nameOf(r))}</div><button data-action="remove-compare" data-id="${r.supplierID}">Remove</button></th>`).join("")}</tr></thead><tbody>${fields.map(([label, fn]) => `<tr><td>${esc(label)}</td>${rs.map((r) => `<td class="${r._research ? "unknown" : ""}">${fn(r)}</td>`).join("")}</tr>`).join("")}<tr><td>Next action</td>${rs.map((r) => `<td><button data-action="source-cells" data-id="${r.supplierID}">Source cells</button><button data-action="recommend" data-id="${r.supplierID}">Approval request</button></td>`).join("")}</tr></tbody></table></section><aside class="stack"><section class="card radar-card" style="min-height:340px"><div class="card-head"><h2>${esc(focus.supplierID)}</h2></div><div class="radar-body">${radar(focus, regionOf(focus))}</div><p class="radar-note">One focused supplier against its system P25–P75 band. Equal weights disclosed in each axis.</p></section><section class="card padded"><h2>Sourcing Copilot</h2><p class="small muted" style="margin:8px 0">Scope: selected IDs, independent of Discovery filters.</p><button class="primary" data-action="financial">Compare financial source score</button><div class="answer" style="margin-top:10px">${state.answer}</div></section></aside></div>`;
+      return `<div class="screen-title"><div><div class="eyebrow">Comparison · ${rs.length} of 20</div><h1>Evidence side by side</h1><p class="muted small">Focus one supplier's six-axis profile. Unknown is never treated as low risk.</p></div><a class="button" href="#/discover">← Discovery</a><button class="primary" data-action="shortlist">Build shortlist &rarr;</button></div><div class="compare-layout"><section class="card matrix"><table><thead><tr><th>Metric · higher scores = more risk</th>${rs.map((r) => `<th><button class="link" data-action="compare-focus" data-id="${r.supplierID}">${r.supplierID}</button><div class="small muted">${esc(nameOf(r))}</div><button data-action="remove-compare" data-id="${r.supplierID}">Remove</button></th>`).join("")}</tr></thead><tbody>${fields.map(([label, fn]) => `<tr><td>${esc(label)}</td>${rs.map((r) => `<td class="${r._research ? "unknown" : ""}">${fn(r)}</td>`).join("")}</tr>`).join("")}<tr><td>Next action</td>${rs.map((r) => `<td><button data-action="source-cells" data-id="${r.supplierID}">Source cells</button><button data-action="recommend" data-id="${r.supplierID}">Add to shortlist</button></td>`).join("")}</tr></tbody></table></section><aside class="stack"><section class="card radar-card" style="min-height:340px"><div class="card-head"><h2>${esc(focus.supplierID)}</h2></div><div class="radar-body">${radar(focus, regionOf(focus))}</div><p class="radar-note">One focused supplier against its system P25–P75 band. Equal weights disclosed in each axis.</p></section><section class="card padded"><h2>Sourcing Copilot</h2><p class="small muted" style="margin:8px 0">Scope: selected IDs, independent of Discovery filters.</p><button class="primary" data-action="financial">Compare financial source score</button><div class="answer" style="margin-top:10px">${state.answer}</div></section></aside></div>`;
     }
     function missingMemo(m) {
       return [
@@ -371,7 +375,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function detail(id) {
       let r = get(id);
       if (!r) return '<div class="empty">Record unavailable.</div>';
-      return `<div class="screen-title"><div><div class="eyebrow">Catalog record · ${esc(id)}</div><h1>${esc(nameOf(r))}</h1><p class="small muted">${esc(regionLabel(regionOf(r)))} · ${r._research ? "Buyer-selected research association" : "Synthetic assignment"} · ${tags(r)}</p></div><div class="row"><a class="button" href="#/discover">Discovery</a><button class="primary" data-action="recommend" data-id="${esc(id)}">Approval request</button></div></div><div class="two"><section class="card padded"><h2>Risk profile · ${esc(id)}</h2><div style="height:290px">${radar(r, regionOf(r))}</div><p class="small muted">Scores and relationship history do not establish qualification.</p></section><section class="card padded"><h2>Identity & relationship</h2><p style="margin:12px 0">${r._research ? "Public research company record. Exact contracting entity, component fit and current qualification require buyer verification." : "Supplier name is anonymized. No real-company identity or country established."}</p><p class="small muted">Favorites are personal session preferences. Previous use is demo history, not qualification. ${isUsed(r) ? "Demo history: prior-program sourcing; date, outcome, applicability and freshness Unknown." : ""}</p><div class="actions" style="margin-top:12px"><button data-action="favorite" data-id="${esc(id)}">${state.favorites.has(id) ? "Remove favorite" : "Add favorite"}</button><button data-action="toggle-compare" data-id="${esc(id)}">${state.compare.includes(id) ? "Remove from" : "Add to"} comparison</button>${r._research ? `<button data-action="saved-report" data-run="${r._report.id}">Linked risk report</button>` : ""}</div>${r._research ? '<div class="notice" style="margin-top:14px">Separate research-only record. All source scores Unknown and excluded from numeric aggregates.</div>' : ""}</section><section class="card padded" style="grid-column:1/-1"><div class="row spread"><h2>Supplied cells & derived mapping</h2><button data-action="source-cells" data-id="${esc(id)}">Inspect all cells</button></div>${radar(r, regionOf(r), true)}<p class="screen-note">Source Total_Risk_Index weights unavailable; derived axes do not reproduce its weighting.</p></section></div>`;
+      return `<div class="screen-title"><div><div class="eyebrow">Catalog record · ${esc(id)}</div><h1>${esc(nameOf(r))}</h1><p class="small muted">${esc(regionLabel(regionOf(r)))} · ${r._research ? "Buyer-selected research association" : "Synthetic assignment"} · ${tags(r)}</p></div><div class="row"><a class="button" href="#/discover">Discovery</a><button class="primary" data-action="recommend" data-id="${esc(id)}">Add to shortlist</button></div></div><div class="two"><section class="card padded"><h2>Risk profile · ${esc(id)}</h2><div style="height:290px">${radar(r, regionOf(r))}</div><p class="small muted">Scores and relationship history do not establish qualification.</p></section><section class="card padded"><h2>Identity & relationship</h2><p style="margin:12px 0">${r._research ? "Public research company record. Exact contracting entity, component fit and current qualification require buyer verification." : "Supplier name is anonymized. No real-company identity or country established."}</p><p class="small muted">Favorites are personal session preferences. Previous use is demo history, not qualification. ${isUsed(r) ? "Demo history: prior-program sourcing; date, outcome, applicability and freshness Unknown." : ""}</p><div class="actions" style="margin-top:12px"><button data-action="favorite" data-id="${esc(id)}">${state.favorites.has(id) ? "Remove favorite" : "Add favorite"}</button><button data-action="toggle-compare" data-id="${esc(id)}">${state.compare.includes(id) ? "Remove from" : "Add to"} comparison</button>${r._research ? `<button data-action="saved-report" data-run="${r._report.id}">Linked risk report</button>` : ""}</div>${r._research ? '<div class="notice" style="margin-top:14px">Separate research-only record. All source scores Unknown and excluded from numeric aggregates.</div>' : ""}</section><section class="card padded" style="grid-column:1/-1"><div class="row spread"><h2>Supplied cells & derived mapping</h2><button data-action="source-cells" data-id="${esc(id)}">Inspect all cells</button></div>${radar(r, regionOf(r), true)}<p class="screen-note">Source Total_Risk_Index weights unavailable; derived axes do not reproduce its weighting.</p></section></div>`;
     }
 
     function deliveryHistory(r) {
@@ -498,7 +502,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ? compare()
                 : route === "research"
                   ? research()
-                  : route === "reports"
+                  : route === "approvals"
+                    ? approval.page()
+                    : route === "reports"
                     ? reports()
                     : route === "memo"
                       ? memo()
@@ -646,21 +652,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       ],
       [
         "Review new and previously used candidates",
-        "Every candidate uses the same approval template. Open a previously used demo supplier now; prior history does not waive fresh checks. A new candidate can be chosen from Discovery too.",
+        "New and previously used candidates share a shortlist approval request. Open a previously used demo supplier now; prior history does not waive fresh checks. A new candidate can be chosen from Discovery too.",
         "Draft for previously used candidate",
         () => {
           let r =
             originals.find((r) => regionOf(r) === "doors" && isUsed(r)) ||
             get("SUPP_00012");
-          newMemo(r.supplierID);
+          approval.start([r.supplierID]);
         },
       ],
       [
         "Preview the request and print",
-        "Fill context, rationale, alternatives, preparer, reviewer, next action, owner and due date. The preview remains Draft / not approved. Use Print / Save as PDF to invoke your browser; cancellation changes no status.",
-        "Open memo preview",
+        "Select 3 to 5 candidates and fill requester, reviewer, rationale and candidate negotiation questions. Submit to save an awaiting-approval request, then print the frozen report. No award is granted.",
+        "Open shortlist approval",
         () => {
-          if (state.memo) navigate("memo");
+          if (approval.snapshot()) navigate("approvals");
           else {
             navigate("discover");
             toast(
@@ -678,6 +684,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           : `<aside class="tour"><div class="row spread"><span class="eyebrow">Guided journey · ${t + 1} / ${tourSteps.length}</span><button class="quiet small" data-action="end-tour">Close</button></div><h2>${tourSteps[t][0]}</h2><p>${tourSteps[t][1]}</p><div class="row spread"><button data-action="tour-do">${tourSteps[t][2]}</button><button class="primary" data-action="tour-next">${t === tourSteps.length - 1 ? "Finish" : "Next →"}</button></div></aside>`;
     }
     document.addEventListener("click", (e) => {
+      const ringSupplier = e.target.closest("[data-ring-supplier]");
+      if (ringSupplier) { touchSupplier(ringSupplier.dataset.ringSupplier); navigate("supplier/" + encodeURIComponent(ringSupplier.dataset.ringSupplier)); return; }
+      const ringRisk = e.target.closest("[data-ring-risk]");
+      if (ringRisk) { const part=state.filters.region === state.region ? state.filters.part : ""; state.filters={q:"",region:state.region,part,risk:ringRisk.dataset.ringRisk,delivery:"",favorite:false,used:false,sort:"total"};state.page=1;navigate("discover");return;}
       let b = e.target.closest("[data-action]");
       if (!b) return;
       let a = b.dataset.action,
@@ -701,8 +711,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           train?.resetView();
           break;
         case "discover-region":
+          if (state.filters.region !== state.region) state.filters.part = "";
           state.filters.region = state.region;
-          state.filters.part = "";
           state.page = 1;
           navigate("discover");
           break;
@@ -721,8 +731,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         case "detail":
           navigate("supplier/" + encodeURIComponent(id));
           break;
+        case "shortlist":
+          approval.start(state.compare, true);
+          break;
         case "recommend":
-          newMemo(id);
+          approval.start([id]);
           break;
         case "radar-table":
           state.tableRadar = !state.tableRadar;
@@ -842,6 +855,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           appGeneration++;
           if (chat) chat.reset();
           state = initial();
+          approval.reset();
           statCache.clear();
           $("#dialog").close();
           $("#print-root").innerHTML = "";
@@ -972,6 +986,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     function workspaceSnapshot() {
       const drafts = [];
+      if (approval.snapshot()) drafts.push({kind:"shortlist", draft:approval.snapshot()});
       if (state.memo)
         drafts.push({ kind: "approval", memo: { ...state.memo, preview: "" } });
       state.added.forEach((record) =>
@@ -1081,6 +1096,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (draft.kind === "research-record" && draft.record)
           state.added.push(draft.record);
       }
+      const shortlistDraft=(w.drafts || []).find(d=>d.kind === "shortlist");
+      if(shortlistDraft) approval.restore(shortlistDraft.draft);
       state.compare = (w.compare || []).filter((id) => get(id)).slice(0, 20);
       state.recents = (w.recents || []).filter((id) => get(id)).slice(0, 50);
       chat = createChat({
@@ -1166,7 +1183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .join("") ||
         '<p style="margin-top:12px">No research runs yet. Start in the sourcing assistant.</p>'
-      }</section><section class="card padded"><h2>Approval request</h2>${state.memo ? `<p style="margin:12px 0">${esc(state.memo.id)} · ${esc(state.memo.candidate)} · rev ${state.memo.rev}<br>Draft / not approved</p><a class="button" href="#/memo">Continue draft →</a>` : '<p style="margin:12px 0">Choose a candidate in Discovery to prepare an approval request.</p>'}<p class="small muted">Previously used suppliers follow the same review workflow.</p></section></div>`;
+      }</section><section class="card padded"><h2>Shortlist approval requests</h2><p style="margin:12px 0">Prepare 3 to 5 candidates for approval to negotiate. Submitted requests retain frozen evidence.</p><a class="button primary" href="#/approvals">Open shortlist approvals</a><h3 style="margin-top:20px">Legacy single-supplier assessment</h3>${state.memo ? `<p style="margin:12px 0">${esc(state.memo.id)} · ${esc(state.memo.candidate)} · rev ${state.memo.rev}<br>Draft / not approved</p><a class="button" href="#/memo">Continue draft →</a>` : '<p style="margin:12px 0">No legacy assessment draft.</p>'}<p class="small muted">Previously used suppliers follow the same review workflow.</p></section></div>`;
     }
     function riskDocument(r) {
       return `<article class="document"><div class="doc-header">SUPPLIER RESEARCH · ${esc(r.id)}</div><h1>${esc(r.company)}</h1><div class="doc-status">${esc(r.status)} · ${r.demo ? "SAVED HISTORICAL EXAMPLE" : "PUBLIC RESEARCH"} · NO APPROVAL GRANTED</div><h2>Identity & scope</h2><p>Country hint: ${esc(r.country || "Unknown")} · website hint: ${esc(r.website || "Unknown")}</p><p>${esc(r.scope || "Procurement scope unspecified")}</p><p>Entity verification: ${esc(r.entity?.verification || "Unverified")}</p>${r.dataset_context ? `<h3>Separate supplied-data context</h3><pre>${esc(JSON.stringify(r.dataset_context, null, 2))}</pre><p>Supplied records do not establish the real company’s identity or numerical risk.</p>` : ""}<h2>Summary</h2><p>${esc(r.summary || r.error || "Not completed")}</p><h2>Research plan</h2>${(r.plan || []).map((p) => `<details><summary>${esc(p.category)}</summary>${p.questions.map((q) => `<p>${esc(q)}</p>`).join("")}</details>`).join("")}<h2>${r.demo ? "Saved historical observations" : "Source-bound observations"}</h2><div class="research-findings">${(r.findings || []).map((f) => `<article><h3>${esc(f.id)} · ${esc(f.title)}</h3><p>${esc(f.category)} · ${esc(f.severity)} · confidence ${esc(f.confidence)}</p><p>${esc(f.detail)}</p>${(f.evidence || []).map((e) => `${r.demo ? "<div><p><strong>Saved historical paraphrase (not a verified source quotation)</strong></p><p>" : "<blockquote>"}${esc(e.quote)}<p class="small">${esc(e.source_id)} · ${esc(e.locator || "")}</p>${r.demo ? "</p></div>" : "</blockquote>"}`).join("")}</article>`).join("") || "<p>No retained source-bound observations.</p>"}</div><h2>Gaps and limits</h2>${[...(r.gaps || []), ...(r.limitations || [])].map((v) => `<p>• ${esc(v)}</p>`).join("")}<h2>Buyer actions</h2>${(r.actions || []).map((a) => `<p>☐ ${esc(a.action)} · ${esc(a.owner || "Unassigned")} · ${esc(a.status)}</p>`).join("")}<h2>Source register</h2>${(r.sources || []).map((s, i) => `<section class="source"><a class="citation-chip" href="${esc(safeURL(s.url))}" target="_blank" rel="noopener noreferrer"><b>${i + 1}</b>${esc(s.title || s.id)}</a><p class="small">${esc(s.id)} · ${esc(s.url)}</p><details><summary>Retrieved excerpt</summary><p>${esc(s.excerpt || "No excerpt available")}</p></details></section>`).join("")}<h2>Actual activity</h2>${(r.events || []).map((e) => `<p class="small">${esc(e.at)} · ${esc(e.stage)} · ${esc(e.message)}</p>`).join("")}</article>`;
@@ -1190,8 +1207,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     async function printDoc(html) {
       const token = appGeneration;
+      document.getElementById("approval-print-style")?.remove();
+      if (html.includes("approval-document")) {
+        const style=document.createElement("style"); style.id="approval-print-style";
+        style.textContent='@page { @top-center { content: "AWAITING APPROVAL / NO AWARD AUTHORIZED"; } }'; document.head.append(style);
+      }
       $("#print-root").innerHTML =
-        '<div class="running-print-header">DRAFT / NOT APPROVED - SUPPLIER REVIEW COPY</div>' +
+        '<div class="running-print-header">' + (html.includes('approval-document') ? 'AWAITING APPROVAL / NO AWARD AUTHORIZED' : 'DRAFT / NOT APPROVED - SUPPLIER REVIEW COPY') + '</div>' +
         html;
       try {
         await persistWorkspace();
@@ -1272,7 +1294,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     await restoreWorkspace();
+    await approval.refresh();
     window.addEventListener("hashchange", render);
+    window.addEventListener("afterprint", () => { document.getElementById("approval-print-style")?.remove(); $("#print-root").innerHTML=""; });
     window.__supplierApp = {
       get state() {
         return state;
