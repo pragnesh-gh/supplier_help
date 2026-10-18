@@ -6,7 +6,6 @@ import { createChat, ASSISTANT_NAME } from "./chat.js";
 import { createApproval, cartAdd, cartRemove, suggestShortlist, CART_LIMIT } from "./approval.js";
 import { riskLevel } from "./supplier-ring.js";
 import { icon } from "./icons.js";
-import { radarSVG } from "./research-card.js";
 ("use strict");
 document.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -132,11 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       let s = stats(region);
       if (table)
         return `<div class="scroll"><table class="axis-table"><thead><tr><th>Derived axis · 0–100</th><th>Focus</th><th>P25 / median / P75</th><th>Mean · n</th><th>Source weights</th></tr></thead><tbody>${axes.map((a, i) => `<tr><td>${esc(labelAxis(a))}</td><td>${fmt(axisVal(r, a))}</td><td>${fmt(s[i].q1)} / ${fmt(s[i].median)} / ${fmt(s[i].q3)}</td><td>${fmt(s[i].mean)} · ${s[i].n}</td><td>${a.components.map((c) => `${esc(c.field)} × ${weightText(c.weight)}`).join("<br>")}</td></tr>`).join("")}</tbody></table></div>`;
-      if (r?._research)
-        return researchScores(r)
-          ? `<div class="research-radar">${radarSVG(researchScores(r), esc, 230)}<p class="small muted">Public research score by area. Not comparable to catalogue scores, so it is not drawn against them.</p></div>`
-          : '<div class="empty">No research score yet, so the radar is not drawn.</div>';
-      if (!r)
+      if (!r || r._research)
         return '<div class="empty">No supplied scores, so the radar is not drawn.<br>Unknown values are excluded from statistics.</div>';
       let cx = 220,
         cy = 132,
@@ -161,16 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         )}<text x="225" y="39" font-size="10" fill="#87949c">100</text></svg>`;
     }
     function tags(r) {
-      return `${state.favorites.has(r.supplierID) ? '<span class="tag">Favorite</span>' : ""}${isUsed(r) ? '<span class="tag">Previously used · demo</span>' : ""}${r._research ? '<span class="tag demo">Public research</span>' : ""}`;
-    }
-    function researchScores(r) {
-      return r?._record?.agent_scores || state.reports[r?._record?.run_id]?.scores || null;
-    }
-    function researchScoreCell(r) {
-      const s = researchScores(r);
-      if (!r._research) return '<span class="muted small">Not applicable</span>';
-      if (!s || typeof s.total !== "number") return "Not scored";
-      return `<strong>${s.total}</strong> / 100 <span class="risk ${esc(s.level)}">${esc(s.level)}</span><div class="small muted">${s.assessed ?? 0} of 6 areas assessed</div>`;
+      return `${state.favorites.has(r.supplierID) ? '<span class="tag">Favorite</span>' : ""}${isUsed(r) ? '<span class="tag">Previously used · demo</span>' : ""}${r._research ? '<span class="tag demo">Research-only · unscored</span>' : ""}`;
     }
     function favButton(id) {
       const on = state.favorites.has(id);
@@ -347,9 +333,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           "Financial_Health_Score (supplied)",
           (r) => fmt(r.Financial_Health_Score),
         ],
-        ...(rs.some((r) => r._research)
-          ? [["Public research score, not comparable to dataset scores", researchScoreCell]]
-          : []),
         ["Relationship · demo", (r) => tags(r) || "None"],
         ["Illustrative delivery history · 12 weeks", (r) => sparkline(r)],
       ];
@@ -625,9 +608,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           (r) =>
             (p.group === "favorite"
               ? state.favorites.has(r.supplierID)
-              : p.group === "research"
-                ? !!r._research
-                : p.group === "used"
+              : p.group === "used"
                 ? isUsed(r)
                 : state.favorites.has(r.supplierID) || isUsed(r)) &&
             (!p.q ||
@@ -642,7 +623,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           `<div class="row widget-actions">${compareButton(r)}${saveButton(r)}</div>`;
       return `<div class="screen-title"><div><div class="eyebrow">Your supplier collections</div><h1>My suppliers</h1><p class="muted">A quick view of favorites and demo supplier relationships.</p></div><button class="primary" data-action="compare" ${!state.compare.length ? "disabled" : ""}>${icon("compare_arrows", "sm")}Compare selected (${state.compare.length}/20)</button></div><div class="portfolio-tools"><div class="toggle-group" role="group" aria-label="Collection">${[
         ["favorite", "Favorites"],
-        ["research", "Researched"],
         ["used", "Previously used"],
         ["all", "Both collections"],
       ]
@@ -862,8 +842,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         () => openChat(),
       ],
       [
-        "Research a real company",
-        "Name a company in the assistant or press Deep research. The answer is a short summary card with a score per area and numbered sources; open the full report from the card. Research scores stay separate from catalogue scores.",
+        "Read the report and add carefully",
+        "Open a completed dossier from the conversation. Review its identity, gaps and source evidence. Added research suppliers stay separate from anonymized CSV records and retain Unknown scores.",
         "Open research conversation",
         () => openChat(),
       ],
@@ -1086,7 +1066,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (
             (state.memo || state.added.length || state.cart.length) &&
             !confirm(
-              "Reset this session? Drafts, local research associations, notes and selections will be reset. Research reports remain saved on the server.",
+              "Reset this session? Drafts, local research associations, notes and selections will be reset. Research dossiers remain saved on the server.",
             )
           )
             return;
@@ -1373,7 +1353,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           } else if (kind === "compare") {
             if (!state.compare.includes(id)) toggleCompare(id);
             note = state.compare.includes(id)
-              ? { text: `✓ In comparison (${state.compare.length}/20), with its own research-score row.`, href: "#/compare", link: "Open Compare" }
+              ? { text: `✓ In comparison (${state.compare.length}/20).`, href: "#/compare", link: "Open Compare" }
               : { text: state.compareError || "Could not add to the comparison.", error: true };
           } else if (kind === "shortlist") {
             approval.start([id]);

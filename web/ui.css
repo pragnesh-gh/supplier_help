@@ -1099,8 +1099,6 @@ nav a,
 .cite-domain { font-family: var(--mono); }
 @media (forced-colors: active) { .cite-quote mark { forced-color-adjust: none; background: Mark; color: MarkText; } }
 @media (max-width: 1000px) { .cite-panel { right: 18px; top: auto; bottom: 18px; max-height: 70vh; z-index: 80; } }
-/* Toasts stay above the chat panel (it would otherwise hide them on narrower windows). */
-#toast-root .toast { z-index: 90; }
 /* report dialog, reports list, scoring, compare */
 .report-frame { width: 100%; height: 70vh; border: 1px solid var(--outline-variant); border-radius: var(--radius-md); margin-top: 12px; background: #fff; }
 .report-actions { flex-wrap: wrap; }
@@ -1115,9 +1113,6 @@ nav a,
 .score-area h3 { font-size: 14px; }
 .score-sub { margin: 6px 0 0 8px; font-size: 13px; }
 .score-sub ul { margin: 2px 0 0 18px; font-size: 12px; }
-.research-score-row td { background: var(--primary-container); }
-.research-score-row td:first-child { font-weight: 600; }
-.research-radar { display: grid; justify-items: center; gap: 6px; }
 .band-bar { margin-top: 10px; }
 .band-track { position: relative; display: flex; height: 8px; border-radius: 4px; overflow: visible; gap: 2px; }
 .band { height: 8px; }
