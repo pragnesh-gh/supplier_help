@@ -1,32 +1,32 @@
-"""Deterministic Markdown report rendered from a ResearchResult. No model writes the layout."""
+"""Deterministic Markdown report rendered from a ResearchResult. No model writes the layout.
+
+Same sections, same order and same wording as the HTML report: both draw from
+``report_data.report_sections`` (structure of BAFA's risk-analysis guide, all six areas).
+"""
 
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from collections.abc import Mapping
+from typing import Any
 
-from .dates import normalize_date
-from .models import AreaScore, Flag, ResearchResult, Source
-from .rules import sort_flags
+from .models import ResearchResult
+from .report_data import build_sections
+from .report_html import Evidence
 
-SYMBOL = {"red": "🔴", "amber": "🟡", "green": "🟢", "not_assessed": "⚪"}
-STATUS_TEXT = {"red": "🔴 Red flag", "amber": "🟡 Watch", "green": "🟢 No issues found", "context": "⚪ Context only",
-               "not_assessed": "⚪ Not assessed"}
-CONTEXT_OLD_TEXT = "⚪ Context: older or resolved matter"
-# Source marks. A square, not a circle: the circles already mean flag colours (🟡 = watch item).
 UNVERIFIED_MARK = "🟨"
 UNVERIFIED_TEXT = "not in our trusted source list"
 TRUSTED_MARK = "✅"
-COVERAGE_TEXT = {"not_assessed": "no evidence"}  # otherwise the cell counts the pages that backed the area
-TARGET_WORDS = 650
-HARD_CAP_WORDS = 1000
+GLYPH = {"red": "🔴", "amber": "🟡", "green": "🟢", "neutral": "⚪"}
+STATUS_GLYPH = {"red": "🔴", "amber": "🟡", "green": "🟢", "context": "⚪", "not_assessed": "⚪"}
+ROW_GLYPH = {"checked": "🟢", "context": "⚪", "not_assessed": "⚪", "pointer": "⚪"}
 
 _MD_SPECIAL = re.compile(r"([\\`*_\[\]<>|#])")
 
 
 def esc(text: str) -> str:
     """Escape Markdown/HTML so fetched titles or summaries cannot inject links or markup."""
-    return _MD_SPECIAL.sub(r"\\\1", " ".join(text.split()))
+    return _MD_SPECIAL.sub(r"\\\1", " ".join(str(text).split()))
 
 
 def plural(n: int, singular: str, plural_form: str | None = None) -> str:
@@ -40,210 +40,196 @@ def report_word_count(md: str) -> int:
     return len(text.split())
 
 
-# Flag lists are never shortened to save words; only these caps apply.
-CAP_RED, CAP_AMBER, CAP_GREEN = 5, 5, 3
+def _cites(cites: list[Mapping[str, Any]]) -> str:
+    nums: list[str] = []
+    for c in cites:
+        n = f"[{c['id']}]" + (UNVERIFIED_MARK if c.get("trust") == "unverified" else "")
+        if n not in nums:
+            nums.append(n)
+    return " ".join(nums)
 
 
-@dataclass
-class _Compact:
-    """Word-budget trimming outside the flag lists, applied step by step."""
-    table_refs_only: bool = False  # table rows that repeat a listed flag show a short pointer instead
+def _score(a: Mapping[str, Any]) -> str:
+    return f"{a['score']} · {a['level']}" if a.get("score") is not None else f"_{a.get('no_score') or 'Not assessed'}_"
 
 
-class _Citations:
-    def __init__(self, sources: list[Source]) -> None:
-        self.by_id = {s.id: s for s in sources}
-        self.order: list[str] = []
-
-    def cite(self, source_ids: list[str], long_mark: bool = False) -> str:
-        """'[1] [2]'; a citation of an unverified site gets the 🟨 mark (with its meaning if long_mark)."""
-        nums = []
-        unverified = False
-        for sid in source_ids:
-            if sid not in self.by_id:
-                continue
-            if sid not in self.order:
-                self.order.append(sid)
-            nums.append(self.order.index(sid) + 1)
-            unverified = unverified or self.by_id[sid].trust == "unverified"
-        text = " ".join(f"[{n}]{UNVERIFIED_MARK if self.by_id[self.order[n - 1]].trust == 'unverified' else ''}"
-                        for n in sorted(set(nums)))
-        if unverified and long_mark:
-            text += f" {UNVERIFIED_TEXT}"
-        return text
+def _item(i: Mapping[str, Any], with_area: bool = False) -> str:
+    kind = i.get("kind", "finding")
+    glyph = ROW_GLYPH.get(str(kind)) or GLYPH.get(str(i.get("colour")), "⚪")
+    rid = f"**{i['risk_id']}** " if i.get("risk_id") else ""
+    when = (f" ({esc(i['date'])})" if i.get("date") else " (date not stated)") if i.get("flag_id") else ""
+    area = f" · {esc(i['area_label'])}" if with_area and i.get("area_label") else ""
+    tags = f" ({', '.join(esc(t) for t in i['tags'])})" if i.get("tags") else ""
+    return f"- {glyph} {rid}**{esc(i.get('label') or '')}:** {esc(i.get('summary') or '')}{when}{area}{tags} " \
+           f"{_cites(list(i.get('cites') or []))}".rstrip()
 
 
-def _date_part(f: Flag) -> str:
-    return f" ({f.event_date})" if f.event_date else ""
+def _h2(s: Mapping[str, Any]) -> list[str]:
+    return [f"## {s['number']}. {s['title']}", ""]
 
 
-def _flag_line(f: Flag, cit: _Citations) -> str:
-    tags = []
-    if f.claim_status == "alleged":
-        tags.append("alleged")
-    if f.company_stated:
-        tags.append("company-stated")
-    if f.stale:
-        tags.append("older event")
-    if f.trust == "unverified":
-        tags.append("unverified source only" + (", capped at watch item" if f.capped_unverified else ""))
-    tag = f" ({', '.join(tags)})" if tags else ""
-    return f"- {esc(f.summary)}{_date_part(f)}{tag} {cit.cite(f.source_ids, long_mark=True)}".rstrip()
-
-
-def _flag_section(
-    title: str, flags: list[Flag], cap: int, empty: str, noun: tuple[str, str], cit: _Citations
-) -> list[str]:
-    out = [f"## {title}", ""]
-    if not flags:
-        out.append(empty)
-    for f in flags[:cap]:
-        out.append(_flag_line(f, cit))
-    hidden = len(flags) - cap
-    if hidden > 0:
-        out += ["", f"_+{plural(hidden, 'lower-priority ' + noun[0], 'lower-priority ' + noun[1])} not shown (in full data)._"]
-    out.append("")
-    return out
-
-
-def _render(r: ResearchResult, compact: _Compact) -> str:
-    cit = _Citations(r.sources)
+def _render(sections: list[dict[str, Any]], r: ResearchResult) -> str:
+    by = {s["id"]: s for s in sections}
     L: list[str] = []
-    name = r.entity.legal_name if r.entity else r.company_input
-    L.append(f"# Supplier risk research: {esc(name)}")
-    L.append("")
-    meta = []
-    if r.entity:
-        meta.append(esc(r.entity.country_name or r.entity.country_code or "country unknown"))
-        meta.append(esc(r.entity.website or "website unknown"))
-    meta.append(f"researched {r.researched_at[:10]}")
-    meta.append(f"{plural(r.stats.pages_read, 'source')} checked")
-    L.append(" · ".join(meta))
-    L.append("")
-    if r.notice:
-        L += [f"> **{esc(r.notice)}**", ""]
-    if r.status == "partial":
-        L += ["> **Partial result:** the run stopped early (time or budget limit). Some areas may be incomplete.", ""]
-    if r.status == "error":
-        L += [f"> **Research failed:** {esc('; '.join(r.warnings) or 'unknown error')}", ""]
+    h = by["header"]
+    L += [f"# {esc(h['company'])}", "", "Supplier risk report, structured after BAFA’s risk-analysis guide", ""]
+    if h.get("searched_as"):
+        L += [f"Searched as “{esc(h['searched_as'])}”", ""]
+    L += [" · ".join(f"**{f['label']}:** {esc(f['value'])}" for f in h["fields"]), ""]
+    L += [f"> **{esc(n)}**" for n in h["notices"]] + ([""] if h["notices"] else [])
 
     if r.status == "needs_clarification" and r.clarification:
         L += ["**We need one detail before researching.**", "", esc(r.clarification.question), ""]
         if r.clarification.candidates:
             L += ["| Company | Country | Website |", "| --- | --- | --- |"]
             for c in r.clarification.candidates:
-                L.append(f"| {esc(c.legal_name)} | {esc(c.country_name or c.country_code or '—')} | {esc(c.website or '—')} |")
+                L.append(f"| {esc(c.legal_name)} | {esc(c.country_name or c.country_code or '—')} | "
+                         f"{esc(c.website or '—')} |")
             L.append("")
         return "\n".join(L).rstrip() + "\n"
+    if r.status == "error":
+        L += [f"> **Research failed:** {esc('; '.join(r.warnings) or 'unknown error')}", ""]
+        return "\n".join(L).rstrip() + "\n"
 
-    L += [f"**Verdict: {esc(r.verdict)}**", ""]
-    if r.summary:
-        L += [esc(r.summary), ""]
-    L += [f"**Total risk score (0–100):** {_score_text(r.scores.total, r.scores.total_level)}", ""]
+    s = by["summary"]
+    L += _h2(s)
+    L += [f"**{esc(s['verdict'])}**", ""]
+    if s.get("text"):
+        L += [esc(s["text"]), ""]
+    L += [f"**Total risk score (0–100):** {esc(s['total']['text'])} {esc(s['total']['bands'])}.", ""]
+    L += ["| Risk area | Score · level |", "| --- | --- |"]
+    L += [f"| {esc(a['label'])} | {_score(a)} |" for a in s["areas"]]
+    L.append("")
+    L += [f"**Override:** {esc(o)}" for o in s.get("overrides") or []] + ([""] if s.get("overrides") else [])
+    L += ["**Most important findings**", ""]
+    if s.get("no_findings"):
+        L.append(esc(s["no_findings"]))
+    L += [_item(i, with_area=True) for i in s["key_findings"]]
+    L.append("")
+    if s["not_assessed"]:
+        L += [f"**Not assessed:** {esc(', '.join(s['not_assessed']))}. No verified facts were found for these areas.",
+              ""]
 
-    ordered = sort_flags(r.flags)
-    reds = [f for f in ordered if f.colour == "red"]
-    ambers = [f for f in ordered if f.colour == "amber"]
-    greens = [f for f in ordered if f.colour == "green"]
-    shown_ids = {f.id for f in reds[:CAP_RED] + ambers[:CAP_AMBER] + greens[:CAP_GREEN]}
-    section_name = {"red": "red flags", "amber": "watch items", "green": "strengths"}
-
-    # -- page 1: at a glance -------------------------------------------------------
-    scores = {a.area: a for a in r.scores.areas}
-    L += ["## Risk areas", "", "| Area | Status | Score · level · pages used | Finding |", "| --- | --- | --- | --- |"]
-    flags_by_id = {f.id: f for f in r.flags}
-    for a in r.areas:
-        top = flags_by_id.get(a.flag_ids[0]) if a.flag_ids else None
-        ref = cit.cite(top.source_ids) if top else ""
-        if compact.table_refs_only and top is not None and top.id in shown_ids:
-            finding = f"See {section_name[top.colour]} below {ref}"
-            more = len([fid for fid in a.flag_ids if fid in shown_ids and flags_by_id[fid].colour == top.colour]) - 1
-            if more > 0:
-                finding += f" (+{more} more)"
-        else:
-            finding = esc(a.finding) + (f" {ref}" if ref else "")
-        status_text = STATUS_TEXT[a.status]
-        if a.status == "context" and top is not None and top.stale:
-            status_text = CONTEXT_OLD_TEXT
-        if a.status == "context" and top is not None and top.stale:
-            finding += f" ({top.event_date[:4] if top.event_date else 'older'})"
-        L.append(f"| {esc(a.label)} | {status_text} | {_area_score_cell(scores.get(a.area))} | {finding} |")
+    s = by["profile"]
+    L += _h2(s) + ["| Field | Value |", "| --- | --- |"]
+    for f in s["fields"]:
+        val = esc(f["value"]) if f["state"] == "found" else f"_{esc(f['value'])}_"
+        L.append(f"| {f['label']} | {val} {_cites(list(f['cites']))} |".replace("  |", " |"))
     L.append("")
 
-    L += _flag_section("🔴 Red flags", reds, CAP_RED, "No red flags found in the sources checked.",
-                       ("red flag", "red flags"), cit)
-    L += _flag_section("🟡 Watch items", ambers, CAP_AMBER, "No watch items found in the sources checked.",
-                       ("watch item", "watch items"), cit)
-    L += _flag_section("🟢 Strengths", greens, CAP_GREEN, "No strengths recorded from the sources checked.",
-                       ("strength", "strengths"), cit)
+    s = by["country_sector"]
+    L += _h2(s) + [f"Country: **{esc(s['country'])}** · Country & Location score: {_score(s['area_score'])}", ""]
+    if s["indicators"]:
+        L += ["| Indicator | Value | Year | Reading | Source |", "| --- | --- | --- | --- | --- |"]
+        L += [f"| {esc(i['label'])} | {esc(i['value'])} | {i.get('year') or ''} | {esc(i['band']) or '—'} | "
+              f"{_cites(list(i['cites']))} |" for i in s["indicators"]]
+    else:
+        L.append("_No country index data found._")
+    L += ["", f"**{s['sector']['label']}:** _{s['sector']['value']}_. {esc(s['sector']['note'])}", ""]
 
-    L += ["## Recommended next steps for the buyer", ""]
-    L += [f"- {esc(x)}" for x in r.next_steps[:3]]
-    L += ["", "---", ""]
-
-    # -- page 2: details -----------------------------------------------------------
-    L += ["## What we dug into", ""]
-    if not r.followups:
-        L.append("No follow-up searches were needed: no red or watch item warranted a deeper check.")
-    for fu in r.followups:
-        flag = flags_by_id.get(fu.flag_id)
-        what = f"{flag.colour.replace('amber', 'watch item').replace('red', 'red flag')} {cit.cite(flag.source_ids)}" if flag else "item"
-        refs = cit.cite(fu.corroborating_source_ids)
-        L.append(f"- **{esc(fu.question)}** (on {what.strip()}) {esc(fu.outcome)} {refs}".rstrip())
+    s = by["company_risks"]
+    L += _h2(s)
+    for a in s["areas"]:
+        L += [f"### {STATUS_GLYPH[a['status']]} {esc(a['label'])} · {a['status_label']} · score {_score(a['score'])}", ""]
+        L += [_item(i) for i in a["rows"]]
+        L.append("")
+    tl = s["timeline"]
+    L += ["**Event timeline** (oldest first)", ""]
+    L += [f"- {esc(ev['date'] or '')} · {esc(ev['area_label'])} · {ev['label']}: {esc(ev['summary'])}"
+          for ev in tl["events"]] or ["No dated findings in the sources checked."]
+    if tl["undated"]:
+        L.append(f"- {plural(int(tl['undated']), 'finding')} without a date not shown.")
     L.append("")
 
-    L += ["## How to read this report", ""]
-    L.append(f"- Sources: {TRUSTED_MARK} = on our trusted source list. {UNVERIFIED_MARK} = {UNVERIFIED_TEXT} "
-             "(an unverified site): a fact found only there is at most a watch item and never a knock-out, "
-             "until a trusted source confirms it.")
-    L.append(f"- Scores: 0–100, higher = more risk (scale of the challenge dataset); Low 0–24, Medium 25–49, High 50–74, Critical 75–100. "
-             f"Method: {esc(r.scores.total_method)}. An area with no evidence is never scored.")
+    s = by["weighting"]
+    L += _h2(s) + ["| Risk area | Score · level | Weight |", "| --- | --- | --- |"]
+    L += [f"| {esc(a['label'])} | {_score(a)} | {str(a['weight_pct']) + '%' if a.get('weight_pct') is not None else '—'} |"
+          for a in s["areas"]]
+    t = s["total"]
+    L.append(f"| **Total** | {t['score']} · {t['level']} | 100% |" if t.get("score") is not None
+             else f"| **Total** | _{t.get('no_total')}_ | |")
+    L += ["", "**Likelihood and severity** (risk codes from the register)", ""]
+    hm = s["heatmap"]
+    L.append("| Severity \\ Likelihood | " + " | ".join(c["label"] for c in hm["columns"]) + " |")
+    L.append("| --- |" + " --- |" * len(hm["columns"]))
+    for row in hm["rows"]:
+        cells = [(", ".join(x["risk_id"] for x in c["risks"]) or "—") + f" ({c['priority_label']})" for c in row["cells"]]
+        L.append(f"| **{row['label']}** | " + " | ".join(cells) + " |")
+    L.append("")
+    L += [f"- **{b['label']}:** _{b['value']}_" for b in s["buyer_inputs"]]
     L.append("")
 
-    L += ["## Limits of this report", ""]
-    L += [f"- {esc(x)}" for x in r.limits]
+    s = by["register"]
+    L += _h2(s)
+    if not s["rows"]:
+        L += [esc(s["empty"]), ""]
+    else:
+        L += ["| ID | Risk | Area | Owner | Weighting | Suggested measures |", "| --- | --- | --- | --- | --- | --- |"]
+        for x in s["rows"]:
+            area_sc = f"{x['area_score']} · {x['area_level']}" if x.get("area_score") is not None else \
+                f"_{x.get('area_no_score') or 'Not assessed'}_"
+            when = f" ({esc(x['date'])})" if x.get("date") else ""
+            tags = f" ({', '.join(esc(t) for t in x['tags'])})" if x["tags"] else ""
+            L.append(f"| {x['risk_id']} | {GLYPH[x['colour']]} {esc(x['description'])}{when}{tags} "
+                     f"{_cites(list(x['cites']))} | {esc(x['area_label'])} | _{x['owner']}_ | {x['priority_label']}: "
+                     f"severity {x['severity']}, likelihood {x['likelihood']}; area score {area_sc} | "
+                     f"{' '.join(esc(m) for m in x['measures'])} |")
+        L.append("")
+
+    s = by["prevention"]
+    L += _h2(s)
+    for n, st in enumerate(s["steps"], start=1):
+        tied = ", ".join(x["risk_id"] for x in st["risks"])
+        L.append(f"{n}. {esc(st['text'])}" + (f" (addresses {tied})" if tied else ""))
     L.append("")
 
-    L += ["## Sources", ""]
-    if not cit.order:
+    s = by["documentation"]
+    L += _h2(s) + ["**How the scores work**", ""]
+    L += [f"- {esc(m)}" for m in s["method"]]
+    if s["weights"]:
+        L.append("- Area weights: " + ", ".join(f"{esc(w['label'])} {w['pct']}%" for w in s["weights"]) + ".")
+    if s.get("total_method"):
+        L.append(f"- Total in this report: {esc(s['total_method'])}.")
+    hr = s["heatmap_rule"]
+    L += ["", "**Heatmap rule**", "", esc(hr["note"]) + " Rules are read top to bottom; the first that fits applies.", ""]
+    L += [f"- Severity: {esc(c)} → {v}" for c, v in hr["severity"]]
+    L += [f"- Likelihood: {esc(c)} → {v}" for c, v in hr["likelihood"]]
+    bd = s["breakdown"]
+    L += ["", "**How each fact was scored**", "", esc(bd["note"]), ""]
+    for a in bd["areas"]:
+        L.append(f"- **{esc(a['label'])}**: {_score(a)}")
+        for sub in a["sub_scores"]:
+            sc = sub["score"] if sub.get("score") is not None else f"_{esc(sub.get('not_assessed') or 'Not assessed')}_"
+            L.append(f"  - {esc(sub['label'])}: {sc}")
+            for x in sub["lines"]:
+                pts = f" = {x['points']:.1f}" if x.get("points") is not None else ""
+                L.append(f"    - {esc(x['label'])}{pts}: {esc(x['rule'])} {_cites(list(x['cites']))}".rstrip())
+        for x in a["overrides"]:
+            L.append(f"  - Override: {esc(x['label'])}: {esc(x['rule'])}")
+    for x in bd["total_overrides"]:
+        L.append(f"- Total override: {esc(x['label'])}: {esc(x['rule'])}")
+    L += ["", "**Follow-up checks**", ""]
+    if not s["followups"]:
+        L.append("No follow-up searches were needed: no red flag or watch item called for a deeper check.")
+    for fu in s["followups"]:
+        on = f" (on {fu['risk_id']})" if fu.get("risk_id") else ""
+        L.append(f"- **{esc(fu['question'])}**{on} {esc(fu['outcome'])} {_cites(list(fu['cites']))}".rstrip())
+    L += ["", "**Limits of this report**", ""]
+    L += [f"- {esc(x)}" for x in s["limits"]]
+    L += ["", "**Sources**", "", f"{TRUSTED_MARK} on our trusted source list · {UNVERIFIED_MARK} {UNVERIFIED_TEXT}", ""]
+    if not s["sources"]:
         L.append("No sources cited.")
-    for i, sid in enumerate(cit.order, start=1):
-        s = cit.by_id[sid]
-        pub = normalize_date(s.published_date) or "date not stated"
-        if s.trust == "unverified":
-            mark = f"{UNVERIFIED_MARK} {UNVERIFIED_TEXT}"
-        else:
-            mark = f"{TRUSTED_MARK} trusted" + (", company-stated" if s.tier == "company_own" else "")
-        L.append(f"{i}. {mark} · {esc(s.title)} — {esc(s.publisher)}, {pub} (accessed {s.retrieved_at[:10]}). <{s.url}>")
-    uncited = len(r.sources) - len(cit.order)
-    if uncited > 0:
-        verb = "is" if uncited == 1 else "are"
-        L += ["", f"{plural(uncited, 'further source')} checked {verb} in the full data."]
+    for src in s["sources"]:
+        quotes = "".join(f" “{esc(q)}”" for q in src["quotes"])
+        L.append(f"{src['num']}. {src['trust_label']} · {esc(src['title'])} — {esc(src['publisher'])}, "
+                 f"{src['published'] or 'date not stated'} (accessed {src['accessed']}). <{src['url']}>{quotes}")
+    if s["uncited"] > 0:
+        L += ["", f"{plural(int(s['uncited']), 'further source')} checked but not cited."]
+    f = by["footer"]
+    L += ["", "---", "", f"_{esc(f['text'])} Structure source: [{esc(f['link_label'])}]({f['link']})._"]
     return "\n".join(L).rstrip() + "\n"
 
 
-def _score_text(score: int | None, level: str | None) -> str:
-    return f"{score} · {level}" if score is not None else "— (not scored yet)"
-
-
-def _area_score_cell(a: AreaScore | None) -> str:
-    if a is None:
-        return "—"
-    parts = []
-    if a.trusted_pages:
-        parts.append(plural(a.trusted_pages, "trusted page"))
-    if a.unverified_pages:
-        parts.append(f"{UNVERIFIED_MARK} {plural(a.unverified_pages, 'unverified page')}")
-    cov = " + ".join(parts) or COVERAGE_TEXT["not_assessed"]
-    if a.score is None:
-        return f"— · {cov}"
-    return f"{a.score} · {a.level or '—'} · {cov}"
-
-
-def render_markdown(result: ResearchResult) -> str:
-    """Render the buyer report. Flag lists are never trimmed; if the report runs long,
-    risk-table rows that repeat a listed flag are shortened to a pointer instead."""
-    md = _render(result, _Compact())
-    if report_word_count(md) > TARGET_WORDS:
-        md = _render(result, _Compact(table_refs_only=True))
-    return md
+def render_markdown(result: ResearchResult, page_texts: Mapping[str, str] | None = None) -> str:
+    """Render the buyer report in the fixed section order. Flag lists are never trimmed."""
+    return _render(build_sections(result, Evidence(page_texts=dict(page_texts or {}))), result)

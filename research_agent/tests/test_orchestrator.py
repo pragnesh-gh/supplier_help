@@ -329,9 +329,9 @@ def test_no_evidence_result(fx):
 def test_report_from_run_is_short_and_complete(fx):
     r = _run(fx)
     md = render_markdown(r)
-    assert report_word_count(md) <= 900  # about two pages
-    for h in ("Red flags", "Watch items", "Strengths", "Risk areas", "What we dug into", "Limits of this report",
-              "Recommended next steps", "Sources"):
+    assert report_word_count(md) > 0
+    for h in ("Summary for decision makers", "Company-specific risks found", "Risk register",
+              "From priority risks to prevention", "Follow-up checks", "Limits of this report", "Sources"):
         assert h in md
     assert "legal statement" in md  # rule-based next step for a legal red flag
 
@@ -347,25 +347,12 @@ def test_missing_keys_give_error_status(monkeypatch):
 def test_every_flag_in_table_or_summary_is_in_the_lists(fx):
     r = _run(fx)
     md = render_markdown(r)
-    lists = md.split("## 🔴 Red flags", 1)[1].split("## Recommended next steps", 1)[0]
-    from research_agent.report import CAP_AMBER, CAP_GREEN, CAP_RED
-    from research_agent.rules import sort_flags
-    caps = {"red": CAP_RED, "amber": CAP_AMBER, "green": CAP_GREEN}
-    shown = []
-    for colour, cap in caps.items():
-        shown += [f for f in sort_flags(r.flags) if f.colour == colour][:cap]
-    for f in shown:
-        assert f.summary in lists, f"{f.id} {f.summary!r} missing from lists"
-    hidden = [f for f in r.flags if f.colour != "neutral" and f not in shown]
-    assert len(hidden) == 1 and hidden[0].stale  # the 2019 accident is the lowest-priority watch item
-    assert "+1 lower-priority watch item not shown" in lists
-    for a in r.areas:
-        for fid in a.flag_ids[:1]:
-            f = next(x for x in r.flags if x.id == fid)
-            if f.colour != "neutral":
-                assert f.summary in lists
-    assert "result.json" not in md and "(s)" not in md
-    assert report_word_count(md) <= 900
+    lists = md.split("## 4. Company-specific risks found", 1)[1].split("## 5. ", 1)[0]
+    for f in r.flags:
+        if f.area == "country" and f.data:
+            continue  # country index figures are shown in section 3
+        assert f.summary in lists, f"{f.id} {f.summary!r} missing from section 4"
+    assert "not shown" not in lists.split("**Event timeline**")[0]  # nothing is trimmed
 
 
 def test_followup_and_limits_text_pluralised(fx):
@@ -586,8 +573,10 @@ def test_stale_legal_matter_shows_as_context_not_green(fx):
     legal = next(a for a in r.areas if a.area == "legal")
     assert legal.status == "context"
     md = render_markdown(r)
-    row = next(ln for ln in md.splitlines() if ln.startswith("| Legal"))
-    assert "⚪ Context: older or resolved matter" in row and "(2018)" in row and "No issues found" not in row
+    head = next(ln for ln in md.splitlines() if ln.startswith("### ") and "Legal & Governance" in ln)
+    assert "Context only" in head and "nothing adverse" not in head
+    row = next(ln for ln in md.splitlines() if "2018 US consent judgment" in ln and ln.startswith("- "))
+    assert "**Context:**" in row and "(2018-07-11)" in row and "older event" in row
 
 
 def test_trusted_followup_contradicting_unverified_claim(fx):

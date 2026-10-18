@@ -155,3 +155,92 @@ def test_score_explainer_with_breakdown_dict_and_raw_key():
     raw = json.loads(r.model_dump_json())
     raw["scoring"] = bd
     assert score_explainer(raw)["available"] is True
+
+
+# ---------------------------------------------------------------------------
+# TL;DR = report section 1 (points, order, citations, overrides, wording)
+# ---------------------------------------------------------------------------
+
+def _points(d):
+    return [s for s in d["segments"] if s["kind"] == "flag"]
+
+
+def test_fixture_tldr_has_3_to_5_points_in_order_and_matches_section_1():
+    from research_agent.report_data import report_sections, section
+    d = tldr_data(EXAMPLES / "sample_result.json")
+    pts = _points(d)
+    assert 3 <= len(pts) <= 5
+    rank = {"red": 0, "amber": 1, "green": 2}
+    assert [rank[p["colour"]] for p in pts] == sorted(rank[p["colour"]] for p in pts)
+    s1 = section(report_sections(EXAMPLES / "sample_result.json"), "summary")
+    assert [p["flag_id"] for p in pts] == [x["flag_id"] for x in s1["key_findings"]]
+    assert [p["label"] for p in pts] == [x["label"] for x in s1["key_findings"]]
+    assert d["score"]["text"] == s1["total"]["text"]
+    assert d["score"]["total"] == s1["total"]["score"] and d["score"]["level"] == s1["total"]["level"]
+    assert d["score"]["coverage_pct"] == s1["total"]["coverage_pct"]
+    assert d["not_assessed"] == s1["not_assessed"]
+
+
+def test_every_point_has_a_full_citation():
+    d = tldr_data(EXAMPLES / "sample_result.json")
+    by_id = {c["id"]: c for c in d["citations"]}
+    raw = json.loads((EXAMPLES / "sample_result.json").read_text())
+    flags = {f["id"]: f for f in raw["flags"]}
+    for p in _points(d):
+        assert p["citations"], p
+        for n in p["citations"]:
+            c = by_id[n]
+            assert c["quote"] and c["quote"] == " ".join(flags[p["flag_id"]]["quote"].split())
+            assert c["source_id"] in flags[p["flag_id"]]["source_ids"]
+            assert c["url"].startswith("http") and c["link"].startswith("http")
+            assert c["accessed"] and (c["published"] or c["published"] is None)
+            assert c["trust_label"].startswith(("✅", "🟨"))
+            assert f"[{n}]" in d["text"]
+
+
+def test_point_selection_red_amber_then_checked():
+    from research_agent.models import ResearchResult  # noqa: F401
+    reds = [_flag(i, "red", src=1) for i in range(1, 4)]
+    ambers = [_flag(i, "amber", src=1) for i in range(4, 7)]
+    greens = [_flag(i, "green", src=1) for i in range(7, 10)]
+    d = tldr_data(_result(flags=reds + ambers + greens, sources=[_src(1)]))
+    assert [p["colour"] for p in _points(d)] == ["red", "red", "red", "amber", "green"]
+    d = tldr_data(_result(flags=[_flag(1, "amber", src=1)] + greens, sources=[_src(1)]))
+    assert [p["colour"] for p in _points(d)] == ["amber", "green", "green"]
+    assert [p["label"] for p in _points(d)][1] == "Checked, nothing adverse found"
+    d = tldr_data(_result(flags=greens, sources=[_src(1)]))
+    assert [p["colour"] for p in _points(d)] == ["green"] * 3
+    assert "No red flags or watch items found in the sources checked." in d["text"]
+
+
+def test_not_assessed_never_zero_or_low_risk():
+    vals = dict(FULL)
+    vals["reputation"] = (0, "not_assessed")
+    d = tldr_data(_cited_result(scores=_scores(vals, total=30, level="Medium")))
+    assert "Not assessed: Reputation & Outside View." in d["text"]
+    seg = next(s for s in d["segments"] if s["kind"] == "gaps")["text"]
+    assert "0" not in seg and "low risk" not in d["text"].lower() and "no risk" not in d["text"].lower()
+
+
+def test_overrides_are_reflected():
+    r = _cited_result(scores=_scores(FULL, total=75, level="Critical"))
+    r.flags[0].knockout = True
+    r.verdict = "Knock-out risk found — do not proceed without escalation"
+    r.scoring_detail = {"areas": [{"area": "legal", "sub_scores": [], "contributions": [
+        {"kind": "override", "ref": "F1", "label": "area floor: 37 raised to 50", "points": 50.0, "rule": "x"}]}],
+        "total_contributions": [{"kind": "override", "ref": "F1", "label": "knock-out: total 40 raised to 75",
+                                 "points": 75.0, "rule": "x"}]}
+    d = tldr_data(r)
+    assert "Risk score 75/100 · Critical" in d["text"]
+    assert "Legal & Governance raised to 50 (High) by a current red flag from a trusted source." in d["text"]
+    assert "Total raised to 75 (Critical) by a knock-out finding from a trusted source." in d["text"]
+    assert "Red flag, knock-out:" in d["text"] and d["verdict"]["tone"] == "critical"
+
+
+def test_tldr_wording_is_plain_and_deterministic():
+    d1 = tldr_data(EXAMPLES / "sample_result.json")
+    d2 = tldr_data(json.loads((EXAMPLES / "sample_result.json").read_text()))
+    assert d1 == d2
+    for bad in (".yaml", "appendix", "§", "result.json", "_", "TODO", "fixture", "rule"):
+        assert bad not in d1["text"], bad
+    assert d1["word_count"] <= MAX_WORDS

@@ -4,7 +4,7 @@
   (NotebookLM-style), chips, and a citations table. Each citation carries the exact quote, a
   context excerpt with the quote's character offsets (when page text is available), and a
   text-fragment link (``url#:~:text=...``) that opens the source at the quoted passage.
-* :func:`tldr` -> the same TL;DR as plain text with [n] markers, at most about 60 words.
+* :func:`tldr` -> the same TL;DR as plain text with [n] markers, at most about 120 words: verdict, total, 3-5 cited points.
 * :func:`score_explainer` -> data for the "How was this scored?" view, from the scoring
   step's per-fact breakdown if it is available, else from the ScoreCard alone.
 
@@ -21,9 +21,9 @@ from pathlib import Path
 from typing import Any
 
 from .models import Flag, ResearchResult
+from .report_data import point_label
 from .report_html import (
     AREA_LABELS,
-    COLOUR_WORD,
     CitationIndex,
     Evidence,
     area_score_value,
@@ -33,14 +33,15 @@ from .report_html import (
     is_scored,
     load_input,
     not_assessed_areas,
-    ranked_flags,
+    key_points,
+    override_notes,
+    score_line,
     score_range,
     verdict_tone,
 )
 
-MAX_WORDS = 60
-MAX_FLAGS = 2
-FLAG_WORDS = (16, 12, 9)  # summary word caps tried in turn until the TL;DR fits
+MAX_WORDS = 120
+FLAG_WORDS = (16, 12, 9, 7)  # summary word caps tried in turn until the TL;DR fits
 TEMPLATE_DIR = Path(__file__).parent / "templates"
 DEMO_TEMPLATE = TEMPLATE_DIR / "citation_demo.html"
 _DATA_START, _DATA_END = "/*TLDR_DATA_START*/", "/*TLDR_DATA_END*/"
@@ -75,16 +76,8 @@ def _with_markers(text: str, nums: list[int]) -> str:
 
 def _score_segment(r: ResearchResult) -> tuple[str, dict[str, Any]]:
     cov = coverage_pct(r)
-    cov_txt = f" · coverage {cov}%" if cov is not None else ""
     total, level = r.scores.total, r.scores.total_level
-    if total is not None:
-        text = f"Risk score {total}/100 · {level}{cov_txt}."
-    elif is_scored(r):
-        text = (f"Total score not shown: only {cov}% of the score weight has evidence." if cov is not None
-                else "Total score not shown: too little evidence.")
-    else:
-        text = "Risk score not scored yet" + (f"; evidence covers {cov}% of the score weight." if cov is not None
-                                              else ".")
+    text = score_line(r)  # same line as the report's summary section
     rng = score_range(r)
     return text, {"total": total, "level": level, "coverage_pct": cov, "scored": is_scored(r),
                   "range": list(rng) if rng else None, "text": text}
@@ -92,13 +85,13 @@ def _score_segment(r: ResearchResult) -> tuple[str, dict[str, Any]]:
 
 def _flag_text(f: Flag, max_words: int) -> str:
     when = f" ({f.event_date})" if f.event_date else ""
-    tag = ", alleged" if f.claim_status == "alleged" else ""
+    tag = ", knock-out" if f.knockout else ""
+    tag += ", alleged" if f.claim_status == "alleged" else ""
     tag += ", unverified source only" if f.trust == "unverified" else ""
-    return _sentence(f"{COLOUR_WORD[f.colour]}{tag}: {_shorten(f.summary, max_words)}{when}")
+    return _sentence(f"{point_label(f)}{tag}: {_shorten(f.summary, max_words)}{when}")
 
 
-def _build(r: ResearchResult, ev: Evidence, report_url: str | None, max_words: int,
-           n_flags: int) -> dict[str, Any]:
+def _build(r: ResearchResult, ev: Evidence, report_url: str | None, max_words: int) -> dict[str, Any]:
     idx = CitationIndex(r, ev, numbering="passage")
     segments: list[dict[str, Any]] = []
     chips: list[dict[str, Any]] = []
@@ -126,31 +119,22 @@ def _build(r: ResearchResult, ev: Evidence, report_url: str | None, max_words: i
         seg(score_text, "score")
         chips.append({"kind": "score", "label": (f"{score['total']}/100 · {score['level']}"
                                                  if score["total"] is not None else "Not scored yet"
-                                                 if not score["scored"] else "Total not shown"),
+                                                 if not score["scored"] else "No total"),
                       "level": score["level"]})
         if score["coverage_pct"] is not None:
             chips.append({"kind": "coverage", "label": f"Coverage {score['coverage_pct']}%"})
-        top = [f for f in ranked_flags(r) if f.colour in ("red", "amber")][:n_flags]
+        for note in override_notes(r):
+            seg(note, "override")
+        top = key_points(r)  # the same points, in the same order, as report section 1
         for f in top:
             c = idx.primary(f)
             nums = [c.num] if c else []
             seg(_flag_text(f, max_words), "flag", nums, colour=f.colour, flag_id=f.id, date=f.event_date,
-                area=f.area)
+                area=f.area, label=point_label(f))
             chips.append({"kind": "flag", "colour": f.colour, "label": _shorten(f.summary, 6),
                           "date": f.event_date, "area": AREA_LABELS[f.area], "citations": nums, "flag_id": f.id})
-        if not top:
-            said = "no red flags" in verdict.lower()
-            seg("No watch items found either." if said else
-                "No red flags or watch items found in the sources checked.", "no_findings")
-            best = next((f for f in ranked_flags(r) if f.colour == "green"), None)
-            if best is not None:
-                c = idx.primary(best)
-                nums = [c.num] if c else []
-                seg(_flag_text(best, max_words), "flag", nums, colour="green", flag_id=best.id,
-                    date=best.event_date, area=best.area)
-                chips.append({"kind": "flag", "colour": "green", "label": _shorten(best.summary, 6),
-                              "date": best.event_date, "area": AREA_LABELS[best.area], "citations": nums,
-                              "flag_id": best.id})
+        if not any(f.colour in ("red", "amber") for f in top):
+            seg("No red flags or watch items found in the sources checked.", "no_findings")
         gaps = [AREA_LABELS[a] for a in not_assessed_areas(r)]
         if gaps:
             seg(_sentence("Not assessed: " + ", ".join(gaps)), "gaps")
@@ -179,14 +163,13 @@ def _build(r: ResearchResult, ev: Evidence, report_url: str | None, max_words: i
 
 def tldr_data(result: ResultInput, report_url: str | None = None,
               page_texts: Mapping[str, str] | None = None) -> dict[str, Any]:
-    """Structured TL;DR for the chat UI (segments + chips + citations), at most ~60 words."""
+    """Structured TL;DR for the chat UI (segments + chips + citations), at most about 120 words."""
     r, ev = load_input(result, page_texts)
     out: dict[str, Any] = {}
-    for n_flags in (MAX_FLAGS, 1):
-        for cap in FLAG_WORDS:
-            out = _build(r, ev, report_url, cap, n_flags)
-            if out["word_count"] <= MAX_WORDS:
-                return out
+    for cap in FLAG_WORDS:
+        out = _build(r, ev, report_url, cap)
+        if out["word_count"] <= MAX_WORDS:
+            return out
     return out
 
 

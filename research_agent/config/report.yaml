@@ -1,0 +1,53 @@
+# Report settings read by research_agent/heatmap.py and the report renderers.
+#
+# Heatmap rule: every red flag and watch item is placed in a likelihood x severity grid.
+# Code decides both from facts already in the result; no model is asked. The same table is
+# printed in the report's method section and in docs/research/report-template-standard.md.
+#
+# Rules are read top to bottom; the first rule whose "when" matches wins. A rule without
+# "when" matches everything. Possible "when" keys:
+#   colour             red | amber              (flag colour after rules.yaml)
+#   verifier_severity  high | medium | low      (severity label from the verifier)
+#   trust              trusted | unverified     (unverified = every source is off our trusted list)
+#   claim_status       confirmed | alleged | unclear (one value or a list)
+#   corroborated       true = at least 2 independent sources, at least one of them trusted
+#   firsthand          true = the authority or the company itself states it
+
+heatmap:
+  severity_levels: [high, medium, low]            # rows, top to bottom
+  likelihood_levels: [unconfirmed, possible, likely]  # columns, left to right
+  labels:
+    high: High
+    medium: Medium
+    low: Low
+    likely: Likely
+    possible: Possible
+    unconfirmed: Unconfirmed
+  severity_rules:
+    - when: {colour: red}
+      then: high
+    - when: {colour: amber, verifier_severity: low}
+      then: low
+    - when: {colour: amber}
+      then: medium
+  likelihood_rules:
+    - when: {trust: unverified}
+      then: unconfirmed
+    - when: {claim_status: [alleged, unclear]}
+      then: possible
+    - when: {corroborated: true}
+      then: likely
+    - when: {firsthand: true}
+      then: likely
+    - then: possible
+  # Priority of each cell (severity -> likelihood -> priority). Sets the cell tint and the
+  # order of the risk register: priority 1 first.
+  priority:
+    high:   {likely: 1, possible: 2, unconfirmed: 3}
+    medium: {likely: 2, possible: 3, unconfirmed: 4}
+    low:    {likely: 3, possible: 4, unconfirmed: 4}
+  priority_labels:
+    1: Top priority
+    2: High priority
+    3: Medium priority
+    4: Low priority

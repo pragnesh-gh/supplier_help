@@ -550,8 +550,8 @@
       },
       {
         "area": "legal",
-        "score": 37,
-        "level": "Medium",
+        "score": 50,
+        "level": "High",
         "coverage": "assessed",
         "trusted_pages": 2,
         "unverified_pages": 1,
@@ -559,7 +559,7 @@
           "Compliance_Risk_Score": 53,
           "Governance_Risk_Score": 12
         },
-        "method": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13; coverage 100 %"
+        "method": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13; override: area floor: 37 raised to 50; coverage 100 %"
       },
       {
         "area": "country",
@@ -1698,6 +1698,19 @@
     },
     {
       "kind": "verify",
+      "message": "Veltrava Rail Components GmbH: 3 of 3 facts verified.",
+      "data": {
+        "source_id": "S3",
+        "colours": [
+          "green",
+          "green",
+          "neutral"
+        ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
       "message": "Bundeskartellamt: 1 of 1 facts verified.",
       "data": {
         "source_id": "S4",
@@ -1709,14 +1722,21 @@
     },
     {
       "kind": "verify",
-      "message": "Veltrava Rail Components GmbH: 3 of 3 facts verified.",
+      "message": "Handelsblatt: 1 of 1 facts verified.",
       "data": {
-        "source_id": "S3",
+        "source_id": "S7",
         "colours": [
-          "green",
-          "green",
-          "neutral"
+          "amber"
         ]
+      },
+      "elapsed_s": 0.0
+    },
+    {
+      "kind": "verify",
+      "message": "Reuters: 0 of 1 facts verified.",
+      "data": {
+        "source_id": "S8",
+        "colours": []
       },
       "elapsed_s": 0.0
     },
@@ -1734,30 +1754,10 @@
     },
     {
       "kind": "verify",
-      "message": "Reuters: 0 of 1 facts verified.",
-      "data": {
-        "source_id": "S8",
-        "colours": []
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
       "message": "Railway Age: 0 of 2 facts verified.",
       "data": {
         "source_id": "S6",
         "colours": []
-      },
-      "elapsed_s": 0.0
-    },
-    {
-      "kind": "verify",
-      "message": "Handelsblatt: 1 of 1 facts verified.",
-      "data": {
-        "source_id": "S7",
-        "colours": [
-          "amber"
-        ]
       },
       "elapsed_s": 0.0
     },
@@ -2249,6 +2249,7 @@
     "range_low": 17,
     "range_high": 45,
     "knockout": false,
+    "total_contributions": [],
     "confidence_shares": {
       "high": 0.3472,
       "medium": 0.3889,
@@ -2316,16 +2317,17 @@
               }
             ]
           }
-        ]
+        ],
+        "contributions": []
       },
       {
         "area": "legal",
         "label": "Legal & Governance",
-        "score": 37,
-        "level": "Medium",
+        "score": 50,
+        "level": "High",
         "weight": 0.13,
         "coverage_fraction": 1.0,
-        "formula": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13",
+        "formula": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13; override: area floor: 37 raised to 50",
         "sub_scores": [
           {
             "name": "Compliance_Risk_Score",
@@ -2403,6 +2405,16 @@
               }
             ]
           }
+        ],
+        "contributions": [
+          {
+            "kind": "override",
+            "ref": "F5",
+            "label": "area floor: 37 raised to 50",
+            "points": 50.0,
+            "rule": "a current, trusted red fact puts its area at least at 50 (High); unverified-only facts never do (scoring_method.yaml overrides; appendix §A5); precedent: S&P Global Ratings lets one decisive factor override or cap the weighted result: the 'overriding factors' step of 'Methodology For Rating Local And Regional Governments Outside Of The U.S.' (15 July 2019; https://www.maalot.co.il/Publications/MT20200715130530.PDF) and the caps in 'How We Rate Insurers' (https://www.spglobal.com/content/dam/spglobal/ratings/en/documents/pdfs/how-we-rate-insurers.pdf)",
+            "source": "S11, S4"
+          }
         ]
       },
       {
@@ -2462,7 +2474,8 @@
             "formula": "",
             "contributions": []
           }
-        ]
+        ],
+        "contributions": []
       },
       {
         "area": "people",
@@ -2555,7 +2568,8 @@
               }
             ]
           }
-        ]
+        ],
+        "contributions": []
       },
       {
         "area": "operations",
@@ -2653,7 +2667,8 @@
               }
             ]
           }
-        ]
+        ],
+        "contributions": []
       },
       {
         "area": "reputation",
@@ -2716,7 +2731,8 @@
             "formula": "",
             "contributions": []
           }
-        ]
+        ],
+        "contributions": []
       }
     ],
     "constants": {
@@ -2751,8 +2767,8 @@
         },
         {
           "area": "legal",
-          "score": 37,
-          "level": "Medium",
+          "score": 50,
+          "level": "High",
           "coverage": "assessed",
           "trusted_pages": 2,
           "unverified_pages": 1,
@@ -2760,7 +2776,7 @@
             "Compliance_Risk_Score": 53,
             "Governance_Risk_Score": 12
           },
-          "method": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13; coverage 100 %"
+          "method": "weighted mean of 2 of 2 sub-scores (Compliance_Risk 53 x 0.08, Governance_Risk 12 x 0.05) / 0.13; override: area floor: 37 raised to 50; coverage 100 %"
         },
         {
           "area": "country",
@@ -2837,8 +2853,9 @@
       "total_method": "weighted average of 11 of 18 sub-scores = 17.34 / 0.72; coverage 72 %; if unassessed scores were 0 or 100: 17-45"
     }
   },
+  "profile": {},
   "fingerprint": {
-    "config_hash": "1b4d9c5dd3eceb65",
+    "config_hash": "31e05f1a7d6c899b",
     "models": {
       "gatherer": "fake-gatherer",
       "verifier": "fake-verifier"

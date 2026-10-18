@@ -60,3 +60,23 @@ Rules for every section:
 1. **Likelihood and severity per flag.** BAFA wants both rated separately (p. 12). Severity has three sub-criteria: degree, number affected, irreversibility (p. 19). We have neither yet. *Option A:* severity comes from the flag colour (red/amber), and likelihood comes from evidence status (verified, "probably", "realistic possibility"). *Option B:* leave the heatmap "Not assessed" and keep only the radar.
 2. **Labels:** English only, or English with the German BAFA terms in brackets?
 3. **Strengths:** fold them into section 4, or keep them as a separate list?
+
+## 5. Heatmap rule
+
+Decided 2026-10-18 (option A in decision 1). Code places every red flag and watch item in a likelihood × severity grid. No model is asked. The table is in `research_agent/config/report.yaml` (`heatmap`), and the report prints the same table in section 8. Rules are read top to bottom; the first that fits applies.
+
+| Severity: when the fact is … | Result |
+|---|---|
+| a red flag | High |
+| a watch item the verifier rated low severity | Low |
+| any other watch item | Medium |
+
+| Likelihood: when the fact is … | Result |
+|---|---|
+| found only on sites not in our trusted source list (🟨) | Unconfirmed |
+| an alleged or unclear claim | Possible |
+| confirmed by at least two independent sources, one of them trusted | Likely |
+| stated by the authority or the company itself (trusted source) | Likely |
+| any other case (one trusted source) | Possible |
+
+Each cell has a priority (1 = top priority … 4 = low priority). The risk register lists risks in priority order, and each heatmap cell links to its risks in the register. Influence on the supplier and our own contribution to the risk are buyer inputs: they show "Buyer input, not assessed".

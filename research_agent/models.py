@@ -404,6 +404,16 @@ class RunStats(BaseModel):
     elapsed_s: float = 0.0
 
 
+ProfileKey = Literal["parent_company", "products", "sites", "employees", "employee_representation"]
+
+
+class ProfileFact(BaseModel):
+    """One researched supplier-profile field for report section 2, with the sources that state it."""
+
+    value: str
+    source_ids: list[str] = Field(default_factory=list)
+
+
 class ResearchResult(BaseModel):
     status: RunStatus
     company_input: str
@@ -433,5 +443,8 @@ class ResearchResult(BaseModel):
     scoring_inputs: dict[str, Any] | None = Field(default=None, description="scoring_inputs.ScoringInputs as JSON.")
     scoring_detail: dict[str, Any] | None = Field(default=None, description="scoring.ScoringReport as JSON, for "
                                                   "'How was this scored?' (ScoringReport.model_validate + explain_text).")
+    profile: dict[ProfileKey, ProfileFact] = Field(default_factory=dict, description="Supplier profile facts for "
+                                                   "the report (parent company, products, sites, employees, employee "
+                                                   "representation). A missing key is shown as 'Not found'.")
     fingerprint: dict[str, Any] = Field(default_factory=dict, description="Config hash, models, cache day and query "
                                         "list, so two runs can be compared (python -m research_agent.diff_runs).")

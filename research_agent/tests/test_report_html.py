@@ -159,7 +159,7 @@ def test_total_not_shown_and_range_from_method_line():
     method = ("total not shown: coverage 40 % is below the 50 % minimum (appendix §A5); possible range 12-72")
     vals = {"financial": (30, "assessed"), "legal": (50, "assessed")}
     html = render_html(_result(scores=_scores(vals, total=None, method=method)))
-    assert "Total not shown" in html
+    assert "No total: too little assessed" in html
     assert "Coverage 40%" in html
     assert "12–72" in html
 
@@ -182,7 +182,7 @@ def test_citation_popover_shows_quote_in_context_and_deep_link():
     assert "Open source at this passage" in html
     assert "#:~:text=fined%20EUR%204.2%20million%20for%20price%2Dfixing" in html
     # print: the quote is also in the Sources list
-    sources_part = html[html.index("<h2>Sources</h2>"):]
+    sources_part = html[html.index("<h3>Sources</h3>"):]
     assert f"“{quote}”" in sources_part
 
 
@@ -232,7 +232,7 @@ def test_special_pages_and_wording():
     assert "Research failed" in err and "TAVILY_API_KEY missing" in err
     ok = render_html(_result(flags=[]))
     assert "no risk" not in ok.lower()
-    assert "No red flags found in the sources checked." in ok
+    assert "No red flags or watch items found in the sources checked." in ok
 
 
 def test_context_area_status_and_followups_render():
