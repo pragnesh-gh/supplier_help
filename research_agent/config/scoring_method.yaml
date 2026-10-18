@@ -69,6 +69,18 @@ licensed:
 country_basis: sites_then_hq
 
 # --- Total and coverage (appendix §A5)
+# --- Override rules (appendix §A5). Only trusted facts trigger them; unverified-only facts never do.
+# [S] Precedent: S&P Global Ratings lets one decisive factor override or cap the weighted result
+# ("overriding factors" in "Methodology For Rating Local And Regional Governments Outside Of The
+# U.S.", 15 July 2019; caps in "How We Rate Insurers"). Kept here, not in scoring.yaml, because
+# scoring.yaml's `method:` slot must stay empty until the files merge (test_orchestrator).
+overrides:
+  # [D] A current, trusted red fact puts its area at least here: the start of High, the same
+  # level one fresh red event gives its own sub-score (anchor fresh_red_event).
+  trusted_red_area_floor: 50
+  # [D] A trusted knock-out puts the total at least here: the start of Critical.
+  knockout_total_floor: 75
+
 total:
   # Derived in code: minimum coverage = 1 - 2*band_width/100 = 0.5, so the best/worst range
   # (100*(1-c) wide) keeps the true total within one band of its midpoint.

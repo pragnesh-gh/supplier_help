@@ -237,7 +237,11 @@ The language model only records signals. Code assigns the grade.
   - Medium: at least one trusted adverse event, or a fact corroborated by a second source (JDP 2-00 §3.28: "at least one other source" ✅).
   - Low: everything else.
   - The total's confidence = share of assessed weight at each level.
-- **Knock-out (default).** The total is computed as usual; the verdict says "Knock-out".
+- **Overrides (decided).** A weighted average can hide one decisive fact, so two rules override it. Only trusted facts trigger them; unverified-only facts never do. Each one shows up in the breakdown as an `override` line.
+  - **Area floor.** A current, trusted red fact (trusted or trusted-confirmed source, not past its staleness date) puts its area at least at **50** (High). Example: Compliance 50 and Governance 12 average to 35, so Legal shows 50.
+  - **Knock-out.** A trusted knock-out makes the total `max(weighted average, 75)`, so it is always Critical. If coverage is below 50 % the total is still not shown. The verdict still says "Knock-out".
+  - Otherwise the total stays the plain weighted average. The two numbers live in `scoring_method.yaml` (`overrides`).
+  - *Precedent:* S&P Global Ratings also lets single decisive factors override or cap the weighted result: the "overriding factors" step in "Methodology For Rating Local And Regional Governments Outside Of The U.S." (15 July 2019, [copy](https://www.maalot.co.il/Publications/MT20200715130530.PDF)) and the caps in ["How We Rate Insurers"](https://www.spglobal.com/content/dam/spglobal/ratings/en/documents/pdfs/how-we-rate-insurers.pdf).
 - **Report (settled).**
   - Page 1: the total and the six umbrellas, each with score, Level, coverage and confidence; one line with the range; the separation note.
   - Page 2: a note of 150 words or less with the weights, bands, the "missing ≠ 0" rule, index vs event scores, and one line on unverified sources.

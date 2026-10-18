@@ -212,7 +212,8 @@ def test_score_result_without_config_keeps_placeholders():
 def test_score_area_public_function():
     s = score_area("legal", [_flag()], "assessed", ["Compliance_Risk_Score", "Governance_Risk_Score"], as_of=AS_OF)
     assert s.sub_scores == {"Compliance_Risk_Score": 50, "Governance_Risk_Score": 12}
-    assert s.score == round_half_even((50 * 0.08 + 12 * 0.05) / 0.13) and s.level == "Medium"
+    # weighted mean 35 (Medium), lifted to 50 (High) by the trusted-red area floor
+    assert round_half_even((50 * 0.08 + 12 * 0.05) / 0.13) == 35 and s.score == 50 and s.level == "High"
     assert score_area("legal", [], "not_assessed", ["Compliance_Risk_Score"], as_of=AS_OF).score is None
 
 
@@ -406,3 +407,63 @@ def test_wgi_figures_on_a_data_flag_score_political_stability():
     unv = _flag("F1", "country_risk_low", "country", colour="green", trust="unverified", event_date="2025")
     unv.data = data
     assert _sub(_run([unv], _areas(trusted={"country"})), "Political_Stability_Score").score is None
+
+
+# --- override rules (appendix §A5) -----------------------------------------------------------
+
+
+def test_trusted_current_red_flag_lifts_its_area_to_high():
+    rep = _run([_flag()], _areas(trusted={"legal"}))
+    legal = _area(rep, "legal")
+    assert legal.score == 50 and legal.level == "High"  # weighted mean of 50 and 12 is 35
+    ov = [c for c in legal.contributions if c.kind == "override"]
+    assert len(ov) == 1 and ov[0].ref == "F1" and ov[0].points == 50
+    assert "S&P Global Ratings" in ov[0].rule and "overriding factors" in ov[0].rule
+    assert "area floor" in legal.formula and "override" in explain_text(rep)
+    card = score_result([_flag()], _areas(trusted={"legal"}), load_scoring(), as_of=AS_OF)
+    assert next(a for a in card.areas if a.area == "legal").score == 50
+
+
+def test_area_floor_not_applied_for_unverified_or_old_red_flags():
+    inputs = ScoringInputs(source_reliability={"U1": "C"})
+    unv = _run([_flag(trust="unverified", sources=("U1",), **_eligible())], _areas(trusted={"legal"}), inputs)
+    assert _area(unv, "legal").score is not None and _area(unv, "legal").score < 50
+    assert not _area(unv, "legal").contributions
+    old = _run([_flag(event_date="2020-01-01")], _areas(trusted={"legal"}))  # fine stale after 5 years
+    assert (_area(old, "legal").score or 0) < 50 and not _area(old, "legal").contributions
+
+
+def test_trusted_knockout_lifts_total_to_critical():
+    rep = _run([_flag(event_type="sanctions_listing")], _areas(trusted=set(UMBRELLAS)))
+    assert rep.knockout and rep.total_shown
+    weighted = round_half_even(sum(s.weight * (s.score or 0) for a in rep.areas for s in a.sub_scores) / rep.coverage)
+    assert weighted < 75 and rep.total == 75 and rep.total_level == "Critical" and rep.card.total == 75
+    ov = rep.total_contributions
+    assert len(ov) == 1 and ov[0].kind == "override" and ov[0].points == 75 and "S&P Global Ratings" in ov[0].rule
+    assert f"max({weighted}, 75)" in rep.total_formula
+
+
+def test_unverified_knockout_never_lifts_the_total():
+    inputs = ScoringInputs(source_reliability={"U1": "C"})
+    rep = _run([_flag(event_type="sanctions_listing", trust="unverified", sources=("U1",), **_eligible())],
+               _areas(trusted=set(UMBRELLAS)), inputs)
+    assert not rep.knockout and not rep.total_contributions and (rep.total or 0) < 75
+
+
+def test_no_override_leaves_the_weighted_average():
+    rep = _run([_flag(event_type="major_lawsuit", colour="amber")], _areas(trusted=set(UMBRELLAS)))
+    weighted = sum(s.weight * (s.score or 0) for a in rep.areas for s in a.sub_scores)
+    assert rep.total == round_half_even(weighted / rep.coverage) and not rep.total_contributions
+    assert all(not a.contributions for a in rep.areas)
+    assert all(a.score == round_half_even(sum(s.weight * s.score for s in a.sub_scores if s.score is not None)
+                                          / sum(s.weight for s in a.sub_scores if s.score is not None))
+               for a in rep.areas if a.score is not None)
+
+
+def test_override_numbers_come_from_config():
+    m = load_method(scoring=load_scoring())
+    assert m.overrides.trusted_red_area_floor == 50 and m.overrides.knockout_total_floor == 75
+    low = m.model_copy(update={"overrides": m.overrides.model_copy(update={"trusted_red_area_floor": 40})})
+    rep = score_detailed([_flag()], _areas(trusted={"legal"}), load_scoring(), as_of=AS_OF, method=low,
+                         default_years=3)
+    assert _area(rep, "legal").score == 40

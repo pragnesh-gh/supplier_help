@@ -15,6 +15,8 @@ event weighs exactly what a fresh amber does (the rules.yaml "step down one colo
 Guarantees:
   * An area or sub-score with no evidence is ``None`` ("Not assessed"), never 0.
   * Unverified-only facts never cause a knock-out and add at most one Level band to a score.
+  * Overrides (appendix §A5): a current, trusted red fact lifts its area to at least High (50);
+    a trusted knock-out lifts the total to at least Critical (75). Both are breakdown lines.
   * The same inputs (including ``as_of``) give byte-identical output.
 """
 
@@ -165,6 +167,13 @@ class SubScoreMethod(_C):
     knockout_events: list[str] = Field(default_factory=list)
 
 
+class OverrideMethod(_C):
+    """Override rules (scoring_method.yaml ``overrides``; appendix §A5)."""
+
+    trusted_red_area_floor: float = Field(default=50, ge=0, le=100)
+    knockout_total_floor: float = Field(default=75, ge=0, le=100)
+
+
 class MethodConfig(_C):
     version: int
     anchors: Anchors
@@ -173,6 +182,7 @@ class MethodConfig(_C):
     licensed: Licensed
     country_basis: Literal["sites_then_hq", "hq_only", "sites_only"]
     total: TotalMethod
+    overrides: OverrideMethod = Field(default_factory=OverrideMethod)
     severity: SeverityMethod
     safety: SafetyMethod
     credit: CreditMethod
@@ -213,6 +223,14 @@ def load_method(path: Path | None = None, scoring: ScoringConfig | None = None) 
             if abs(w - amap.weight) > 1e-6:
                 raise ConfigError(f"{p.name}: sub-score weights for {area} sum to {w:.3f}, scoring.yaml says {amap.weight}")
     return m
+
+
+OVERRIDE_PRECEDENT = (
+    "precedent: S&P Global Ratings lets one decisive factor override or cap the weighted result: the "
+    "'overriding factors' step of 'Methodology For Rating Local And Regional Governments Outside Of The U.S.' "
+    "(15 July 2019; https://www.maalot.co.il/Publications/MT20200715130530.PDF) and the caps in "
+    "'How We Rate Insurers' (https://www.spglobal.com/content/dam/spglobal/ratings/en/documents/pdfs/"
+    "how-we-rate-insurers.pdf)")
 
 
 @dataclass(frozen=True)
@@ -290,6 +308,7 @@ class AreaDetail(BaseModel):
     coverage_fraction: float
     formula: str
     sub_scores: list[SubScoreDetail]
+    contributions: list[Contribution] = Field(default_factory=list, description="Area-level overrides.")
 
 
 class ScoringReport(BaseModel):
@@ -303,6 +322,7 @@ class ScoringReport(BaseModel):
     range_low: int | None
     range_high: int | None
     knockout: bool
+    total_contributions: list[Contribution] = Field(default_factory=list, description="Total-level overrides.")
     confidence_shares: dict[str, float]
     areas: list[AreaDetail]
     constants: dict[str, float]
@@ -850,6 +870,40 @@ def _area_has_eligible(area: UmbrellaId, flags: Sequence[Flag], run: _Run) -> bo
     return any(_source_weight(f, run.m, run.inputs, run.sources)[0] > 0 for f in flags if f.area == area)
 
 
+def _current_trusted_reds(area: UmbrellaId, flags: Sequence[Flag], run: _Run) -> list[Flag]:
+    """Trusted red facts of ``area`` that are still current (not past their staleness date).
+    Unverified-only facts never count here, so they can never trigger the area floor."""
+    out: list[Flag] = []
+    for f in sorted(flags, key=lambda x: x.id):
+        if f.area != area:
+            continue
+        colour, _ = _event_colour(f, run.rules, run.m, run.inputs)
+        if colour != "red" or not _source_weight(f, run.m, run.inputs, run.sources)[2]:
+            continue
+        stale = _stale_years(f.event_type, "", run.rules, run.m, run.default_years)
+        if stale is not None and _age_years(f, run.as_of)[0] > stale:
+            continue
+        out.append(f)
+    return out
+
+
+def _area_floor(area: UmbrellaId, score: int | None, flags: Sequence[Flag], run: _Run,
+                ov: OverrideMethod) -> tuple[int | None, list[Contribution]]:
+    """Override 1: a current trusted red fact puts its area at least at the floor (start of High)."""
+    if score is None:
+        return None, []
+    reds = _current_trusted_reds(area, flags, run)
+    floor = round_half_even(ov.trusted_red_area_floor)
+    if not reds or score >= floor:
+        return score, []
+    ids = ", ".join(f.id for f in reds)
+    return floor, [Contribution(
+        kind="override", ref=ids, label=f"area floor: {score} raised to {floor}", points=float(floor),
+        rule=(f"a current, trusted red fact puts its area at least at {floor} (High); unverified-only facts "
+              f"never do (scoring_method.yaml overrides; appendix §A5); {OVERRIDE_PRECEDENT}"),
+        source=", ".join(sorted({s for f in reds for s in f.source_ids})))]
+
+
 def _default_years() -> int:
     try:
         return load_settings().recency.default_years
@@ -870,6 +924,7 @@ def score_detailed(flags: list[Flag], areas: list[AreaStatus], cfg: ScoringConfi
     run = _Run(m=m, d=d, rules=rules or load_rules(), as_of=as_of or date.today(),
                default_years=default_years if default_years is not None else _default_years(),
                inputs=inputs, sources={s.id: s for s in (sources or [])}, levels=levels)
+    ov = m.overrides
     status_by_area = {a.area: a for a in areas}
     label_of: dict[str, str] = {a.area: a.label for a in areas}
     label_of.update(labels or {})
@@ -892,9 +947,13 @@ def score_detailed(flags: list[Flag], areas: list[AreaStatus], cfg: ScoringConfi
         score, frac, formula = _area_formula(subs)
         if cov == "not_assessed":
             score = None  # guard: never score an area without evidence
+        score, area_ov = _area_floor(area, score, flags, run, ov)
+        if area_ov:
+            formula += f"; override: {area_ov[0].label}"
         area_details.append(AreaDetail(area=area, label=label_of.get(area, area), score=score,
                                        level=level_for(score, levels), weight=cfg.areas[area].weight,
-                                       coverage_fraction=_r(frac, 4), formula=formula, sub_scores=subs))
+                                       coverage_fraction=_r(frac, 4), formula=formula, sub_scores=subs,
+                                       contributions=area_ov))
         a_s = AreaScore(area=area, score=score, level=level_for(score, levels), coverage=cov,
                         sub_scores={s.name: s.score for s in subs},
                         method=(NOT_ASSESSED if score is None else f"{formula}; coverage {round_half_even(frac * 100)} %"))
@@ -909,6 +968,7 @@ def score_detailed(flags: list[Flag], areas: list[AreaStatus], cfg: ScoringConfi
     weighted = sum(s.weight * (s.score or 0) for s in got)
     knockout = any(x.kind == "override" for s in got for x in s.contributions)
     total: int | None = None
+    total_ov: list[Contribution] = []
     lo: int | None = None
     hi: int | None = None
     shown = False
@@ -925,6 +985,17 @@ def score_detailed(flags: list[Flag], areas: list[AreaStatus], cfg: ScoringConfi
                         f"{round_half_even(d.min_coverage * 100)} % minimum (appendix §A5); possible range {lo}-{hi}")
         if knockout:
             tformula += "; knock-out found: see the verdict"
+            floor = round_half_even(ov.knockout_total_floor)
+            if total is not None and total < floor:
+                ko_ids = ", ".join(x.ref for s in got for x in s.contributions if x.kind == "override")
+                total_ov.append(Contribution(
+                    kind="override", ref=ko_ids, label=f"knock-out: total {total} raised to {floor}",
+                    points=float(floor),
+                    rule=(f"a trusted knock-out makes the total at least {floor} (Critical): max(weighted average, "
+                          f"{floor}); unverified-only facts never cause a knock-out (scoring.yaml "
+                          f"method.overrides; appendix §A5); {OVERRIDE_PRECEDENT}")))
+                tformula += f"; override: max({total}, {floor}) = {floor}"
+                total = floor
     else:
         tformula = "Not assessed: no sub-score has evidence (never 0)"
     conf_w: dict[str, float] = {"high": 0.0, "medium": 0.0, "low": 0.0}
@@ -937,7 +1008,7 @@ def score_detailed(flags: list[Flag], areas: list[AreaStatus], cfg: ScoringConfi
     return ScoringReport(
         as_of=run.as_of.isoformat(), total=total, total_level=level_for(total, levels), total_shown=shown,
         total_formula=tformula, coverage=_r(c, 4), coverage_unverified_only=_r(c_unv, 4), range_low=lo, range_high=hi,
-        knockout=knockout, confidence_shares=shares, areas=area_details, constants=d.as_dict(),
+        knockout=knockout, total_contributions=total_ov, confidence_shares=shares, areas=area_details, constants=d.as_dict(),
         decisions={"anchors (Decision 1)": f"nothing adverse {m.anchors.nothing_adverse:g}, fresh red "
                                            f"{m.anchors.fresh_red_event:g}, fresh amber {m.anchors.fresh_amber_event:g}",
                    "licensed data (Decision 2)": ", ".join(f"{k}={'on' if v else 'off'}"
@@ -969,6 +1040,9 @@ def score_area(area: UmbrellaId, facts: list[Flag], coverage: Coverage, sub_scor
     else:
         subs = [_score_sub(run, n, area, True, coverage == "unverified_only", facts) for n in names]
     score, frac, formula = _area_formula(subs)
+    score, area_ov = _area_floor(area, score, facts, run, m.overrides)
+    if area_ov:
+        formula += f"; override: {area_ov[0].label}"
     return AreaScore(area=area, score=score, level=level_for(score), coverage=coverage,
                      sub_scores={s.name: s.score for s in subs},
                      method=NOT_ASSESSED if score is None else f"{formula}; coverage {round_half_even(frac * 100)} %")
@@ -1032,6 +1106,8 @@ def explain_text(rep: ScoringReport) -> str:
     L: list[str] = [f"How was this scored? (as of {rep.as_of})", ""]
     tot = f"{rep.total} ({rep.total_level})" if rep.total is not None else "not shown"
     L.append(f"Total: {tot}. {rep.total_formula}.")
+    for c in rep.total_contributions:
+        L.append(f"    · {c.kind} {c.ref}: {c.label} [{c.points:g}] — {c.rule}")
     L.append("Formula in words: each of Siemens's 18 sub-scores is weighted by its dataset weight; sub-scores "
              "with no evidence are left out and the weights of the rest are scaled up to 100 %.")
     L.append("Confidence (share of assessed weight): " + ", ".join(f"{k} {round_half_even(v * 100)} %"
@@ -1042,6 +1118,8 @@ def explain_text(rep: ScoringReport) -> str:
         head = f"{a.score} ({a.level})" if a.score is not None else "Not assessed"
         L.append(f"## {a.label}: {head}, coverage {round_half_even(a.coverage_fraction * 100)} % of weight {a.weight:g}")
         L.append(f"   {a.formula}")
+        for c in a.contributions:
+            L.append(f"    · {c.kind} {c.ref}: {c.label} [{c.points:g}] — {c.rule} — source: {c.source}")
         for s in a.sub_scores:
             if s.score is None:
                 L.append(f"- {s.name} (weight {s.weight:g}): Not assessed: {s.not_assessed_reason}")
