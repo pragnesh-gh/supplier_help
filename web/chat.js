@@ -120,17 +120,50 @@ export function createChat({
     list.scrollTop = forceScroll || stick ? list.scrollHeight : oldScroll;
     forceScroll = false;
   }
+  // Genie: the drawer stretches up out of the launcher (bottom-right) and tapers back into it on close.
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const funnel = (x) => `polygon(0% 0%, 100% 0%, 100% 100%, ${x}% 100%, ${x * 0.55}% 70%, ${x * 0.15}% 35%)`;
+  let motion = null;
+  function genie(opening) {
+    motion?.cancel();
+    if (!drawer.animate) return (motion = null);
+    const frames = reduceMotion.matches
+      ? [{ opacity: 0 }, { opacity: 1 }]
+      : [
+          { transform: "scale(.16,.07)", clipPath: funnel(80), opacity: 0.5, offset: 0 },
+          { transform: "scale(.5,.75) skewX(-7deg)", clipPath: funnel(62), opacity: 1, offset: 0.4 },
+          { transform: "scale(.92,1) skewX(-2deg)", clipPath: funnel(20), opacity: 1, offset: 0.75 },
+          { transform: "none", clipPath: funnel(0), opacity: 1, offset: 1 },
+        ];
+    motion = drawer.animate(frames, {
+      duration: reduceMotion.matches ? 150 : opening ? 480 : 400,
+      easing: "cubic-bezier(.3,0,.2,1)",
+      direction: opening ? "normal" : "reverse",
+    });
+    return motion;
+  }
   function open() {
     state.open = true;
+    drawer.inert = false;
     render();
-    drawer.querySelector("textarea").focus();
+    genie(true);
+    drawer.querySelector("textarea").focus({ preventScroll: true });
   }
   function close() {
     state.open = false;
-    drawer.hidden = true;
-    launch.hidden = false;
     launch.setAttribute("aria-expanded", "false");
-    launch.focus();
+    const finish = () => {
+      if (state.open) return;
+      drawer.hidden = true;
+      drawer.inert = false;
+      launch.hidden = false;
+      launch.animate?.([{ opacity: 0, transform: "scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: "cubic-bezier(.2,0,0,1)" });
+      launch.focus();
+    };
+    const out = drawer.hidden ? null : genie(false);
+    if (!out) return finish();
+    drawer.inert = true;
+    out.finished.then(finish, () => {});
   }
   async function poll(id, token = generation) {
     if (token !== generation) return;

@@ -886,6 +886,7 @@ button.tonal:hover:not(:disabled),
   box-shadow: 0 4px 14px rgb(19 63 73 / 0.22);
 }
 #chat-launch:hover { background: var(--primary-hover); }
+#chat-drawer { transform-origin: bottom right; }
 #chat-launch .msi { width: 18px; height: 18px; vertical-align: 0; }
 main { padding-bottom: 96px; }
 main:has(> .overview) { padding-bottom: 26px; } /* chart mode fits 1440x790; note clears the pill */
