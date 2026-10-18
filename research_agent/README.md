@@ -4,6 +4,8 @@ A bounded "deep research" agent for the Siemens supplier-risk challenge. A buyer
 
 **Status:** draft. All tests run offline on invented fixture data. **No live run has happened yet** (no API keys in the dev environment). See [examples/sample_report.md](examples/sample_report.md) for the report layout. It uses a fictional company.
 
+**Start here:** [RESEARCH_MAP.md](RESEARCH_MAP.md) explains which sources are trusted, what is searched per risk area, the gaps, and how the work is split.
+
 ## Challenge requirements and where they are met
 
 | Challenge asks | How the agent does it | Where you see it |
