@@ -23,9 +23,11 @@ export function mountTrain(container, options) {
   // Stretch the carbody and fittings, but keep circular wheel geometry round.
   const lengthScale = 1.45;
   const selectionColor = "#2267e8";
-  const defaultYaw = -0.24, defaultPitch = 0.20;
+  const defaultYaw = 0, defaultPitch = 0.16;
+  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let entranceFrame = 0;
   const viewTarget = new Vector3(-0.25, 1.75, 0);
-  // No idle rotation or inertia: reduced-motion users receive the same stable view.
+  // A single entrance orbit, then a stable view with no idle rotation or inertia.
   let counts = options.counts || {},
     selected = options.selected,
     hovered = null,
@@ -184,6 +186,7 @@ export function mountTrain(container, options) {
       });
   }
   function releaseWebGL(forceContext = false) {
+    stopEntrance();
     if (frame) cancelAnimationFrame(frame);
     frame = 0;
     drag = null;
@@ -222,6 +225,38 @@ export function mountTrain(container, options) {
     camera.lookAt(viewTarget);
     camera.updateMatrixWorld();
     requestRender();
+  }
+  function stopEntrance() {
+    if (entranceFrame) cancelAnimationFrame(entranceFrame);
+    entranceFrame = 0;
+    root.dataset.entrance = "complete";
+  }
+  function motionChanged(event) {
+    if (!event.matches) return;
+    stopEntrance();
+    yaw = defaultYaw;
+    pitch = defaultPitch;
+    if (renderer) fitView();
+  }
+  function startEntrance() {
+    if (motionPreference.matches) {
+      root.dataset.entrance = "complete";
+      return;
+    }
+    const started = performance.now();
+    root.dataset.entrance = "turning";
+    function step(time) {
+      entranceFrame = 0;
+      if (disposed || !renderer) return;
+      const t = Math.min(1, (time - started) / 1550);
+      const eased = t * t * (3 - 2 * t);
+      yaw = defaultYaw - 0.58 * (1 - eased);
+      pitch = defaultPitch + 0.24 * (1 - eased);
+      fitView();
+      if (t < 1) entranceFrame = requestAnimationFrame(step);
+      else root.dataset.entrance = "complete";
+    }
+    step(started);
   }
   try {
     renderer = new WebGLRenderer({
@@ -472,6 +507,7 @@ export function mountTrain(container, options) {
     });
     listenCanvas("pointerdown", (e) => {
       if (e.button !== 0) return;
+      stopEntrance();
       drag = { x: e.clientX, y: e.clientY, yaw, pitch, moved: 0 };
       canvas.setPointerCapture(e.pointerId);
       tip.hidden = true;
@@ -543,6 +579,7 @@ export function mountTrain(container, options) {
     resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(root);
     resize();
+    startEntrance();
   } catch (error) {
     console.warn("Train WebGL unavailable; using interactive SVG.", error);
     fallback();
@@ -559,6 +596,7 @@ export function mountTrain(container, options) {
   };
   window.addEventListener("beforeprint", beforePrint);
   window.addEventListener("afterprint", afterPrint);
+  motionPreference.addEventListener("change", motionChanged);
   paint();
   return {
     update(next = {}) {
@@ -570,6 +608,7 @@ export function mountTrain(container, options) {
       setHover(id);
     },
     resetView() {
+      stopEntrance();
       yaw = defaultYaw;
       pitch = defaultPitch;
       if (camera) fitView();
@@ -577,6 +616,7 @@ export function mountTrain(container, options) {
     },
     destroy() {
       disposed = true;
+      motionPreference.removeEventListener("change", motionChanged);
       window.removeEventListener("beforeprint", beforePrint);
       window.removeEventListener("afterprint", afterPrint);
       releaseWebGL(true);
