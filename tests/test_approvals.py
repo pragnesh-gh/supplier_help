@@ -48,6 +48,23 @@ class ApprovalTests(unittest.TestCase):
                 self.approvals.submit(value)
         self.assertFalse(self.approvals.path.exists())
 
+    def test_cart_one_click_defaults_satisfy_validation(self):
+        # Contract test: the payload the shortlist cart sends (web/approval.js quickRequest)
+        # must pass unchanged backend validation.
+        import pathlib, shutil, subprocess
+        node = shutil.which('node')
+        if not node:
+            self.skipTest('node is not installed')
+        module = (pathlib.Path(__file__).resolve().parent.parent / 'web' / 'approval.js').as_uri()
+        script = (f"import({json.dumps(module)}).then(m => process.stdout.write(JSON.stringify("
+                  "m.quickRequest({ids:['SUPP_00001','SUPP_00002','SUPP_00003'], scope:'Doors', project:'Shortlist · Doors'}))))")
+        out = subprocess.run([node, '--input-type=module', '-e', script], capture_output=True, text=True, check=True, timeout=30)
+        saved = self.approvals.submit(json.loads(out.stdout))
+        self.assertEqual(saved['requester'], 'Demo buyer')
+        self.assertEqual(saved['status'], 'awaiting_approval')
+        self.assertEqual([c['supplier_id'] for c in saved['candidates']], ['SUPP_00001', 'SUPP_00002', 'SUPP_00003'])
+        self.assertTrue(all(c['snapshot']['kind'] == 'dataset' for c in saved['candidates']))
+
     def test_snapshot_persisted_and_server_controls_status(self):
         self.payload.update(status='approved', id='fake')
         self.payload['candidates'][0]['snapshot'] = {'values': {'Total_Risk_Index': -1}}

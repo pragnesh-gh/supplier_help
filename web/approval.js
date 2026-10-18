@@ -7,6 +7,37 @@ export function suggestShortlist(rows) {
   return ranked.slice(0,5).filter((r,i) => i < 3 || r.Total_Risk_Index <= ranked[2].Total_Risk_Index + 5).map(r => r.supplierID);
 }
 
+// Shortlist cart: an ordered, de-duplicated list of supplier IDs (max 20).
+export const CART_LIMIT = 20;
+export function cartAdd(cart, id, limit = CART_LIMIT) {
+  if (!id) return {cart, status:'invalid'};
+  if (cart.includes(id)) return {cart, status:'duplicate'};
+  if (cart.length >= limit) return {cart, status:'full'};
+  return {cart:[...cart,id], status:'added'};
+}
+export function cartRemove(cart, id) { return cart.filter(x => x !== id); }
+
+// One-click request from the cart. The backend still requires requester, reviewer,
+// project, rationale and per-candidate notes, so they are filled with explicit defaults.
+export const QUICK_DEFAULTS = Object.freeze({
+  requester:'Demo buyer', reviewer:'Sourcing lead',
+  tradeoffs:'Not captured at shortlist stage. Review the frozen evidence before negotiation.',
+  negotiation_questions:'To be prepared once approval to negotiate is granted.',
+});
+export function quickRequest({ids, scope = '', project = '', note = ''}) {
+  const unique = [...new Set(ids || [])];
+  if (unique.length !== (ids || []).length) throw Error('Approval candidates must be distinct');
+  if (unique.length < 3 || unique.length > 5) throw Error('Pick 3 to 5 candidates to request approval');
+  const text = String(note || '').trim().slice(0, 1000);
+  return {
+    requester:QUICK_DEFAULTS.requester, reviewer:QUICK_DEFAULTS.reviewer,
+    project:(String(project || '').trim() || 'Shortlist comparison').slice(0, 300),
+    scope:String(scope || '').slice(0, 1000),
+    rationale:`Shortlist comparison of ${unique.length} candidates.${text ? ' Note: ' + text : ''}`,
+    candidates:unique.map(id => ({supplier_id:id, tradeoffs:QUICK_DEFAULTS.tradeoffs, negotiation_questions:QUICK_DEFAULTS.negotiation_questions})),
+  };
+}
+
 export function createApproval({get, esc, fmt, render, navigate, save, print, scope, comparison}) {
   let draft = null, requests = [], active = null, error = '', notice = '', busy = false, generation = 0;
   const empty = () => ({requester:'',reviewer:'',project:'',rationale:'',scope:scope(),candidates:[],pool:[]});
@@ -50,9 +81,9 @@ export function createApproval({get, esc, fmt, render, navigate, save, print, sc
   function page() {
     const request=requests.find(r=>r.id===active);
     const saved=`<section class="card padded approval-register"><div class="row spread"><h2>Saved requests</h2><button data-approval="refresh">Refresh</button></div>${requests.length?requests.map(r=>`<button class="approval-saved" data-approval="view" data-id="${esc(r.id)}"><strong>${esc(r.project)}</strong><span>${esc(r.id)} · ${r.candidates.length} candidates · Awaiting approval</span></button>`).join(''):'<p>No submitted requests yet.</p>'}</section>`;
-    const top=`<div class="screen-title"><div><div class="eyebrow">Compare → Shortlist → Approval to negotiate</div><h1>Shortlist approval</h1><p class="small muted">Save a request for 3–5 candidates. Negotiation and final award remain separate decisions.</p></div><a class="button" href="#/compare">Back to comparison</a></div>${notice?`<p class="notice">${esc(notice)}</p>`:''}${error?`<p class="notice error" role="alert">${esc(error)}</p>`:''}`;
+    const top=`<div class="screen-title"><div><div class="eyebrow">Compare → Shortlist → Approval to negotiate</div><h1>Shortlist approval</h1><p class="small muted">Save a request for 3–5 candidates. Negotiation and final award remain separate decisions.</p></div><a class="button" href="#/shortlist">Back to shortlist</a></div>${notice?`<p class="notice">${esc(notice)}</p>`:''}${error?`<p class="notice error" role="alert">${esc(error)}</p>`:''}`;
     if(request)return top+`<div class="approval-layout"><section><div class="actions"><button data-approval="draft">Return to draft</button><button class="primary" data-approval="print">Print / Save as PDF</button></div>${documentHTML(request)}</section>${saved}</div>`;
-    if(!draft)return top+`<div class="two"><section class="card padded"><h2>Build a shortlist</h2><p>Compare suppliers, then suggest a shortlist or add candidates individually. A draft can hold 1–5; submission requires 3–5.</p><a class="button primary" href="#/discover">Discover suppliers →</a></section>${saved}</div>`;
+    if(!draft)return top+`<div class="two"><section class="card padded"><h2>Build a shortlist</h2><p>Add suppliers to the shortlist from Discovery, a supplier page or Compare. In the shortlist, pick 3–5 candidates and send one approval request.</p><a class="button primary" href="#/shortlist">Open shortlist →</a></section>${saved}</div>`;
     const selected=new Set(draft.candidates.map(c=>c.supplier_id));
     return top+`<div class="approval-layout"><section class="card padded"><form id="approval-form"><fieldset class="approval-fieldset" ${busy?'disabled':''}><div class="row spread"><h2>${draft.candidates.length} / 5 candidates</h2><button type="button" data-approval="suggest">Suggest from draft pool</button><button type="button" data-approval="replace-comparison">Replace from current comparison</button></div><p class="small muted">Suggestion: lowest supplied Total_Risk_Index first; take three, then up to two more within 5 points of third place. A transparent demo heuristic; verify component fit, qualification and commercial terms. Unknown scores are not ranked.</p><div class="approval-pool">${draft.pool.map(id=>{const r=get(id);return `<label><input type="checkbox" data-approval-candidate="${esc(id)}" ${selected.has(id)?'checked':''} ${!selected.has(id)&&selected.size>=5?'disabled':''}>${esc(id)} <span>Total risk ${fmt(r.Total_Risk_Index)}</span></label>`}).join('')}</div><a class="small" href="#/discover">Find more candidates in Discovery</a><div class="approval-fields">${[['requester','Requester'],['reviewer','Reviewer'],['project','Project / sourcing package'],['scope','System / part scope']].map(([key,label])=>`<label>${label}<input data-approval-field="${key}" value="${esc(draft[key])}" maxlength="${key === 'scope' ? 1000 : key === 'project' ? 300 : 200}" required></label>`).join('')}</div><label>Why these candidates? What alternatives were considered?<textarea data-approval-field="rationale" maxlength="4000" required>${esc(draft.rationale)}</textarea></label>${draft.candidates.map((c,i)=>{const r=get(c.supplier_id);return `<section class="approval-candidate"><div class="row spread"><h3>${i+1}. ${esc(r?.['Supplier Name']||c.supplier_id)}</h3><button type="button" data-approval="remove" data-id="${esc(c.supplier_id)}">Remove</button></div><p class="small muted">${esc(c.supplier_id)} · Total risk ${fmt(r?.Total_Risk_Index)} · Delivery ${fmt(r?.['Supplier Delivery Rating'])}</p><label>Trade-offs / issues to resolve<textarea data-approval-note="tradeoffs" data-id="${esc(c.supplier_id)}" maxlength="2000" required placeholder="Explain fit, key risks and why this candidate remains in the shortlist.">${esc(c.tradeoffs)}</textarea></label><label>Negotiation questions<textarea data-approval-note="negotiation_questions" data-id="${esc(c.supplier_id)}" maxlength="2000" required placeholder="For example: lead-time commitments, capacity evidence, warranty, mitigation owners and pricing conditions.">${esc(c.negotiation_questions)}</textarea></label></section>`}).join('')}<p class="notice">Saved locally on this server. Submission freezes the candidate evidence. It does not notify the reviewer or grant approval. User accounts and negotiation tracking are not enabled.</p><button class="primary" type="submit" ${busy||selected.size<3||selected.size>5?'disabled':''}>${busy?'Saving request…':'Request approval to negotiate'}</button><span class="small muted"> Draft saves automatically.</span></fieldset></form></section>${saved}</div>`;
   }
@@ -93,5 +124,16 @@ export function createApproval({get, esc, fmt, render, navigate, save, print, sc
     }catch(e){if(token===generation)error=e.message;}
     finally{if(token===generation){busy=false;render();}}
   });
-  return {start,page,refresh,snapshot:()=>draft,restore(value){if(value&&Array.isArray(value.candidates)){draft={...empty(),...value};draft.candidates=draft.candidates.filter(c=>get(c.supplier_id)).slice(0,5);draft.pool=[...new Set([...(draft.pool||[]),...draft.candidates.map(c=>c.supplier_id)])].filter(id=>get(id)).slice(0,20);}},reset(){generation++;draft=null;active=null;busy=false;error='';}};
+  async function requestQuick(options) {
+    if (busy) throw Error('A request is already being saved');
+    const body = quickRequest(options), token = generation;
+    busy = true; error = '';
+    try {
+      const request = await api('/api/approvals', body);
+      if (token !== generation) return null;
+      requests = [request, ...requests.filter(r => r.id !== request.id)]; active = request.id; notice = '';
+      return request;
+    } finally { if (token === generation) busy = false; }
+  }
+  return {start,page,refresh,requestQuick,isBusy:()=>busy,snapshot:()=>draft,restore(value){if(value&&Array.isArray(value.candidates)){draft={...empty(),...value};draft.candidates=draft.candidates.filter(c=>get(c.supplier_id)).slice(0,5);draft.pool=[...new Set([...(draft.pool||[]),...draft.candidates.map(c=>c.supplier_id)])].filter(id=>get(id)).slice(0,20);}},reset(){generation++;draft=null;active=null;busy=false;error='';}};
 }
