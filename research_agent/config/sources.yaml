@@ -1,0 +1,87 @@
+# Trusted-source allowlist for the research agent.
+#
+# Only pages on these domains are ever used as evidence. A domain also covers
+# its subdomains (e.g. "gov.uk" covers "find-and-update.company-information.service.gov.uk").
+# When several entries match, the longest (most specific) one wins.
+#
+# Edit freely: add a line "domain: Publisher name" under the right tier.
+# Lower priority number = searched and cited first.
+#
+# "company_own" is filled in at run time with the confirmed company's own
+# website. Facts from it are always labelled "company-stated".
+
+tiers:
+  official:
+    label: Official registers, regulators and courts
+    priority: 1
+    domains:
+      opensanctions.org: OpenSanctions
+      sanctionssearch.ofac.treas.gov: US Treasury (OFAC)
+      treasury.gov: US Treasury
+      data.europa.eu: EU Open Data Portal
+      eur-lex.europa.eu: EUR-Lex (EU law)
+      sanctionsmap.eu: EU Sanctions Map
+      scsanctions.un.org: UN Security Council sanctions
+      gov.uk: UK Government
+      insolvenzbekanntmachungen.de: Insolvenzbekanntmachungen (DE)
+      unternehmensregister.de: Unternehmensregister (DE)
+      handelsregister.de: Handelsregister (DE)
+      bundeskartellamt.de: Bundeskartellamt
+      bafin.de: BaFin
+      sec.gov: US SEC
+      justice.gov: US Department of Justice
+      gleif.org: GLEIF
+      ec.europa.eu: European Commission
+      era.europa.eu: EU Agency for Railways
+      curia.europa.eu: Court of Justice of the EU
+
+  company_own:
+    label: Company's own website (company-stated)
+    priority: 2
+    domains: {}
+
+  major_news:
+    label: Major business press
+    priority: 3
+    domains:
+      reuters.com: Reuters
+      apnews.com: AP News
+      bloomberg.com: Bloomberg
+      ft.com: Financial Times
+      wsj.com: The Wall Street Journal
+      economist.com: The Economist
+      cnbc.com: CNBC
+      bbc.com: BBC
+      bbc.co.uk: BBC
+      dw.com: Deutsche Welle
+      handelsblatt.com: Handelsblatt
+      faz.net: Frankfurter Allgemeine Zeitung
+      sueddeutsche.de: Süddeutsche Zeitung
+      spiegel.de: Der Spiegel
+      wiwo.de: WirtschaftsWoche
+      nzz.ch: Neue Zürcher Zeitung
+      lesechos.fr: Les Echos
+      lemonde.fr: Le Monde
+      ilsole24ore.com: Il Sole 24 Ore
+      expansion.com: Expansión
+      politico.eu: Politico Europe
+
+  rail_trade:
+    label: Rail trade press and associations
+    priority: 4
+    domains:
+      railwaygazette.com: Railway Gazette International
+      railjournal.com: International Railway Journal
+      railway-technology.com: Railway Technology
+      railwayage.com: Railway Age
+      globalrailwayreview.com: Global Railway Review
+      unife.org: UNIFE
+
+  country_data:
+    label: Country risk data
+    priority: 5
+    domains:
+      drmkc.jrc.ec.europa.eu: EU JRC (INFORM risk index)
+      worldbank.org: World Bank
+      transparency.org: Transparency International
+      oecd.org: OECD

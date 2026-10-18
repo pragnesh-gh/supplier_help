@@ -1,0 +1,11 @@
+# Research agent runtime (pinned; checked against PyPI on 2026-10-18).
+anthropic==1.15.0        # official Claude SDK; uses httpx2 internally
+httpx2==2.13.0           # Tavily REST client (same HTTP library the anthropic SDK uses)
+pydantic==2.13.5
+PyYAML==6.0.3
+python-dotenv==1.2.3
+
+# Development
+pytest==9.1.1
+mypy==2.3.1
+types-PyYAML==6.0.12.20250915
