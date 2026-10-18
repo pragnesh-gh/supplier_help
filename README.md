@@ -1,8 +1,10 @@
 # Demo video
 
-## [▶ Watch the 2-minute demo video](https://github.com/pragnesh-gh/supplier_help/releases/download/demo-knorr-2026-10-18/supplier-help-demo.mp4)
+**Start here, reviewers:** watch the two-minute demo below, with narration, background music and captions. No installation or API keys needed.
 
-**Start here, reviewers:** a complete narrated walkthrough in 1080p, with background music and captions. No installation or API keys are needed to watch. If your browser downloads the MP4, open it in your video player. [View the GitHub release](https://github.com/pragnesh-gh/supplier_help/releases/tag/demo-knorr-2026-10-18).
+https://github.com/user-attachments/assets/9ffb1736-0243-4ae4-9147-6bbb365d9fb3
+
+[Download the demo in 1080p](https://github.com/pragnesh-gh/supplier_help/releases/download/demo-knorr-2026-10-18/supplier-help-demo.mp4) · [View the GitHub release](https://github.com/pragnesh-gh/supplier_help/releases/tag/demo-knorr-2026-10-18)
 
 > **Prefer a human-led walkthrough?** [Watch the companion demo](https://cap.so/s/2dbjdb7ns5eqg63).
 
