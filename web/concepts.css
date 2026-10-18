@@ -1,0 +1,445 @@
+/* Temporary visual directions for concept-review.html. The default app is unchanged. */
+
+:root[data-concept] body {
+  letter-spacing: -0.006em;
+}
+
+/* Option 1 — Siemens Precision. Public Siemens product material uses petrol #009999;
+   the remaining neutrals are accessible UI roles built around that anchor. */
+:root[data-concept="siemens"] {
+  --primary: #007c7c;
+  --primary-hover: #005f62;
+  --primary-container: #d8f2f0;
+  --on-primary-container: #004f52;
+  --surface-low: #f1f6f5;
+  --surface-container: #e5efed;
+  --outline: #b8cdca;
+  --outline-variant: #d4e2df;
+  --on-surface: #082f33;
+  --on-surface-variant: #536c6d;
+  --accent: var(--primary);
+  --soft: var(--primary-container);
+  --bg: var(--surface-low);
+  --panel: var(--surface-container);
+  --line: var(--outline-variant);
+  --ink: var(--on-surface);
+  --muted: var(--on-surface-variant);
+}
+:root[data-concept="siemens"] body {
+  background:
+    radial-gradient(circle at 78% -20%, rgb(0 204 204 / 0.16), transparent 34rem),
+    var(--surface-low);
+}
+:root[data-concept="siemens"] header {
+  height: 66px;
+  background: #003f44;
+  border: 0;
+  box-shadow: 0 8px 28px rgb(0 43 47 / 0.15);
+}
+:root[data-concept="siemens"] .brand,
+:root[data-concept="siemens"] .brand:hover { color: #fff; }
+:root[data-concept="siemens"] .brand span { background: #00cccc; color: #003f44; }
+:root[data-concept="siemens"] #nav a { color: #b9d9d8; }
+:root[data-concept="siemens"] #nav a:hover { background: rgb(255 255 255 / 0.08); color: #fff; }
+:root[data-concept="siemens"] #nav a.active,
+:root[data-concept="siemens"] #nav a[aria-current="page"] {
+  background: #00cccc;
+  color: #002f33;
+}
+:root[data-concept="siemens"] .cart-link {
+  border-color: rgb(255 255 255 / 0.38);
+  color: #fff;
+}
+:root[data-concept="siemens"] .cart-link:hover { background: rgb(255 255 255 / 0.1); }
+:root[data-concept="siemens"] main { padding: 24px 26px; }
+:root[data-concept="siemens"] .overview { gap: 20px; }
+:root[data-concept="siemens"] .overview .left,
+:root[data-concept="siemens"] .overview .right { gap: 20px; }
+:root[data-concept="siemens"] .card {
+  border-color: rgb(7 85 87 / 0.10);
+  border-radius: 14px;
+  box-shadow: 0 10px 34px rgb(12 69 70 / 0.09), 0 1px 2px rgb(12 69 70 / 0.08);
+}
+:root[data-concept="siemens"] .card-head { padding: 14px 18px; }
+:root[data-concept="siemens"] .train-card { position: relative; }
+:root[data-concept="siemens"] .train-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  z-index: 2;
+  background: linear-gradient(#00cccc, #009999 55%, #005f62);
+}
+:root[data-concept="siemens"] .overview #train-scene {
+  background:
+    linear-gradient(180deg, #fff 0 62%, #edf5f4 62% 100%);
+}
+:root[data-concept="siemens"] .regions { background: #f7fbfa; border-top-color: var(--outline-variant); }
+:root[data-concept="siemens"] .regions button { border-color: transparent; background: transparent; }
+:root[data-concept="siemens"] .regions button:hover { background: #e5f6f4; }
+:root[data-concept="siemens"] .regions button.selected,
+:root[data-concept="siemens"] .regions button[aria-pressed="true"] {
+  background: #d8f2f0;
+  border-color: #009999;
+  box-shadow: inset 0 -3px #009999;
+}
+:root[data-concept="siemens"] .summary {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(125deg, #004f53, #007f80);
+  color: #fff;
+  border: 0;
+}
+:root[data-concept="siemens"] .summary::after {
+  content: "";
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  right: -60px;
+  top: -100px;
+  border: 26px solid rgb(0 204 204 / 0.25);
+  border-radius: 50%;
+}
+:root[data-concept="siemens"] .summary .eyebrow,
+:root[data-concept="siemens"] .summary-count { color: #bfe6e3; }
+:root[data-concept="siemens"] .summary-count strong { color: #fff; }
+:root[data-concept="siemens"] .summary .primary {
+  z-index: 1;
+  background: #00cccc;
+  border-color: #00cccc;
+  color: #003f44;
+}
+:root[data-concept="siemens"] #chat-launch {
+  background: #003f44;
+  box-shadow: 0 12px 28px rgb(0 63 68 / 0.28);
+}
+
+/* Option 2 — Digital Twin. A darker, high-contrast engineering workspace. */
+:root[data-concept="twin"] {
+  --primary: #00d8d2;
+  --primary-hover: #47eee7;
+  --on-primary: #03272b;
+  --primary-container: #153c43;
+  --on-primary-container: #7cf6ee;
+  --surface: #102a32;
+  --surface-low: #071b22;
+  --surface-container: #17343c;
+  --outline: #31545d;
+  --outline-variant: #233f47;
+  --on-surface: #eefbfa;
+  --on-surface-variant: #9db7bb;
+  --accent: var(--primary);
+  --soft: var(--primary-container);
+  --bg: var(--surface-low);
+  --panel: var(--surface-container);
+  --line: var(--outline-variant);
+  --ink: var(--on-surface);
+  --muted: var(--on-surface-variant);
+}
+:root[data-concept="twin"] body {
+  background:
+    linear-gradient(rgb(0 216 210 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(0 216 210 / 0.035) 1px, transparent 1px),
+    #071b22;
+  background-size: 28px 28px;
+}
+:root[data-concept="twin"] header {
+  height: 66px;
+  background: rgb(7 27 34 / 0.92);
+  border-bottom-color: #23444c;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.22);
+}
+:root[data-concept="twin"] .brand,
+:root[data-concept="twin"] .brand:hover { color: #eefbfa; }
+:root[data-concept="twin"] .brand span { background: #00d8d2; color: #03272b; }
+:root[data-concept="twin"] #nav a { color: #8eaaae; }
+:root[data-concept="twin"] #nav a:hover { background: #17343c; color: #eefbfa; }
+:root[data-concept="twin"] #nav a.active,
+:root[data-concept="twin"] #nav a[aria-current="page"] {
+  background: #153c43;
+  color: #7cf6ee;
+  box-shadow: inset 0 0 0 1px #28636a;
+}
+:root[data-concept="twin"] .cart-link { border-color: #31545d; color: #7cf6ee; }
+:root[data-concept="twin"] main { padding: 22px 24px; }
+:root[data-concept="twin"] .overview,
+:root[data-concept="twin"] .overview .left,
+:root[data-concept="twin"] .overview .right { gap: 16px; }
+:root[data-concept="twin"] .card {
+  background: rgb(16 42 50 / 0.96);
+  border-color: #294953;
+  border-radius: 8px;
+  box-shadow: 0 16px 36px rgb(0 0 0 / 0.20), inset 0 1px rgb(255 255 255 / 0.025);
+}
+:root[data-concept="twin"] .card-head { border-bottom-color: #294953; }
+:root[data-concept="twin"] .overview #train-scene {
+  background: radial-gradient(ellipse at 50% 42%, #244b54, #0b242c 66%);
+}
+:root[data-concept="twin"] .regions { background: #0b242c; border-top-color: #294953; }
+:root[data-concept="twin"] .regions button { background: #102a32; border-color: #294953; color: #d9eeee; }
+:root[data-concept="twin"] .regions button.selected,
+:root[data-concept="twin"] .regions button[aria-pressed="true"] {
+  background: #153c43;
+  border-color: #00d8d2;
+  color: #7cf6ee;
+  box-shadow: 0 0 18px rgb(0 216 210 / 0.12);
+}
+:root[data-concept="twin"] .summary {
+  background: linear-gradient(110deg, #102a32, #153c43);
+  border-color: #2f6269;
+  box-shadow: inset 4px 0 #00d8d2, 0 16px 36px rgb(0 0 0 / 0.2);
+}
+:root[data-concept="twin"] .summary h1 { color: #fff; }
+:root[data-concept="twin"] .summary-count strong { color: #7cf6ee; }
+:root[data-concept="twin"] button:not(.primary),
+:root[data-concept="twin"] .button:not(.primary) { background: #102a32; border-color: #31545d; color: #d7e8e9; }
+:root[data-concept="twin"] button:not(.primary):hover { background: #173c44; }
+:root[data-concept="twin"] .segmented,
+:root[data-concept="twin"] .supplier-tabs,
+:root[data-concept="twin"] .toggle-group { background: #0b242c; border-color: #31545d; }
+:root[data-concept="twin"] .supplier { background: #0b242c; border-color: #294953; }
+:root[data-concept="twin"] .risk.Low { background: #123f38; border-color: #226358; color: #7be5ca; }
+:root[data-concept="twin"] .radar-body svg text { fill: #afc4c7; }
+:root[data-concept="twin"] .radar-body svg line,
+:root[data-concept="twin"] .radar-body svg polygon { stroke: #36565e; }
+:root[data-concept="twin"] #chat-launch { background: #00d8d2; color: #03272b; box-shadow: 0 0 26px rgb(0 216 210 / 0.22); }
+
+/* Option 3 — Executive Canvas. Quiet, editorial and presentation-friendly. */
+:root[data-concept="executive"] {
+  --primary: #126964;
+  --primary-hover: #0a504d;
+  --primary-container: #dcefeb;
+  --on-primary-container: #164c49;
+  --surface-low: #f3f0e9;
+  --surface-container: #eae5db;
+  --outline: #c9c3b7;
+  --outline-variant: #ddd8cf;
+  --on-surface: #18262b;
+  --on-surface-variant: #626b6c;
+  --accent: var(--primary);
+  --soft: var(--primary-container);
+  --bg: var(--surface-low);
+  --panel: var(--surface-container);
+  --line: var(--outline-variant);
+  --ink: var(--on-surface);
+  --muted: var(--on-surface-variant);
+}
+:root[data-concept="executive"] body { background: #f3f0e9; }
+:root[data-concept="executive"] header {
+  height: 72px;
+  background: #fbfaf7;
+  border-bottom: 0;
+  box-shadow: 0 1px 0 #d8d2c8, 0 10px 30px rgb(56 49 39 / 0.06);
+}
+:root[data-concept="executive"] .brand { font-size: 18px; }
+:root[data-concept="executive"] .brand span { border-radius: 50%; padding: 7px; }
+:root[data-concept="executive"] #nav { margin-left: 18px; }
+:root[data-concept="executive"] #nav a { padding: 9px 12px; border-radius: 999px; }
+:root[data-concept="executive"] #nav a.active,
+:root[data-concept="executive"] #nav a[aria-current="page"] { background: #18262b; color: #fff; }
+:root[data-concept="executive"] main { padding: 28px 30px; }
+:root[data-concept="executive"] .overview { gap: 24px; grid-template-columns: minmax(0, 1.75fr) minmax(330px, 0.9fr); }
+:root[data-concept="executive"] .overview .left,
+:root[data-concept="executive"] .overview .right { gap: 24px; }
+:root[data-concept="executive"] .card {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgb(56 49 39 / 0.08);
+}
+:root[data-concept="executive"] .card-head { padding: 16px 20px; }
+:root[data-concept="executive"] .overview #train-scene {
+  background: linear-gradient(155deg, #fefefe, #f4f0e8);
+}
+:root[data-concept="executive"] .regions { background: #fbfaf7; padding: 12px; gap: 8px; }
+:root[data-concept="executive"] .regions button { border: 0; background: #f0ede6; border-radius: 10px; }
+:root[data-concept="executive"] .regions button.selected,
+:root[data-concept="executive"] .regions button[aria-pressed="true"] {
+  background: #18262b;
+  color: #fff;
+  box-shadow: none;
+}
+:root[data-concept="executive"] .summary {
+  min-height: 120px;
+  padding: 22px;
+  background: #18262b;
+  color: #fff;
+}
+:root[data-concept="executive"] .summary h1 { font-family: Georgia, "Times New Roman", serif; font-size: 31px; font-weight: 500; }
+:root[data-concept="executive"] .summary .eyebrow,
+:root[data-concept="executive"] .summary-count { color: #abb8b8; }
+:root[data-concept="executive"] .summary-count strong { color: #fff; }
+:root[data-concept="executive"] .summary .primary { background: #d3aa62; border-color: #d3aa62; color: #18262b; }
+:root[data-concept="executive"] .radar-card .card-head { border-bottom: 0; }
+:root[data-concept="executive"] .supplier-strip .card-head { background: #fbfaf7; }
+:root[data-concept="executive"] .results-toolbar .compare-action { margin-left: auto; }
+:root[data-concept="executive"] .portfolio-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 22px; }
+:root[data-concept="executive"] .portfolio-widget { padding: 22px; border-top: 4px solid var(--primary); }
+:root[data-concept="executive"] .attention { background: #f0ece4; }
+:root[data-concept="executive"] #chat-launch { background: #18262b; box-shadow: 0 12px 30px rgb(24 38 43 / 0.25); }
+
+@media (max-width: 800px) {
+  :root[data-concept] header { height: auto; min-height: 62px; }
+  :root[data-concept] main { padding: 14px; }
+}
+
+/* Executive Canvas 2 — Slate & Petrol. Keeps the generous Canvas hierarchy,
+   replaces the warm editorial palette with cool engineering neutrals. */
+:root[data-concept="slate"] {
+  --primary: #007f7f;
+  --primary-hover: #006466;
+  --primary-container: #d9efed;
+  --on-primary-container: #174f50;
+  --surface: #ffffff;
+  --surface-low: #eef2f2;
+  --surface-container: #e3e9e8;
+  --outline: #b9c6c5;
+  --outline-variant: #d4dddc;
+  --on-surface: #15282d;
+  --on-surface-variant: #5b6a6c;
+  --accent: var(--primary);
+  --soft: var(--primary-container);
+  --bg: var(--surface-low);
+  --panel: var(--surface-container);
+  --line: var(--outline-variant);
+  --ink: var(--on-surface);
+  --muted: var(--on-surface-variant);
+}
+:root[data-concept="slate"] body { background: #eef2f2; }
+:root[data-concept="slate"] header {
+  height: 70px;
+  background: #fff;
+  border-bottom: 1px solid #d4dddc;
+  box-shadow: 0 8px 28px rgb(21 40 45 / 0.055);
+}
+:root[data-concept="slate"] .brand { font-size: 18px; }
+:root[data-concept="slate"] .brand span { background: #123238; border-radius: 8px; }
+:root[data-concept="slate"] #nav { margin-left: 16px; }
+:root[data-concept="slate"] #nav a { padding: 9px 12px; border-radius: 999px; }
+:root[data-concept="slate"] #nav a.active,
+:root[data-concept="slate"] #nav a[aria-current="page"] { background: #123238; color: #fff; }
+:root[data-concept="slate"] main { padding: 26px 30px; }
+:root[data-concept="slate"] .card {
+  border-color: #d4dddc;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgb(21 40 45 / 0.06);
+}
+:root[data-concept="slate"] .overview { gap: 22px; }
+:root[data-concept="slate"] .overview .left,
+:root[data-concept="slate"] .overview .right { gap: 22px; }
+:root[data-concept="slate"] .summary {
+  min-height: 116px;
+  padding: 22px;
+  background: linear-gradient(120deg, #123238, #25484e);
+  color: #fff;
+  border: 0;
+}
+:root[data-concept="slate"] .summary .eyebrow,
+:root[data-concept="slate"] .summary-count { color: #b7cdcc; }
+:root[data-concept="slate"] .summary-count strong { color: #fff; }
+:root[data-concept="slate"] .summary .primary { background: #35d0c8; border-color: #35d0c8; color: #123238; }
+:root[data-concept="slate"] .overview #train-scene,
+:root[data-concept="slate"] .assembly-preview { background: linear-gradient(150deg, #fff, #e8eeee); }
+:root[data-concept="slate"] .regions { padding: 11px; gap: 7px; background: #f7f9f9; }
+:root[data-concept="slate"] .regions button { border-color: transparent; background: #e9eeee; border-radius: 9px; }
+:root[data-concept="slate"] .regions button.selected,
+:root[data-concept="slate"] .regions button[aria-pressed="true"] { background: #123238; color: #fff; box-shadow: none; }
+:root[data-concept="slate"] .discovery { grid-template-columns: 305px minmax(0, 1fr); gap: 20px; }
+:root[data-concept="slate"] .assembly-panel { border: 0; box-shadow: 0 12px 32px rgb(21 40 45 / 0.07); }
+:root[data-concept="slate"] .results-toolbar { padding: 15px 16px; }
+:root[data-concept="slate"] .results th { background: #e7edec; color: #40575a; }
+:root[data-concept="slate"] .results tbody tr.is-selected,
+:root[data-concept="slate"] .results tbody tr.is-selected td:last-child { background: #e3f2ef; }
+:root[data-concept="slate"] .portfolio-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 18px; }
+:root[data-concept="slate"] .portfolio-widget { padding: 20px 22px; border-top-width: 4px; }
+:root[data-concept="slate"] .attention { background: #e9efee; }
+:root[data-concept="slate"] #chat-launch { background: #123238; box-shadow: 0 12px 28px rgb(18 50 56 / 0.22); }
+
+/* Executive Canvas 3 — Boardroom Contrast. A restrained dark frame around a
+   light workspace; strongest navigation and dense-table separation. */
+:root[data-concept="boardroom"] {
+  --primary: #00a6a6;
+  --primary-hover: #008585;
+  --primary-container: #d8f1ef;
+  --on-primary-container: #004f52;
+  --surface: #ffffff;
+  --surface-low: #f5f7f7;
+  --surface-container: #e9eeee;
+  --outline: #bac7c7;
+  --outline-variant: #dbe3e2;
+  --on-surface: #101f26;
+  --on-surface-variant: #5d6b70;
+  --accent: var(--primary);
+  --soft: var(--primary-container);
+  --bg: var(--surface-low);
+  --panel: var(--surface-container);
+  --line: var(--outline-variant);
+  --ink: var(--on-surface);
+  --muted: var(--on-surface-variant);
+}
+:root[data-concept="boardroom"] body { background: #f5f7f7; }
+:root[data-concept="boardroom"] header {
+  height: 72px;
+  background: #0d252d;
+  border: 0;
+  box-shadow: 0 10px 32px rgb(7 24 30 / 0.2);
+}
+:root[data-concept="boardroom"] .brand,
+:root[data-concept="boardroom"] .brand:hover { color: #fff; font-size: 18px; }
+:root[data-concept="boardroom"] .brand span { background: #00caca; color: #0d252d; border-radius: 50%; padding: 7px; }
+:root[data-concept="boardroom"] #nav { margin-left: 18px; }
+:root[data-concept="boardroom"] #nav a { color: #a9c0c4; padding: 9px 12px; border-radius: 8px; }
+:root[data-concept="boardroom"] #nav a:hover { background: rgb(255 255 255 / 0.08); color: #fff; }
+:root[data-concept="boardroom"] #nav a.active,
+:root[data-concept="boardroom"] #nav a[aria-current="page"] { background: #00caca; color: #0d252d; }
+:root[data-concept="boardroom"] .cart-link { border-color: #51676c; color: #fff; }
+:root[data-concept="boardroom"] main { padding: 26px 30px; }
+:root[data-concept="boardroom"] .card {
+  border-color: #dbe3e2;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(16 31 38 / 0.07);
+}
+:root[data-concept="boardroom"] .summary {
+  min-height: 116px;
+  padding: 22px;
+  background: #fff;
+  border-left: 5px solid #00a6a6;
+}
+:root[data-concept="boardroom"] .summary h1 { color: #0d252d; font-size: 30px; }
+:root[data-concept="boardroom"] .summary .primary { background: #0d252d; border-color: #0d252d; color: #fff; }
+:root[data-concept="boardroom"] .overview #train-scene { background: radial-gradient(ellipse at 50% 45%, #fff, #edf2f1 72%); }
+:root[data-concept="boardroom"] .regions { background: #f7f9f9; padding: 10px; gap: 6px; }
+:root[data-concept="boardroom"] .regions button { background: #fff; }
+:root[data-concept="boardroom"] .regions button.selected,
+:root[data-concept="boardroom"] .regions button[aria-pressed="true"] { background: #d8f1ef; border-color: #00a6a6; box-shadow: inset 0 -3px #00a6a6; }
+:root[data-concept="boardroom"] .discovery { grid-template-columns: 310px minmax(0, 1fr); gap: 22px; }
+:root[data-concept="boardroom"] .assembly-panel { background: #0d252d; color: #eefafa; border: 0; }
+:root[data-concept="boardroom"] .assembly-panel .assembly-head,
+:root[data-concept="boardroom"] .assembly-panel .assembly-head strong,
+:root[data-concept="boardroom"] .assembly-panel .panel-label { color: #eefafa; }
+:root[data-concept="boardroom"] .assembly-panel .part-row:not([aria-pressed="true"]),
+:root[data-concept="boardroom"] .assembly-panel .part-row-count,
+:root[data-concept="boardroom"] .assembly-panel .risk-mix-legend,
+:root[data-concept="boardroom"] .assembly-panel .panel-note,
+:root[data-concept="boardroom"] .assembly-panel .assembly-hint,
+:root[data-concept="boardroom"] .assembly-panel .field-label,
+:root[data-concept="boardroom"] .assembly-panel .muted { color: #b1c4c6; }
+:root[data-concept="boardroom"] .assembly-panel .part-row[aria-pressed="true"] { background: #16434a; color: #7ef1eb; }
+:root[data-concept="boardroom"] .assembly-panel select,
+:root[data-concept="boardroom"] .assembly-panel input { background: #fff; color: #10252b; }
+:root[data-concept="boardroom"] .assembly-panel .panel-note { background: #173840; }
+:root[data-concept="boardroom"] .results th { background: #0d252d; color: #cde0e1; }
+:root[data-concept="boardroom"] .portfolio-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 20px; }
+:root[data-concept="boardroom"] .portfolio-widget { padding: 22px; border-top: 4px solid #00a6a6; }
+:root[data-concept="boardroom"] .attention { background: #edf3f2; border-left-color: #00a6a6; }
+:root[data-concept="boardroom"] #chat-launch { background: #00a6a6; color: #08242a; box-shadow: 0 12px 28px rgb(0 122 122 / 0.24); }
+
+@media (max-width: 1180px) {
+  :root[data-concept="executive"] .portfolio-grid,
+  :root[data-concept="slate"] .portfolio-grid,
+  :root[data-concept="boardroom"] .portfolio-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  :root[data-concept="executive"] .portfolio-grid,
+  :root[data-concept="slate"] .portfolio-grid,
+  :root[data-concept="boardroom"] .portfolio-grid { grid-template-columns: minmax(0, 1fr); }
+}
