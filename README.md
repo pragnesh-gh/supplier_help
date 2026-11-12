@@ -115,7 +115,7 @@ Read the [research method](docs/research/deep-research-method.md), [score patter
 | `web/` | Current app UI, comparison, chat and report views |
 | `supplier_app/` | Local server, catalogue, APIs and workspace state |
 | `research_agent/` | Research pipeline and app adapter |
-| `config/` | Research taxonomy, schemas and model configuration |
+| `research_agent/config/` | Research taxonomy, schemas and model configuration |
 | `docs/` | Challenge inputs, design decisions and verification records |
 | `tests/` | Backend, grounding, persistence and HTTP tests |
 | `prototype/` | Historical standalone HTML prototypes |
